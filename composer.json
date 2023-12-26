@@ -17,9 +17,9 @@
     ],
     "require": {
         "php": "^7|^8",
-        "laravel/framework": "^6|^7|^8|<9.19",
+        "laravel/framework": "^6|^7|^8|^10.10",
         "laravel/ui": "^2|^3|^4",
-        "livewire/livewire": "^2"
+        "livewire/livewire": "^3.3"
     },
     "require-dev": {},
     "autoload": {
