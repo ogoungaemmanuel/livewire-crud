@@ -13,12 +13,12 @@ More detailed documentation can ne found at [livewire-crud](https://ogoungaemman
 You can install the package via [Composer](https://getcomposer.org/):
 
 ```bash
-composer require ogoungaemmanuel/livewire-crud
+composer require xslainadmin/livewire-crud
 ```
 
 ## Usage
 
-After running `composer require ogoungaemmanuel/livewire-crud` command just run:
+After running `composer require xslainadmin/livewire-crud` command just run:
 
 ```bash
 php artisan crud:install
