@@ -1,6 +1,6 @@
 <?php
 
-namespace Flightsadmin\LivewireCrud;
+namespace Xslainadmin\LivewireCrud;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;

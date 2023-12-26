@@ -1,24 +1,24 @@
 # Livewire Crud Generator
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/flightsadmin/livewire-crud.svg?style=flat-square)](https://packagist.org/packages/flightsadmin/livewire-crud)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/ogoungaemmanuel/livewire-crud.svg?style=flat-square)](https://packagist.org/packages/ogoungaemmanuel/livewire-crud)
 
 A livewire CRUD Generation package to help scaffold basic site files. Package is autoloaded as per PSR-4 autoloading in any laravel version `^5.6` so no extra config required. However is has been tested on version `^7 & ^8`. It uses ***auth*** middleware thus installs `laravel/ui` just incase you don't have any other auth mechanism, this does not mean you have to use `laravel/ui`.
 
 ## Documentation
 
-More detailed documentation can ne found at [livewire-crud](https://flightsadmin.github.io/#/)
+More detailed documentation can ne found at [livewire-crud](https://ogoungaemmanuel.github.io/#/)
 
 ## Installation
 
 You can install the package via [Composer](https://getcomposer.org/):
 
 ```bash
-composer require flightsadmin/livewire-crud
+composer require ogoungaemmanuel/livewire-crud
 ```
 
 ## Usage
 
-After running `composer require flightsadmin/livewire-crud` command just run:
+After running `composer require ogoungaemmanuel/livewire-crud` command just run:
 
 ```bash
 php artisan crud:install
@@ -56,11 +56,11 @@ Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ### Security
 
-If you discover any security related issues, please email george@flightsadmin.com instead of using the issue tracker.
+If you discover any security related issues, please email george@xslainadmin.com instead of using the issue tracker.
 
 ## Credits
 
-- [George Chitechi](https://github.com/flightsadmin)
+- [George Chitechi](https://github.com/xslainadmin)
 - [All Contributors](../../contributors)
 
 ## License

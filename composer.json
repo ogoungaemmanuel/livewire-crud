@@ -1,11 +1,11 @@
 {
-    "name": "flightsadmin/livewire-crud",
+    "name": "xslainadmin/livewire-crud",
     "description": "Scaffold Livewire Components, migrations, factory and crud in one command based on database tables.",
     "keywords": [
-        "flightsadmin",
+        "xslainadmin",
         "livewire-crud"
     ],
-    "homepage": "https://github.com/flightsadmin/livewire-crud",
+    "homepage": "https://github.com/ogoungaemmanuel/livewire-crud",
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -24,12 +24,12 @@
     "require-dev": {},
     "autoload": {
         "psr-4": {
-            "Flightsadmin\\LivewireCrud\\": "src"
+            "Xslainadmin\\LivewireCrud\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Flightsadmin\\LivewireCrud\\Tests\\": "tests"
+            "Xslainadmin\\LivewireCrud\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -43,10 +43,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Flightsadmin\\LivewireCrud\\LivewireCrudServiceProvider"
+                "Xslainadmin\\LivewireCrud\\LivewireCrudServiceProvider"
             ],
             "aliases": {
-                "LivewireCrud": "Flightsadmin\\LivewireCrud\\LivewireCrudFacade"
+                "LivewireCrud": "Xslainadmin\\LivewireCrud\\LivewireCrudFacade"
             }
         }
     }

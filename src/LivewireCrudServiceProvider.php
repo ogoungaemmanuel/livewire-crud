@@ -1,9 +1,9 @@
 <?php
 
-namespace Flightsadmin\LivewireCrud;;
+namespace Xslainadmin\LivewireCrud;;
 
-use Flightsadmin\LivewireCrud\Commands\LivewireCrudGenerator;
-use Flightsadmin\LivewireCrud\Commands\LivewireInstall;
+use Xslainadmin\LivewireCrud\Commands\LivewireCrudGenerator;
+use Xslainadmin\LivewireCrud\Commands\LivewireInstall;
 use Illuminate\Support\ServiceProvider;
 
 class LivewireCrudServiceProvider extends ServiceProvider
@@ -18,7 +18,7 @@ class LivewireCrudServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/../config/config.php' => config_path('livewire-crud.php'),
             ], 'config');
-			
+
             // Registering package commands.
             $this->commands([
 				LivewireCrudGenerator::class,
