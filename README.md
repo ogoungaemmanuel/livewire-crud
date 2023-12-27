@@ -60,7 +60,7 @@ If you discover any security related issues, please email george@xslainadmin.com
 
 ## Credits
 
-- [George Chitechi](https://github.com/xslainadmin)
+- [Ogounga Emmanuel](https://github.com/xslainadmin)
 - [All Contributors](../../contributors)
 
 ## License
