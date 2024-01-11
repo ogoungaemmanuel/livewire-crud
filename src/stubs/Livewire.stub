@@ -5,11 +5,19 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\{{modelName}};
+use Carbon\Carbon;
+use File;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Jantinnerezo\LivewireAlert\LivewireAlert;
+use Intervention\Image\Facades\Image;
+use Livewire\WithFileUploads;
 
 class {{modelName}}s extends Component
 {
     use WithPagination;
-
+    use WithFileUploads;
+    use LivewireAlert;
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, $keyWord, {{updatefield}};
     public $updateMode = false;
@@ -22,13 +30,13 @@ class {{modelName}}s extends Component
 						->paginate(10),
         ]);
     }
-	
+
     public function cancel()
     {
         $this->resetInput();
         $this->updateMode = false;
     }
-	
+
     private function resetInput()
     {		{{resetfields}}
     }
@@ -38,20 +46,41 @@ class {{modelName}}s extends Component
         $this->validate([{{rules}}
         ]);
 
+        //  $photo = $this->storeImage();
+
         {{modelName}}::create([ {{addfields}}
         ]);
-        
+
         $this->resetInput();
-		$this->emit('closeModal');
-		session()->flash('message', '{{modelName}} Successfully created.');
+		$this->dispatch('closeModal');
+        $this->alert('success', '{{modelName}} Successfully created!', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'timerProgressBar' => true,
+           ]);
+		// session()->flash('message', '{{modelName}} Successfully created.');
     }
+
+      public function storeImage()
+    {
+        if (!$this->photo) {
+            return null;
+        }
+
+        $image = $this->photo;
+        $ImageName = time().'.'.$image->getClientOriginalExtension();
+        Image::make($image)->resize(1024, 625)->save(public_path('uploads/images/{{modelName}}/{{modelName}}') . $ImageName);
+        return $ImageName;
+    }
+
 
     public function edit($id)
     {
         $record = {{modelName}}::findOrFail($id);
 
         $this->selected_id = $id; {{editfields}}
-		
+
         $this->updateMode = true;
     }
 
@@ -59,7 +88,7 @@ class {{modelName}}s extends Component
     {
         $this->validate([{{rules}}
         ]);
-
+        // $photo = $this->storeImage();
         if ($this->selected_id) {
 			$record = {{modelName}}::find($this->selected_id);
             $record->update([ {{addfields}}
@@ -67,7 +96,13 @@ class {{modelName}}s extends Component
 
             $this->resetInput();
             $this->updateMode = false;
-			session()->flash('message', '{{modelName}} Successfully updated.');
+            $this->alert('success', '{{modelName}} Successfully updated.', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'timerProgressBar' => true,
+           ]);
+			// session()->flash('message', '{{modelName}} Successfully updated.');
         }
     }
 
@@ -78,4 +113,39 @@ class {{modelName}}s extends Component
             $record->delete();
         }
     }
+
+    public function deactivate($id)
+    {
+        if ($id) {
+            $record = {{modelName}}::where('id', $id);
+            $record->update([
+                'status' => 2
+                ]);
+
+        $this->alert('success', '{{modelName}} Successfully Deactivated.', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'timerProgressBar' => true,
+           ]);
+        }
+    }
+
+    public function activate($id)
+    {
+        if ($id) {
+            $record = {{modelName}}::where('id', $id);
+            $record->update([
+                'status' => 1
+                ]);
+
+            $this->alert('success', '{{modelName}} Successfully Activated.', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'timerProgressBar' => true,
+           ]);
+        }
+    }
+
 }
