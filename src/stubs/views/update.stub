@@ -1,115 +1,23 @@
-<!--begin::Main-->
-<div class="app-main flex-column flex-row-fluid" id="kt_app_main">
-    <!--begin::Content wrapper-->
-    <div class="d-flex flex-column flex-column-fluid">
-     {{-- @include('layouts.page_title') --}}
-	{{-- @section('title', __('Sliders')) --}}
-<div class="container-fluid">
-	<div class="row justify-content-center">
-		<div class="col-md-12">
-			<div class="card">
-            <!--begin::Card header-->
-                                <div class="card-header border-0 pt-6">
-                                    <!--begin::Card title-->
-                                    <div class="card-title">
-                                        <!--begin::Search-->
-                                        <div class="d-flex align-items-center position-relative my-1">
-                                            <!--begin::Svg Icon | path: icons/duotune/general/gen021.svg-->
-                                            <span class="svg-icon svg-icon-1 position-absolute ms-6">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect opacity="0.5" x="17.0365" y="15.1223" width="8.15546" height="2" rx="1" transform="rotate(45 17.0365 15.1223)" fill="currentColor" />
-                                                    <path d="M11 19C6.55556 19 3 15.4444 3 11C3 6.55556 6.55556 3 11 3C15.4444 3 19 6.55556 19 11C19 15.4444 15.4444 19 11 19ZM11 5C7.53333 5 5 7.53333 5 11C5 14.4667 7.53333 17 11 17C14.4667 17 17 14.4667 17 11C17 7.53333 14.4667 5 11 5Z" fill="currentColor" />
-                                                </svg>
-                                            </span>
-                                            <!--end::Svg Icon-->
-                                            <input wire:model='keyWord' type="text" class="form-control form-control-solid w-250px ps-14" name="search" id="search" placeholder="Search {{modelTitle}}s">
-                                            {{-- <input type="text" wire:model.live.debounce.500ms="search" class="form-control form-control-solid w-250px ps-14" placeholder="Search user" /> --}}
-                                        </div>
-                                        <!--end::Search-->
-                                    </div>
-                                    <!--begin::Card title-->
-                                    <!--begin::Card toolbar-->
-                                    <div class="card-toolbar">
-                                        <!--begin::Toolbar-->
-                                        <div class="d-flex justify-content-end" data-kt-user-table-toolbar="base">
-                                            <!--begin::Add user-->
-                                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDataModal">
-                                            <!--begin::Svg Icon | path: icons/duotune/arrows/arr075.svg-->
-                                            <span class="svg-icon svg-icon-2">
-                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="currentColor" />
-                                                    <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
-                                                </svg>
-                                            </span>
-                                            <!--end::Svg Icon-->Add {{modelTitle}}s</button>
-                                            <!--end::Add user-->
-                                        </div>
-                                    </div>
-                                    <!--end::Card toolbar-->
-                                </div>
-                                <!--end::Card header-->
-                                @if (session()->has('message'))
-                                <div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-                                @endif
-				{{--<div class="card-header">
-					<div style="display: flex; justify-content: space-between; align-items: center;">
-						<div class="float-left">
-							<h4><i class="fab fa-laravel text-info"></i>
-							{{modelTitle}} Listing </h4>
-						</div>
-						<div wire:poll.60s>
-							<code><h5>{{ now()->format('H:i:s') }} UTC</h5></code>
-						</div>
-						@if (session()->has('message'))
-						<div wire:poll.4s class="btn btn-sm btn-success" style="margin-top:0px; margin-bottom:0px;"> {{ session('message') }} </div>
-						@endif
-						<div>
-							<input wire:model='keyWord' type="text" class="form-control" name="search" id="search" placeholder="Search {{modelTitle}}s">
-						</div>
-						<div class="btn btn-sm btn-info" data-toggle="modal" data-target="#createDataModal">
-						<i class="fa fa-plus"></i>  Add {{modelTitle}}s
-						</div>
-					</div>
-				</div>--}}
-				<div class="card-body">
-						@include('livewire.{{modelNamePluralLowerCase}}.create')
-						@include('livewire.{{modelNamePluralLowerCase}}.update')
-				<div class="table-responsive">
-					<table class="table table-bordered table-sm">
-						<thead class="thead">
-							<tr>
-								<td>#</td> {{tableHeader}}								<td>ACTIONS</td>
-							</tr>
-						</thead>
-						<tbody>
-							@foreach(${{modelNamePluralLowerCase}} as $row)
-							<tr>
-								<td>{{ $loop->iteration }}</td> {{tableBody}}
-								<td width="90">
-								<div class="btn-group" role="group" aria-label="Basic example">
-													<button type="button" data-bs-toggle="modal" data-bs-target="#updateModal" wire:click="edit({{$row->id}})" class="btn btn-sm btn-primary">Edit</button>
-													<button type="button" onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelTitle}}s cannot be recovered!')||event.stopImmediatePropagation()"
-														wire:click="destroy({{$row->id}})" class="btn btn-sm btn-secondary">Delete</button>
-												  </div>
-								{{--<div class="btn-group">
-									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-									Actions
-									</button>
-									<div class="dropdown-menu dropdown-menu-right">
-									<a data-toggle="modal" data-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Edit </a>
-									<a class="dropdown-item" onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelTitle}}s cannot be recovered!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Delete </a>
-									</div>
-								</div>--}}
-								</td>
-							@endforeach
-						</tbody>
-					</table>
-					{{ ${{modelNamePluralLowerCase}}->links() }}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+<!-- Modal -->
+<div wire:ignore.self class="modal fade" id="updateModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+       <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateModalLabel">Update {{modelTitle}}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span wire:click.prevent="cancel()" aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+					<input type="hidden" wire:model="selected_id">{{form}}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" wire:click.prevent="update()" class="btn btn-primary" data-dismiss="modal">Save</button>
+            </div>
+       </div>
+    </div>
 </div>
-	</div>
-</div>
+
