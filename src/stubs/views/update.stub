@@ -10,7 +10,8 @@
             </div>
             <div class="modal-body">
                 <form>
-					<input type="hidden" wire:model="selected_id">{{form}}
+					<input type="hidden" wire:model="selected_id">
+                    {{form}}
                 </form>
             </div>
             <div class="modal-footer">

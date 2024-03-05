@@ -19,16 +19,23 @@ class {{modelName}}s extends Component
     use WithFileUploads;
     use LivewireAlert;
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $keyWord, {{updatefield}};
+    public $selected_id, {{updatefield}};
+    public $indexSearch = '';
+    protected $queryString = ['indexSearch'];
     public $updateMode = false;
 
     public function render()
     {
-		$keyWord = '%'.$this->keyWord .'%';
         return view('livewire.{{modelNamePluralLowerCase}}.view', [
-            '{{modelNamePluralLowerCase}}' => {{modelName}}::latest(){{search}}
+            '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
+                        ->search($this->indexSearch)
 						->paginate(10),
         ]);
+    }
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
     }
 
     public function cancel()
