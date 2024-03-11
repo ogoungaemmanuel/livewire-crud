@@ -60,6 +60,13 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected $modelNamespace = 'App\Models';
 
+
+    /**
+     * Model Namespace.
+     * @var string
+     */
+    protected $moduleNamespace = 'Module';
+
     /**
      * Controller Namespace.
      * @var string
