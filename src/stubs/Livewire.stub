@@ -6,12 +6,12 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\{{modelName}};
 use Carbon\Carbon;
-use File;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Intervention\Image\Facades\Image;
-use Livewire\WithFileUploads;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
 
 class {{modelName}}s extends Component
 {
@@ -21,6 +21,7 @@ class {{modelName}}s extends Component
 	protected $paginationTheme = 'bootstrap';
     public $selected_id, {{updatefield}};
     public $indexSearch = '';
+    public $selecteditem = [];
     protected $queryString = ['indexSearch'];
     public $updateMode = false;
 
@@ -76,7 +77,11 @@ class {{modelName}}s extends Component
         }
 
         $image = $this->photo;
+        $path = base_path("public/uploads/images/{{modelName}}/");
         $ImageName = time().'.'.$image->getClientOriginalExtension();
+        if (!File::exists($path)) {
+            File::makeDirectory($path, 0777, true, true);
+          }
         Image::make($image)->resize(1024, 625)->save(public_path('uploads/images/{{modelName}}/{{modelName}}') . $ImageName);
         return $ImageName;
     }
@@ -119,6 +124,19 @@ class {{modelName}}s extends Component
             $record = {{modelName}}::where('id', $id);
             $record->delete();
         }
+    }
+
+    public function deleteselected()
+    {
+        $ids = $this->selecteditem;
+        {{modelName}}::wherekey($ids)->delete();
+        $this->selecteditem = [];
+        $this->alert('success', '{{modelName}} Successfully Deleted.', [
+            'position' => 'center',
+            'timer' => 3000,
+            'toast' => true,
+            'timerProgressBar' => true,
+           ]);
     }
 
     public function deactivate($id)

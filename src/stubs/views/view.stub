@@ -30,13 +30,17 @@
 					<table class="table table-bordered table-sm">
 						<thead class="thead">
 							<tr>
-								<td>#</td> {{tableHeader}}								<td>ACTIONS</td>
+								<td>#</td>
+                                {{tableHeader}}
+                                <td>ACTIONS</td>
 							</tr>
 						</thead>
 						<tbody>
 							@foreach(${{modelNamePluralLowerCase}} as $row)
 							<tr>
-								<td>{{ $loop->iteration }}</td> {{tableBody}}								<td width="90">
+								<td>{{ $loop->iteration }}</td>
+                                {{tableBody}}
+                                <td width="90">
 								<div class="btn-group">
 									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 									Actions
