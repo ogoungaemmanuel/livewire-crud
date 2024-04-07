@@ -15,7 +15,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     protected $argument;
     private $replaces = [];
 
-    protected $signature = 'crud:generate {name : Table name}';
+    protected $signature = 'crud:generate {name : Table name} {module}';
 
     protected $description = 'Generate Livewire Component and CRUD operations';
 
@@ -27,6 +27,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     public function handle()
     {
         $this->table = $this->getNameInput();
+        $this->module = $this->getModuleInput();
 
         // If table not exist in DB return
         if (!$this->tableExists()) {
@@ -43,11 +44,13 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 				->buildViews();
 
 		//Updating Routes
+        $modulelower = Str::lower($this->getModuleInput());
+        $module = $this->getModuleInput();
         $this->filesystem = new Filesystem;
         $this->argument = $this->getNameInput();
-        $routeFile = base_path('routes/web.php');
+        $routeFile = base_path("Modules/{$module}/routes/web.php");
         $routeContents = $this->filesystem->get($routeFile);
-        $routeItemStub = "\tRoute::view('" . 	$this->getNameInput() . "', 'livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+        $routeItemStub = "\tRoute::view('" . 	$this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
 		$routeItemHook = '//Route Hooks - Do not delete//';
 
         if (!Str::contains($routeContents, $routeItemStub)) {
@@ -82,11 +85,14 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
      */
     protected function buildModel()
     {
+        $modulelower = Str::lower($this->getModuleInput());
+        $module = $this->getModuleInput();
         $modelPath = $this->_getModelPath($this->name);
 		$livewirePath = $this->_getLivewirePath($this->name);
+        $modulePath = trim($this->_getModulePath($this->name), '{}');
         $factoryPath = $this->_getFactoryPath($this->name);
 
-        if ($this->files->exists($livewirePath) && $this->ask("Livewire Component ". Str::studly(Str::singular($this->table)) ."Component Already exist. Do you want overwrite (y/n)?", 'y') == 'n') {
+        if ($this->files->exists($modulePath) && $this->ask("Livewire Component ". Str::studly(Str::singular($this->table)) ."Component Already exist. Do you want overwrite (y/n)?", 'y') == 'n') {
             return $this;
         }
 
@@ -103,7 +109,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             array_keys($replace), array_values($replace), $this->getStub('Livewire')
         );
         $this->warn('Creating: <info>Livewire Component...</info>');
-        $this->write($livewirePath, $livewireTemplate);
+        // $this->write($livewirePath, $livewireTemplate);
+        $this->write($modulePath, $livewireTemplate);
 		$this->warn('Creating: <info>Model...</info>');
         $this->write($modelPath, $modelTemplate);
         $this->warn('Creating: <info>Factories, Please edit before running Factory ...</info>');

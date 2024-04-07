@@ -6,13 +6,15 @@ A livewire CRUD Generation package to help scaffold basic site files. Package is
 
 ## Documentation
 
-More detailed documentation can ne found at [livewire-crud](https://ogoungaemmanuel.github.io/#/)
+More detailed documentation can be found at [livewire-crud](https://ogoungaemmanuel.github.io/#/)
 
 ## Installation
 
 You can install the package via [Composer](https://getcomposer.org/):
+documentation can be found at [laravel-modules](https://nwidart.com/laravel-modules/v1/installation-and-setup)
 
 ```bash
+composer require nwidart/laravel-modules 
 composer require xslainadmin/livewire-crud
 ```
 
@@ -22,6 +24,7 @@ After running `composer require xslainadmin/livewire-crud` command just run:
 
 ```bash
 php artisan crud:install
+composer dump-autoload
 ```
 **This command will perfom below actions:
 
@@ -35,7 +38,7 @@ to generate Auth scaffolds using `laravel/ui` package. You can skip this step if
 Then generate Crud by:
 
 ```bash
-php artisan crud:generate {table-name}
+php artisan crud:generate {table-name} {module-name}
 ```
 **This command will generate:
 
@@ -45,6 +48,7 @@ php artisan crud:generate {table-name}
     * Factory.
     
 **Remember to customise your genertaed factories and migrations if you need to use them later
+**Remember to customise template Name from Crud Command
 
 ### Changelog
 

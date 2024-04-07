@@ -27,7 +27,7 @@ class {{modelName}}s extends Component
 
     public function render()
     {
-        return view('livewire.{{modelNamePluralLowerCase}}.view', [
+        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
             '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
                         ->search($this->indexSearch)
 						->paginate(10),

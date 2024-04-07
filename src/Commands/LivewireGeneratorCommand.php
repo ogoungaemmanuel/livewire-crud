@@ -47,7 +47,16 @@ abstract class LivewireGeneratorCommand extends Command
      * @var string
      */
     protected $name = null;
-
+    /**
+     * Table name from argument.
+     * @var string
+     */
+    protected $module = null;
+    /**
+     * Table name from argument.
+     * @var string
+     */
+    protected $moduleconvert = null;
     /**
      * Store the DB table columns.
      * @var array
@@ -60,12 +69,25 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected $modelNamespace = 'App\Models';
 
+    /**
+     * Model Namespace.
+     * @var string
+     */
+    protected $templateName = 'backend';
 
     /**
      * Model Namespace.
      * @var string
      */
-    protected $moduleNamespace = 'Module';
+    protected function moduleNamespace()
+    {
+        $module = trim($this->getModuleInput(), '{}');
+        $path = "Modules/". $module ."/Livewire";
+        // $path = "Modules\{$module}\Livewire";
+        return trim($path, '{}');
+    }
+
+    // protected $moduleNamespace = 'Modules\Backend\Livewire';
 
     /**
      * Controller Namespace.
@@ -104,6 +126,7 @@ abstract class LivewireGeneratorCommand extends Command
         $this->modelNamespace = config('crud.model.namespace', $this->modelNamespace);
         $this->controllerNamespace = config('livewire-crud.controller.namespace', $this->controllerNamespace);
         $this->livewireNamespace = config('livewire-crud.livewire.namespace', $this->livewireNamespace);
+        // $this->moduleNamespace = config('livewire-crud.module.namespace', $this->moduleNamespace());
         $this->layout = config('livewire-crud.layout', $this->layout);
     }
 
@@ -204,6 +227,17 @@ abstract class LivewireGeneratorCommand extends Command
         return app_path($this->_getNamespacePath($this->livewireNamespace) . "{$name}s.php");
     }
 
+    protected function _getModulePath($name)
+    {
+        return base_path($this->_getModuleNamespacePath($this->moduleNamespace()) . "{$name}s.php");
+        // return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}s.php");
+    }
+
+    // protected function _getModulePath($name)
+    // {
+    //     return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}s.php");
+    // }
+
     /**
      * @param $name
      * @return string
@@ -225,6 +259,13 @@ abstract class LivewireGeneratorCommand extends Command
         return str_replace('\\', '/', $str);
     }
 
+    private function _getModuleNamespacePath($namespace)
+    {
+        $str = Str::start(Str::finish(Str::after($namespace, 'modules'), '\\'), '\\');
+
+        return str_replace('\\', '/', $str);
+    }
+
     /**
      * Get the default layout path.
      * @return string
@@ -241,8 +282,9 @@ abstract class LivewireGeneratorCommand extends Command
     protected function _getViewPath($view)
     {
         $name = Str::kebab($this->name);
-
-        return $this->makeDirectory(resource_path("/views/livewire/{$name}s/{$view}.blade.php"));
+        $module = $this->getModuleInput();
+        $modulelocation = $this->modelNamespace;
+        return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}s/{$view}.blade.php"));
     }
 
     /**
@@ -252,6 +294,8 @@ abstract class LivewireGeneratorCommand extends Command
     protected function buildReplacements()
     {
         return [
+            '{{getTemplate}}' => $this->templateName,
+            '{{getModuleInput}}' => Str::lower($this->getModuleInput()),
             '{{layout}}' => $this->layout,
             '{{modelName}}' => $this->name,
             '{{modelTitle}}' => Str::title(Str::snake($this->name, ' ')),
@@ -530,6 +574,15 @@ abstract class LivewireGeneratorCommand extends Command
         return trim($this->argument('name'));
     }
 
+      /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getModuleInput()
+    {
+        return trim($this->argument('module'), '{}');
+    }
     /**
      * Get the console command arguments.
      * @return array

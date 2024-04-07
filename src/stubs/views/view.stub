@@ -24,8 +24,8 @@
 				</div>
 
 				<div class="card-body">
-						@include('livewire.{{modelNamePluralLowerCase}}.create')
-						@include('livewire.{{modelNamePluralLowerCase}}.update')
+						@include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.create')
+						@include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update')
 				<div class="table-responsive">
 					<table class="table table-bordered table-sm">
 						<thead class="thead">
