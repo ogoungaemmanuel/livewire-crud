@@ -116,6 +116,8 @@
 						<thead class="thead">
 							<tr>
 								<td>#</td>
+                                <td>SN</td>
+                                {{-- <td>Photo</td> --}}
                                 {{tableHeader}}
                                 <td>ACTIONS</td>
 							</tr>
@@ -123,8 +125,17 @@
 						<tbody>
 							@foreach(${{modelNamePluralLowerCase}} as $row)
 							<tr>
+                                <td><input type="checkbox" value="{{$row->id}}" wire:model.live="selecteditem"></td>
 								<td>{{ $loop->iteration }}</td>
+                                {{-- <td><img class="rounded-circle" style="height: 40px; width: 40px;"
+                                 src="{{ asset('uploads/images/{{modelName}}/{{modelName}}' . $row->photo) }}" alt="photo"></td> --}}
                                 {{tableBody}}
+                                {{-- <td>@if ($row->status == 1)
+                                    <button type="button" wire:click="deactivate({{$row->id}})" class="btn btn-sm btn-success">Active</button>
+                                @else
+                                <button type="button" wire:click="activate({{$row->id}})" class="btn btn-sm btn-warning">Inactive</button>
+                                @endif
+                                </td> --}}
                                 <td width="90">
 								<div class="btn-group">
 									<button type="button" class="btn btn-info btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
