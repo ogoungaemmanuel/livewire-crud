@@ -132,6 +132,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $tableBody = "\n";
         $viewRows = "\n";
         $form = "\n";
+        $show = "\n";
         $type = null;
 
         foreach ($this->getFilteredColumns() as $column) {
@@ -141,6 +142,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             $tableBody .= "\t\t\t\t". $this->getBody($column);
             $form .= $this->getField($title, $column, 'form-field');
 			$form .= "\n";
+            $show .= $this->showField($title, $column, 'show-field');
+			$show .= "\n";
         }
 
 		foreach ($this->getColumns() as $values) {
@@ -167,12 +170,13 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             '{{tableBody}}' => $tableBody,
             '{{viewRows}}' => $viewRows,
             '{{form}}' => $form,
+            '{{show}}' => $show,
             '{{type}}' => $type,
         ]);
 
         $this->buildLayout();
 
-        foreach (['view', 'index', 'create', 'update'] as $view) {
+        foreach (['view', 'index', 'create', 'show', 'update'] as $view) {
             $viewTemplate = str_replace(
                 array_keys($replace), array_values($replace), $this->getStub("views/{$view}")
             );

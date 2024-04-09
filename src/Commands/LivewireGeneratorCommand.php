@@ -330,6 +330,26 @@ abstract class LivewireGeneratorCommand extends Command
             array_keys($replace), array_values($replace), $this->getStub("views/{$type}")
         );
     }
+   /**
+     * Build the form fields for form.
+     * @param $title
+     * @param $column
+     * @param string $type
+     * @return mixed
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     *
+     */
+    protected function showField($title, $column, $type = 'show-field')
+    {
+        $replace = array_merge($this->buildReplacements(), [
+            '{{title}}' => $title,
+            '{{column}}' => $column,
+        ]);
+
+        return str_replace(
+            array_keys($replace), array_values($replace), $this->getStub("views/{$type}")
+        );
+    }
 
     /**
      * @param $title
@@ -533,6 +553,20 @@ abstract class LivewireGeneratorCommand extends Command
             return implode('', $filterColumns);
         };
 
+        $showfields = function () {
+
+            /** @var array $filterColumns Exclude the unwanted columns */
+            $filterColumns = $this->getFilteredColumns();
+
+            // Add quotes to the unwanted columns for fillable
+            array_walk($filterColumns, function (&$value) {
+                $value = "\n\t\t\$this->" . $value . " = \$record-> ". $value .";";
+            });
+
+            // CSV format
+            return implode('', $filterColumns);
+        };
+
 		$editfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
@@ -553,6 +587,7 @@ abstract class LivewireGeneratorCommand extends Command
             '{{fillable}}' => $fillable(),
             '{{updatefield}}' => $updatefield(),
             '{{resetfields}}' => $resetfields(),
+            '{{showfields}}' => $showfields(),
             '{{editfields}}' => $editfields(),
             '{{addfields}}' => $addfields(),
             '{{factory}}' => $factoryfields(),
