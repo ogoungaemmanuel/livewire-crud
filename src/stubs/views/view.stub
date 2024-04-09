@@ -111,6 +111,7 @@
 				<div class="card-body">
 						@include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.create')
 						@include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update')
+                        @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.show')
 				<div class="table-responsive">
 					<table class="table table-bordered table-sm">
 						<thead class="thead">
@@ -142,6 +143,7 @@
 									Actions
 									</button>
 									<div class="dropdown-menu dropdown-menu-right">
+                                    <a data-toggle="modal" data-target="#showModal" class="dropdown-item" wire:click="show({{$row->id}})"><i class="fa fa-edit"></i> Show </a>
 									<a data-toggle="modal" data-target="#updateModal" class="dropdown-item" wire:click="edit({{$row->id}})"><i class="fa fa-edit"></i> Edit </a>
 									<a class="dropdown-item" onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelTitle}}s cannot be recovered!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})"><i class="fa fa-trash"></i> Delete </a>
 									</div>
