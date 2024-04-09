@@ -88,12 +88,9 @@ class {{modelName}}s extends Component
 
     public function show($id)
     {
-        if ($id) {
-            $record = {{modelName}}::where('id', $id);
-            $this->selected_id = $id;
-            {{showfields}}
-           $this->updateMode = false;
-        }
+        $record = {{modelName}}::findOrFail($id);
+        $this->selected_id = $id; {{showfields}}
+        $this->updateMode = false;
     }
 
     public function edit($id)
