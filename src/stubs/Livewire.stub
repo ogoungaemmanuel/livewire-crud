@@ -115,6 +115,7 @@ class {{modelName}}s extends Component
             ]);
 
             $this->resetInput();
+            $this->dispatch('closeModal');
             $this->updateMode = false;
             $this->alert('success', '{{modelName}} Successfully updated.', [
             'position' => 'center',
@@ -139,6 +140,7 @@ class {{modelName}}s extends Component
         $ids = $this->selecteditem;
         {{modelName}}::wherekey($ids)->delete();
         $this->selecteditem = [];
+        $this->dispatch('closeModal');
         $this->alert('success', '{{modelName}} Successfully Deleted.', [
             'position' => 'center',
             'timer' => 3000,
@@ -154,7 +156,7 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 2
                 ]);
-
+        $this->dispatch('closeModal');
         $this->alert('success', '{{modelName}} Successfully Deactivated.', [
             'position' => 'center',
             'timer' => 3000,
@@ -171,7 +173,7 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 1
                 ]);
-
+            $this->dispatch('closeModal');
             $this->alert('success', '{{modelName}} Successfully Activated.', [
             'position' => 'center',
             'timer' => 3000,
