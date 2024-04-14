@@ -51,6 +51,9 @@
         <div class="card-toolbar">
             <!--begin::Toolbar-->
             <div class="d-flex justify-content-end" data-kt-subscription-table-toolbar="base">
+                <button type="button" class="btn btn-light-primary me-3" wire:click="reload">
+                    ↻
+                </button>
                 <!--begin::Export-->
                 <button type="button" class="btn btn-light-primary me-3" data-bs-toggle="modal"
                     data-bs-target="#kt_subscriptions_export_modal">

@@ -295,6 +295,7 @@ abstract class LivewireGeneratorCommand extends Command
     {
         return [
             '{{getTemplate}}' => $this->templateName,
+            '{{getNameInput}}' => $this->getNameInput(),
             '{{getModuleInputModule}}' => $this->getModuleInput(),
             '{{getModuleInput}}' => Str::lower($this->getModuleInput()),
             '{{layout}}' => $this->layout,

@@ -36,6 +36,12 @@ class {{modelName}}s extends Component
         ]);
     }
 
+
+    public function reload()
+    {
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
@@ -70,6 +76,7 @@ class {{modelName}}s extends Component
             'timerProgressBar' => true,
            ]);
 		// session()->flash('message', '{{modelName}} Successfully created.');
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
     }
 
       public function storeImage()
