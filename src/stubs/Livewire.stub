@@ -50,6 +50,7 @@ class {{modelName}}s extends Component
     public function cancel()
     {
         $this->resetInput();
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
         $this->updateMode = false;
     }
 
