@@ -10,6 +10,55 @@
             </div>
            <div class="modal-body">
 				<form>
+                {{--   <div class="row">
+            <div class="form-group col-md-12">
+                <div class="col-md-12 col-md-offset-3">
+                    <div class="card card-flush py-4">
+                        <div class="card-body text-center pt-0">
+                            <div class="image-input image-input-empty image-input-outline image-input-placeholder mb-3"
+                                data-kt-image-input="true">
+                                @if (!is_null($newimage))
+                                <div class="image-input-wrapper w-150px h-150px"
+                                    style="background-image: url({{ $newimage->temporaryUrl()}})">
+                                </div>
+                                @else
+                                <div class="image-input-wrapper w-150px h-150px"
+                                    style="background-image: url({{ asset('uploads/images/{{modelName}}/{{modelName}}' . $photo) }})">
+                                </div>
+                                @endif
+                                <label
+                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                    data-kt-image-input-action="change" data-bs-toggle="tooltip"
+                                    title="Change newimage">
+                                    <i class="fa fa-pencil fs-7"><span class="path1"></span><span
+                                            class="path2"></span></i>
+                                    <input type="file" wire:model="newimage" accept=".png, .jpg, .jpeg" />
+                                    @error('newimage') <span class="error">{{ $message }}</span> @enderror
+                                    <input type="hidden" wire:model="newimage_remove" />
+                                </label>
+                                <span
+                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                    data-kt-image-input-action="cancel" data-bs-toggle="tooltip"
+                                    title="Cancel newimage">
+                                    <i class="fa fa-plus fs-2"><span class="path1"></span><span
+                                            class="path2"></span></i> </span>
+                                <span
+                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
+                                    data-kt-image-input-action="remove" data-bs-toggle="tooltip"
+                                    title="Remove photo">
+                                    <i class="fa fa-plus fs-2"><span class="path1"></span><span
+                                            class="path2"></span></i> </span>
+                            </div>
+                            <div class="text-muted fs-7">photo. Only *.png, *.jpg and *.jpeg
+                                image files are accepted</div>
+                        </div>
+                    </div>
+                </div>
+
+               <label for="photo">Photo</label>
+                <input wire:model="photo" type="file" class="form-control" id="photo" placeholder="Photo">@error('photo') <span class="error text-danger">{{ $message }}</span> @enderror
+            </div>
+        </div>--}}
                 {{form}}
                 </form>
             </div>

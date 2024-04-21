@@ -20,7 +20,7 @@ class {{modelName}}s extends Component
     use WithFileUploads;
     use LivewireAlert;
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, {{updatefield}};
+    public $selected_id, $newimage, {{updatefield}};
     public $indexSearch = '';
     public $selecteditem = [];
     protected $queryString = ['indexSearch'];
@@ -81,11 +81,11 @@ class {{modelName}}s extends Component
 
       public function storeImage()
     {
-        if (!$this->photo) {
+        if (!$this->newimage) {
             return null;
         }
 
-        $image = $this->photo;
+        $image = $this->newimage;
         $path = base_path("public/uploads/images/{{modelName}}/");
         $ImageName = time().'.'.$image->getClientOriginalExtension();
         if (!File::exists($path)) {
