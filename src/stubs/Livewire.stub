@@ -39,7 +39,7 @@ class {{modelName}}s extends Component
 
     public function reload()
     {
-        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
     }
 
     public function updatingSearch()
@@ -50,7 +50,6 @@ class {{modelName}}s extends Component
     public function cancel()
     {
         $this->resetInput();
-        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
         $this->updateMode = false;
     }
 
@@ -77,7 +76,7 @@ class {{modelName}}s extends Component
             'timerProgressBar' => true,
            ]);
 		// session()->flash('message', '{{modelName}} Successfully created.');
-        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}');
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
     }
 
       public function storeImage()
@@ -131,6 +130,7 @@ class {{modelName}}s extends Component
             'toast' => true,
             'timerProgressBar' => true,
            ]);
+           return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
 			// session()->flash('message', '{{modelName}} Successfully updated.');
         }
     }
