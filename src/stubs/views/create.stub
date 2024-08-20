@@ -55,8 +55,6 @@
                     </div>
                 </div>
 
-               <label for="photo">Photo</label>
-                <input wire:model="photo" type="file" class="form-control" id="photo" placeholder="Photo">@error('photo') <span class="error text-danger">{{ $message }}</span> @enderror
             </div>
         </div>--}}
                 {{form}}

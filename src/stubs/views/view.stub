@@ -100,6 +100,16 @@
                     </span>
                     <!--end::Svg Icon-->Add {{modelTitle}}s
                 </button>
+                 {{-- <button type="button" wire:click='add_{{modelNamePluralLowerCase}}()' class="btn btn btn-primary me-3" >
+                    <span class="svg-icon svg-icon-2">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1"
+                                transform="rotate(-90 11.364 20.364)" fill="currentColor" />
+                            <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
+                        </svg>
+                    </span>
+                   Add {{modelTitle}}s
+                </button> --}}
                 <!--end::Add subscription-->
                 @endif
             </div>
@@ -135,11 +145,15 @@
                                  src="{{ asset('uploads/images/{{modelName}}/{{modelName}}' . $row->photo) }}" alt="photo"></td> --}}
                                 {{tableBody}}
                                 {{-- <td>@if ($row->status == 1)
-                                    <button type="button" wire:click="deactivate({{$row->id}})" class="btn btn-sm btn-success">Active</button>
-                                @else
-                                <button type="button" wire:click="activate({{$row->id}})" class="btn btn-sm btn-warning">Inactive</button>
-                                @endif
-                                </td> --}}
+                                    <label class="switch">
+                                    <input wire:click="deactivate({{$row->id}})" type="checkbox"><span class="turnoff"></span>
+                                    </label>
+                                    @else
+                                    <label class="switch">
+                                    <input wire:click="activate({{$row->id}})" type="checkbox"><span class="turnon"></span>
+                                    </label>
+                                    @endif
+                            </td> --}}
                                 <td width="90">
 								<!--begin::Menu-->
                                         <div class="menu menu-rounded menu-column menu-title-gray-700 menu-icon-gray-500 menu-arrow-gray-500 menu-bullet-gray-500 menu-arrow-gray-500 menu-state-bg fw-semibold w-250px" data-kt-menu="true">
@@ -186,7 +200,16 @@
                                                         </a>
                                                     </div>
                                                     <!--end::Menu item-->
-													
+													<!--begin::Menu item-->
+                                                     {{-- <div class="menu-item">
+                                                        <a  wire:click="edit_{{modelNamePluralLowerCase}}({{$row->id}})" class="menu-link py-3">
+                                                            <span class="menu-bullet">
+                                                                <span class="bullet bullet-dot"></span>
+                                                            </span>
+                                                            <span class="menu-title">Edit</span>
+                                                        </a>
+                                                    </div> --}}
+                                                    <!--end::Menu item-->
 													<!--begin::Menu item-->
                                                     <div class="menu-item">
                                                         <a onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelTitle}}s cannot be recovered!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})" class="menu-link py-3">

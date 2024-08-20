@@ -62,11 +62,12 @@ class {{modelName}}s extends Component
         $this->validate([{{rules}}
         ]);
 
-        // if (!$this->newimage) {
+         // if (!$this->newimage) {
         //     $photo = $this->photo;
         // }else{
         //     $photo = $this->storeImage();
         // }
+
 
         {{modelName}}::create([ {{addfields}}
         ]);
@@ -119,13 +120,12 @@ class {{modelName}}s extends Component
     {
         $this->validate([{{rules}}
         ]);
-		
         // if (!$this->newimage) {
         //     $photo = $this->photo;
         // }else{
         //     $photo = $this->storeImage();
         // }
-		
+
         if ($this->selected_id) {
 			$record = {{modelName}}::find($this->selected_id);
             $record->update([ {{addfields}}
@@ -199,6 +199,20 @@ class {{modelName}}s extends Component
             'timerProgressBar' => true,
            ]);
         }
+    }
+
+    
+    public function add_{{modelNamePluralLowerCase}}()
+    {
+        return $this->redirectRoute('backend.add_{{modelNamePluralLowerCase}}');
+    }
+
+    public function edit_{{modelNamePluralLowerCase}}($id)
+    {
+        $record = {{modelName}}::findOrFail($id);
+        return $this->redirectRoute('backend.edit_{{modelNamePluralLowerCase}}',[
+            'pat_id'  => $record->id,
+        ]);
     }
 
 }
