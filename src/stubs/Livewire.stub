@@ -62,7 +62,11 @@ class {{modelName}}s extends Component
         $this->validate([{{rules}}
         ]);
 
-        //  $photo = $this->storeImage();
+        // if (!$this->newimage) {
+        //     $photo = $this->photo;
+        // }else{
+        //     $photo = $this->storeImage();
+        // }
 
         {{modelName}}::create([ {{addfields}}
         ]);
@@ -115,7 +119,13 @@ class {{modelName}}s extends Component
     {
         $this->validate([{{rules}}
         ]);
-        // $photo = $this->storeImage();
+		
+        // if (!$this->newimage) {
+        //     $photo = $this->photo;
+        // }else{
+        //     $photo = $this->storeImage();
+        // }
+		
         if ($this->selected_id) {
 			$record = {{modelName}}::find($this->selected_id);
             $record->update([ {{addfields}}
