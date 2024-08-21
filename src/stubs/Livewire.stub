@@ -96,6 +96,7 @@ class {{modelName}}s extends Component
         if (!File::exists($path)) {
             File::makeDirectory($path, 0777, true, true);
           }
+        unlink('uploads/images/{{modelName}}/{{modelName}}' . $this->photo);
         Image::make($image)->resize(1024, 625)->save(public_path('uploads/images/{{modelName}}/{{modelName}}') . $ImageName);
         return $ImageName;
     }
@@ -201,7 +202,7 @@ class {{modelName}}s extends Component
         }
     }
 
-    
+
     public function add_{{modelNamePluralLowerCase}}()
     {
         return $this->redirectRoute('backend.add_{{modelNamePluralLowerCase}}');
