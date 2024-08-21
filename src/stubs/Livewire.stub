@@ -96,7 +96,9 @@ class {{modelName}}s extends Component
         if (!File::exists($path)) {
             File::makeDirectory($path, 0777, true, true);
           }
-        unlink('uploads/images/{{modelName}}/{{modelName}}' . $this->photo);
+          if(File::exists(public_path('uploads/images/{{modelName}}/{{modelName}}' . $this->photo))){
+            File::delete(public_path('uploads/images/{{modelName}}/{{modelName}}' . $this->photo));
+          }
         Image::make($image)->resize(1024, 625)->save(public_path('uploads/images/{{modelName}}/{{modelName}}') . $ImageName);
         return $ImageName;
     }
