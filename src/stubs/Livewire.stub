@@ -81,7 +81,7 @@ class {{modelName}}s extends Component
             'timerProgressBar' => true,
            ]);
 		// session()->flash('message', '{{modelName}} Successfully created.');
-        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
+        return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
     }
 
       public function storeImage()
@@ -143,7 +143,7 @@ class {{modelName}}s extends Component
             'toast' => true,
             'timerProgressBar' => true,
            ]);
-           return $this->redirect('/'. My_Backend()./{{getNameInput}}',navigate:true);
+           return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
 			// session()->flash('message', '{{modelName}} Successfully updated.');
         }
     }
