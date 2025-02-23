@@ -1,11 +1,11 @@
 {
-    "name": "xslainadmin/livewire-crud",
+    "name": "xslain/livewire-crud",
     "description": "Scaffold Livewire Components, migrations, factory and crud in one command based on database tables.",
     "keywords": [
-        "xslainadmin",
+        "xslain",
         "livewire-crud"
     ],
-    "homepage": "https://github.com/xslainadmin/livewire-crud",
+    "homepage": "https://github.com/xslain/livewire-crud",
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -25,18 +25,17 @@
     "require-dev": {},
     "autoload": {
         "psr-4": {
-            "Xslainadmin\\LivewireCrud\\": "src"
+            "Xslain\\LivewireCrud\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Xslainadmin\\LivewireCrud\\Tests\\": "tests"
+            "Xslain\\LivewireCrud\\Tests\\": "tests"
         }
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
     },
     "config": {
         "sort-packages": true
@@ -44,10 +43,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Xslainadmin\\LivewireCrud\\LivewireCrudServiceProvider"
+                "Xslain\\LivewireCrud\\LivewireCrudServiceProvider"
             ],
             "aliases": {
-                "LivewireCrud": "Xslainadmin\\LivewireCrud\\LivewireCrudFacade"
+                "LivewireCrud": "Xslain\\LivewireCrud\\LivewireCrudFacade"
             }
         }
     }

@@ -1,8 +1,8 @@
 <?php
 
-namespace Xslainadmin\LivewireCrud\Commands;
+namespace Xslain\LivewireCrud\Commands;
 
-use Xslainadmin\LivewireCrud\ModelGenerator;
+use Xslain\LivewireCrud\ModelGenerator;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
@@ -62,6 +62,11 @@ abstract class LivewireGeneratorCommand extends Command
      * @var array
      */
     private $tableColumns = null;
+    /**
+     * Store the DB table columns.
+     * @var array
+     */
+    private $tableColumntype = null;
 
     /**
      * Model Namespace.
@@ -82,7 +87,7 @@ abstract class LivewireGeneratorCommand extends Command
     protected function moduleNamespace()
     {
         $module = trim($this->getModuleInput(), '{}');
-        $path = "Modules/". $module ."/Livewire";
+        $path = "Modules/" . $module . "/Livewire";
         // $path = "Modules\{$module}\Livewire";
         return trim($path, '{}');
     }
@@ -94,7 +99,7 @@ abstract class LivewireGeneratorCommand extends Command
      * @var string
      */
     protected $controllerNamespace = 'App\Http\Controllers';
-	/**
+    /**
      * Controller Namespace.
      * @var string
      */
@@ -211,14 +216,14 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getMigrationPath($name)
     {
-        return base_path("database/migrations/". date('Y-m-d_His') ."_create_". Str::lower(Str::plural($name)) ."_table.php");
+        return base_path("database/migrations/" . date('Y-m-d_His') . "_create_" . Str::lower(Str::plural($name)) . "_table.php");
     }
     protected function _getFactoryPath($name)
     {
         return base_path("database/factories/{$name}Factory.php");
     }
 
-	/**
+    /**
      * @param $name
      * @return string
      */
@@ -328,10 +333,12 @@ abstract class LivewireGeneratorCommand extends Command
         ]);
 
         return str_replace(
-            array_keys($replace), array_values($replace), $this->getStub("views/{$type}")
+            array_keys($replace),
+            array_values($replace),
+            $this->getStub("views/{$type}")
         );
     }
-   /**
+    /**
      * Build the form fields for form.
      * @param $title
      * @param $column
@@ -348,7 +355,9 @@ abstract class LivewireGeneratorCommand extends Command
         ]);
 
         return str_replace(
-            array_keys($replace), array_values($replace), $this->getStub("views/{$type}")
+            array_keys($replace),
+            array_values($replace),
+            $this->getStub("views/{$type}")
         );
     }
 
@@ -411,10 +420,24 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getColumns()
     {
         if (empty($this->tableColumns)) {
-            $this->tableColumns = DB::select('SHOW COLUMNS FROM `' . $this->table.'`');
+            $this->tableColumns = DB::select('SHOW COLUMNS FROM `' . $this->table . '`');
         }
 
         return $this->tableColumns;
+    }
+
+
+    /**
+     * Get the DB Table columns.
+     * @return array
+     */
+    protected function getColumntype()
+    {
+        if (empty($this->tableColumntype)) {
+            $this->tableColumntype = DB::select('SHOW COLUMNS FROM `' . $this->table . '`');
+        }
+
+        return $this->tableColumntype;
     }
 
     /**
@@ -497,14 +520,14 @@ abstract class LivewireGeneratorCommand extends Command
             return implode(', ', $filterColumns);
         };
 
-		$resetfields = function () {
+        $resetfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
             array_walk($filterColumns, function (&$value) {
-                $value = "\n\t\t\$this->". $value . " = null";
+                $value = "\n\t\t\$this->" . $value . " = null";
                 $value .= ";";
             });
 
@@ -512,35 +535,35 @@ abstract class LivewireGeneratorCommand extends Command
             return implode('', $filterColumns);
         };
 
-		$addfields = function () {
+        $addfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
             array_walk($filterColumns, function (&$value) {
-                $value = "\n\t\t\t'" . $value . "' => \$this-> ". $value;
+                $value = "\n\t\t\t'" . $value . "' => \$this-> " . $value;
             });
 
             // CSV format
             return implode(',', $filterColumns);
         };
 
-		$keyWord = function () {
+        $keyWord = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
             array_walk($filterColumns, function (&$value) {
-				$value = "\n\t\t\t\t\t\t->orWhere('" . $value . "', 'LIKE', \$keyWord)";
+                $value = "\n\t\t\t\t\t\t->orWhere('" . $value . "', 'LIKE', \$keyWord)";
             });
 
             // CSV format
             return implode('', $filterColumns);
         };
 
-		$factoryfields = function () {
+        $factoryfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
             $filterColumns = $this->getFilteredColumns();
@@ -561,21 +584,21 @@ abstract class LivewireGeneratorCommand extends Command
 
             // Add quotes to the unwanted columns for fillable
             array_walk($filterColumns, function (&$value) {
-                $value = "\n\t\t\$this->" . $value . " = \$record-> ". $value .";";
+                $value = "\n\t\t\$this->" . $value . " = \$record-> " . $value . ";";
             });
 
             // CSV format
             return implode('', $filterColumns);
         };
 
-		$editfields = function () {
+        $editfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
             array_walk($filterColumns, function (&$value) {
-                $value = "\n\t\t\$this->" . $value . " = \$record-> ". $value .";";
+                $value = "\n\t\t\$this->" . $value . " = \$record-> " . $value . ";";
             });
 
             // CSV format
@@ -611,7 +634,7 @@ abstract class LivewireGeneratorCommand extends Command
         return trim($this->argument('name'));
     }
 
-      /**
+    /**
      * Get the desired class name from the input.
      *
      * @return string

@@ -16,7 +16,7 @@
                     </svg>
                 </span>
                 <!--end::Svg Icon-->
-                <input wire:model.live='indexSearch' data-kt-subscription-table-filter="search" type="text" class="form-control form-control-solid w-250px ps-14" name="search" id="search" placeholder="Search {{modelTitle}}s">
+                <input wire:model.live.debounce.500ms='indexsearch' data-kt-subscription-table-filter="search" type="text" class="form-control form-control-solid w-250px ps-14" name="search" id="search" placeholder="Search {{modelTitle}}s">
                </div>
             <!--end::Search-->
         </div>

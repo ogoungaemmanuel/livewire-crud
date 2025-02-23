@@ -20,18 +20,18 @@ class {{modelName}}s extends Component
     use WithFileUploads;
     use LivewireAlert;
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $newimage, {{updatefield}};
-    public $indexSearch = '';
+    public $selected_id, $id, $newimage, {{updatefield}};
+    public $indexsearch = '';
     public $selecteditem = [];
-    protected $queryString = ['indexSearch'];
+    protected $queryString = ['indexsearch'];
     public $updateMode = false;
-    #[On('closeModal')]
+    #[On('refresh-the-component')]
 
     public function render()
     {
         return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
             '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
-                        ->search($this->indexSearch)
+                        ->search($this->indexsearch)
 						->paginate(10),
         ]);
     }
@@ -47,6 +47,10 @@ class {{modelName}}s extends Component
         $this->resetPage();
     }
 
+    public function updatedIndexsearch()
+    {
+        $this->resetPage();
+    }
     public function cancel()
     {
         $this->resetInput();
@@ -73,7 +77,7 @@ class {{modelName}}s extends Component
         ]);
 
         $this->resetInput();
-		$this->dispatch('closeModal');
+		$this->dispatch('refresh-the-component');
         $this->alert('success', '{{modelName}} Successfully created!', [
             'position' => 'center',
             'timer' => 3000,
@@ -81,7 +85,7 @@ class {{modelName}}s extends Component
             'timerProgressBar' => true,
            ]);
 		// session()->flash('message', '{{modelName}} Successfully created.');
-        return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
+       // return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
     }
 
       public function storeImage()
@@ -135,7 +139,7 @@ class {{modelName}}s extends Component
             ]);
 
             $this->resetInput();
-            $this->dispatch('closeModal');
+            $this->dispatch('refresh-the-component');
             $this->updateMode = false;
             $this->alert('success', '{{modelName}} Successfully updated.', [
             'position' => 'center',
@@ -143,7 +147,7 @@ class {{modelName}}s extends Component
             'toast' => true,
             'timerProgressBar' => true,
            ]);
-           return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
+           // return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
 			// session()->flash('message', '{{modelName}} Successfully updated.');
         }
     }
@@ -161,7 +165,7 @@ class {{modelName}}s extends Component
         $ids = $this->selecteditem;
         {{modelName}}::wherekey($ids)->delete();
         $this->selecteditem = [];
-        $this->dispatch('closeModal');
+        $this->dispatch('refresh-the-component');
         $this->alert('success', '{{modelName}} Successfully Deleted.', [
             'position' => 'center',
             'timer' => 3000,
@@ -177,7 +181,7 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 2
                 ]);
-        $this->dispatch('closeModal');
+        $this->dispatch('refresh-the-component');
         $this->alert('success', '{{modelName}} Successfully Deactivated.', [
             'position' => 'center',
             'timer' => 3000,
@@ -194,7 +198,7 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 1
                 ]);
-            $this->dispatch('closeModal');
+            $this->dispatch('refresh-the-component');
             $this->alert('success', '{{modelName}} Successfully Activated.', [
             'position' => 'center',
             'timer' => 3000,
@@ -216,6 +220,11 @@ class {{modelName}}s extends Component
         return $this->redirectRoute(My_Backend().'.edit_{{modelNamePluralLowerCase}}',[
             'pat_id'  => $record->id,
         ]);
+    }
+
+ public function refreshTheComponent()
+    {
+        $this->dispatch('$refresh');
     }
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Xslainadmin\LivewireCrud;
+namespace Xslain\LivewireCrud;
 
 use Illuminate\Support\Facades\Facade;
 

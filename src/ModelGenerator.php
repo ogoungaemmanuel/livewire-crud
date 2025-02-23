@@ -1,6 +1,6 @@
 <?php
 
-namespace Xslainadmin\LivewireCrud;
+namespace Xslain\LivewireCrud;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -74,17 +74,17 @@ class ModelGenerator
                 $this->properties .= "\n * @property $model $$relationName";
                 break;
             case 'hasMany':
-                $this->properties .= "\n * @property ".$model."[] $$relationName";
+                $this->properties .= "\n * @property " . $model . "[] $$relationName";
                 break;
         }
 
         return '
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\\'.$relClass.'
+     * @return \Illuminate\Database\Eloquent\Relations\\' . $relClass . '
      */
-    public function '.$relationName.'()
+    public function ' . $relationName . '()
     {
-        return $this->'.$relation.'(\''.$this->modelNamespace.'\\'.$model.'\', \''.$foreign_key.'\', \''.$local_key.'\');
+        return $this->' . $relation . '(\'' . $this->modelNamespace . '\\' . $model . '\', \'' . $foreign_key . '\', \'' . $local_key . '\');
     }
     ';
     }
