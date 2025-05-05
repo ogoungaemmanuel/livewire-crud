@@ -64,7 +64,7 @@ class LivewireInstall extends Command
             $this->warn('');
             $this->warn('Removing Dumped node_modules files. Please wait...');
 
-            tap(new Filesystem, function ($npm) {
+            tap(new Filesystem, function ($npm): void {
                 $npm->deleteDirectory(base_path('node_modules'));
                 $npm->delete(base_path('yarn.lock'));
                 $npm->delete(base_path('package-lock.json'));

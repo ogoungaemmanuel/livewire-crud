@@ -89,7 +89,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $module = $this->getModuleInput();
         $modelPath = $this->_getModelPath($this->name);
         $livewirePath = $this->_getLivewirePath($this->name);
-        $modulePath = trim($this->_getModulePath($this->name), '{}');
+        $modulePath = trim((string) $this->_getModulePath($this->name), '{}');
         $factoryPath = $this->_getFactoryPath($this->name);
 
         if ($this->files->exists($modulePath) && $this->ask("Livewire Component " . Str::studly(Str::singular($this->table)) . "Component Already exist. Do you want overwrite (y/n)?", 'y') == 'n') {

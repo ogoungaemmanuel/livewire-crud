@@ -36,8 +36,6 @@ class LivewireCrudServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'livewire-crud');
 
         // Register the main class to use with the facade
-        $this->app->singleton('livewire-crud', function () {
-            return new LivewireCrud;
-        });
+        $this->app->singleton('livewire-crud', fn() => new LivewireCrud);
     }
 }

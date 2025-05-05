@@ -168,7 +168,7 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function write($path, $content)
     {
-        $this->files->makeDirectory(dirname($path), 0755, true, true);
+        $this->files->makeDirectory(dirname((string) $path), 0755, true, true);
         $this->files->put($path, $content);
     }
 
@@ -452,9 +452,7 @@ abstract class LivewireGeneratorCommand extends Command
             $columns[] = $column->Field;
         }
 
-        return array_filter($columns, function ($value) use ($unwanted) {
-            return !in_array($value, $unwanted);
-        });
+        return array_filter($columns, fn($value) => !in_array($value, $unwanted));
     }
 
     /**
@@ -498,7 +496,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "'" . $value . "'";
             });
 
@@ -512,7 +510,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "$" . $value . "";
             });
 
@@ -526,7 +524,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\$this->" . $value . " = null";
                 $value .= ";";
             });
@@ -541,7 +539,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\t'" . $value . "' => \$this-> " . $value;
             });
 
@@ -555,7 +553,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\t\t\t\t->orWhere('" . $value . "', 'LIKE', \$keyWord)";
             });
 
@@ -569,7 +567,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable */
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\t'" . $value . "' => \$this->faker->name,";
             });
 
@@ -583,7 +581,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\$this->" . $value . " = \$record-> " . $value . ";";
             });
 
@@ -597,7 +595,7 @@ abstract class LivewireGeneratorCommand extends Command
             $filterColumns = $this->getFilteredColumns();
 
             // Add quotes to the unwanted columns for fillable
-            array_walk($filterColumns, function (&$value) {
+            array_walk($filterColumns, function (&$value): void {
                 $value = "\n\t\t\$this->" . $value . " = \$record-> " . $value . ";";
             });
 
@@ -605,7 +603,7 @@ abstract class LivewireGeneratorCommand extends Command
             return implode('', $filterColumns);
         };
 
-        list($relations, $properties) = (new ModelGenerator($this->table, $properties, $this->modelNamespace))->getEloquentRelations();
+        [$relations, $properties] = (new ModelGenerator($this->table, $properties, $this->modelNamespace))->getEloquentRelations();
 
         return [
             '{{fillable}}' => $fillable(),

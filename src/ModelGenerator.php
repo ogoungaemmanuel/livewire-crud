@@ -9,18 +9,11 @@ class ModelGenerator
 {
     private $functions = null;
 
-    private $table = null;
-    private $properties = null;
-    private $modelNamespace = 'App';
-
     /**
      * ModelGenerator constructor.
      */
-    public function __construct(string $table, string $properties, string $modelNamespace)
+    public function __construct(private readonly string $table, private string $properties, private readonly string $modelNamespace)
     {
-        $this->table = $table;
-        $this->properties = $properties;
-        $this->modelNamespace = $modelNamespace;
         $this->_init();
     }
 
@@ -66,17 +59,22 @@ class ModelGenerator
 
     private function _getFunction(string $relation, string $table, string $foreign_key, string $local_key)
     {
-        list($model, $relationName) = $this->_getModelName($table, $relation);
+        [$model, $relationName] = $this->_getModelName($table, $relation);
         $relClass = ucfirst($relation);
 
-        switch ($relation) {
-            case 'hasOne':
-                $this->properties .= "\n * @property $model $$relationName";
-                break;
-            case 'hasMany':
-                $this->properties .= "\n * @property " . $model . "[] $$relationName";
-                break;
-        }
+        match ($relation) {
+            'hasOne' => $this->properties .= "\n * @property $model $$relationName",
+            'hasMany' => $this->properties .= "\n * @property " . $model . "[] $$relationName",
+            default => '
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\\' . $relClass . '
+     */
+    public function ' . $relationName . '()
+    {
+        return $this->' . $relation . '(\'' . $this->modelNamespace . '\\' . $model . '\', \'' . $foreign_key . '\', \'' . $local_key . '\');
+    }
+    ',
+        };
 
         return '
     /**
