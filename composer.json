@@ -22,7 +22,7 @@
         "livewire/livewire": "^3.3",
         "aliqasemzadeh/livewire-bootstrap-modal": "^2.3",
         "php-flasher/flasher-laravel": "^1.15",
-        "intervention/image": "^3.11"
+        "intervention/image": "^2.5"
 
     },
     "require-dev": {},
