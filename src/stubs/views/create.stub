@@ -1,78 +1,17 @@
 <!-- Modal -->
-<div wire:ignore.self class="modal fade" id="createDataModal" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="createDataModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="createDataModalLabel">Create New {{modelTitle}}</h5>
-                <button type="button" wire:click.prevent="cancel()" class="close" data-dismiss="modal" aria-label="Close">
-                     <span aria-hidden="true close-btn">×</span>
-                </button>
-            </div>
-           <div class="modal-body">
+<div>
+        <div class="modal-header">
+            <h5 class="modal-title">Create New {{modelTitle}}</h5>
+            <button type="button" class="btn-close" wire:click="$dispatch('hideModal')" aria-label="Close"></button>
+        </div>
+            <div class="modal-body">
 				<form>
-                {{--   <div class="row">
-            <div class="form-group col-md-12">
-                <div class="col-md-12 col-md-offset-3">
-                    <div class="card card-flush py-4">
-                        <div class="card-body text-center pt-0">
-                            <div class="image-input image-input-empty image-input-outline image-input-placeholder mb-3"
-                                                                data-kt-image-input="true"
-                                                                x-data="{ uploading: false, progress: 0 }"
-                                                                x-on:livewire-upload-start="uploading = true"
-                                                                x-on:livewire-upload-finish="uploading = false"
-                                                                x-on:livewire-upload-error="uploading = false"
-                                                                x-on:livewire-upload-progress="progress = $event.detail.progress"
-                                                                >
-                                                                <div x-show="uploading">
-                                                                    <progress max="100" x-bind:value="progress"></progress>
-                                                                </div>
-                                @if (!is_null($newimage))
-                                <div class="image-input-wrapper w-150px h-150px"
-                                    style="background-image: url({{ $newimage->temporaryUrl()}})">
-                                </div>
-                                @else
-                                <div class="image-input-wrapper w-150px h-150px"
-                                    style="background-image: url({{ asset('uploads/images/{{modelName}}/{{modelName}}' . $photo) }})">
-                                </div>
-                                @endif
-                                <label
-                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
-                                    data-kt-image-input-action="change" data-bs-toggle="tooltip"
-                                    title="Change newimage">
-                                    <i class="fa fa-pencil fs-7"><span class="path1"></span><span
-                                            class="path2"></span></i>
-                                    <input type="file" wire:model="newimage" accept=".png, .jpg, .jpeg" />
-                                    @error('newimage') <span class="error">{{ $message }}</span> @enderror
-                                    <input type="hidden" wire:model="newimage_remove" />
-                                </label>
-                                <span
-                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
-                                    data-kt-image-input-action="cancel" data-bs-toggle="tooltip"
-                                    title="Cancel newimage">
-                                    <i class="fa fa-plus fs-2"><span class="path1"></span><span
-                                            class="path2"></span></i> </span>
-                                <span
-                                    class="btn btn-icon btn-circle btn-active-color-primary w-25px h-25px bg-body shadow"
-                                    data-kt-image-input-action="remove" data-bs-toggle="tooltip"
-                                    title="Remove photo">
-                                    <i class="fa fa-plus fs-2"><span class="path1"></span><span
-                                            class="path2"></span></i> </span>
-                            </div>
-                            <div class="text-muted fs-7">photo. Only *.png, *.jpg and *.jpeg
-                                image files are accepted</div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>--}}
                 {{form}}
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" wire:click.prevent="cancel()" class="btn btn-secondary close-btn" data-dismiss="modal">Close</button>
+                <button type="button" wire:click="$dispatch('hideModal')" class="btn btn-secondary close-btn" data-dismiss="modal">Close</button>
                 <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Save</button>
             </div>
-        </div>
-    </div>
 </div>
+  

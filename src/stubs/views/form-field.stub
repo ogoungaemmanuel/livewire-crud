@@ -1,18 +1,6 @@
-    if ({{inputType}} == 'textarea') {
-		<div class="row">
+        <div class="row">
             <div class="form-group">
                 <label for="{{column}}">{{title}}</label>
-                <{{inputType}} wire:model="{{column}}" rows="7" type="{{type}}" class="form-control" id="{{column}}" placeholder="{{title}}"></{{inputType}}>
-                @error('{{column}}') <span class="error text-danger">{{ $message }}</span> @enderror
+                <input wire:model="{{column}}" type="{{type}}" class="form-control" id="{{column}}" placeholder="{{title}}">@error('{{column}}') <span class="error text-danger">{{ $message }}</span> @enderror
             </div>
         </div>
-			}
-			else{
-				<div class="row">
-            <div class="form-group">
-                <label for="{{column}}">{{title}}</label>
-                <{{inputType}} wire:model="{{column}}" type="{{type}}" class="form-control" id="{{column}}" placeholder="{{title}}">
-                @error('{{column}}') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-        </div>
-			}

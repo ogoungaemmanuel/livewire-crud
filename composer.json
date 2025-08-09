@@ -1,11 +1,11 @@
 {
-    "name": "xslain/livewire-crud",
+    "name": "xslainadmin/livewire-crud",
     "description": "Scaffold Livewire Components, migrations, factory and crud in one command based on database tables.",
     "keywords": [
-        "xslain",
+        "xslainadmin",
         "livewire-crud"
     ],
-    "homepage": "https://github.com/xslain/livewire-crud",
+    "homepage": "https://github.com/xslainadmin/livewire-crud",
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -16,28 +16,27 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "laravel/framework": "^12.0",
+        "php": "^8.1",
+        "laravel/framework": "^10.10",
         "laravel/ui": "^4",
         "livewire/livewire": "^3.3",
         "jantinnerezo/livewire-alert": "^3.0"
     },
-    "require-dev": {
-        "rector/rector": "^2.0"
-    },
+    "require-dev": {},
     "autoload": {
         "psr-4": {
-            "Xslain\\LivewireCrud\\": "src"
+            "Xslainadmin\\LivewireCrud\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Xslain\\LivewireCrud\\Tests\\": "tests"
+            "Xslainadmin\\LivewireCrud\\Tests\\": "tests"
         }
     },
     "scripts": {
         "test": "vendor/bin/phpunit",
         "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
+
     },
     "config": {
         "sort-packages": true
@@ -45,10 +44,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Xslain\\LivewireCrud\\LivewireCrudServiceProvider"
+                "Xslainadmin\\LivewireCrud\\LivewireCrudServiceProvider"
             ],
             "aliases": {
-                "LivewireCrud": "Xslain\\LivewireCrud\\LivewireCrudFacade"
+                "LivewireCrud": "Xslainadmin\\LivewireCrud\\LivewireCrudFacade"
             }
         }
     }

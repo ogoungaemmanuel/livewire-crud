@@ -10,7 +10,6 @@ use Livewire\Attributes\On;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Jantinnerezo\LivewireAlert\LivewireAlert;
 use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
@@ -18,12 +17,11 @@ class {{modelName}}s extends Component
 {
     use WithPagination;
     use WithFileUploads;
-    use LivewireAlert;
 	protected $paginationTheme = 'bootstrap';
-    public $selected_id, $id, $newimage, {{updatefield}};
-    public $indexsearch = '';
+    public $selected_id, $newimage, {{updatefield}};
+    public $indexSearch = '';
     public $selecteditem = [];
-    protected $queryString = ['indexsearch'];
+    protected $queryString = ['indexSearch'];
     public $updateMode = false;
     #[On('refresh-the-component')]
 
@@ -31,7 +29,7 @@ class {{modelName}}s extends Component
     {
         return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
             '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
-                        ->search($this->indexsearch)
+                        ->search($this->indexSearch)
 						->paginate(10),
         ]);
     }
@@ -39,7 +37,7 @@ class {{modelName}}s extends Component
 
     public function reload()
     {
-        return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
     }
 
     public function updatingSearch()
@@ -47,10 +45,6 @@ class {{modelName}}s extends Component
         $this->resetPage();
     }
 
-    public function updatedIndexsearch()
-    {
-        $this->resetPage();
-    }
     public function cancel()
     {
         $this->resetInput();
@@ -59,6 +53,11 @@ class {{modelName}}s extends Component
 
     private function resetInput()
     {		{{resetfields}}
+    }
+
+    public function refreshTheComponent()
+    {
+        $this->dispatch('$refresh');
     }
 
     public function store()
@@ -77,15 +76,10 @@ class {{modelName}}s extends Component
         ]);
 
         $this->resetInput();
-		$this->dispatch('refresh-the-component');
-        $this->alert('success', '{{modelName}} Successfully created!', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-            'timerProgressBar' => true,
-           ]);
+		$this->dispatch('closeModal');
+        flash()->addSuccess('{{modelName}} Successfully created!');
 		// session()->flash('message', '{{modelName}} Successfully created.');
-       // return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
+        return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
     }
 
       public function storeImage()
@@ -139,15 +133,10 @@ class {{modelName}}s extends Component
             ]);
 
             $this->resetInput();
-            $this->dispatch('refresh-the-component');
+            $this->dispatch('closeModal');
             $this->updateMode = false;
-            $this->alert('success', '{{modelName}} Successfully updated.', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-            'timerProgressBar' => true,
-           ]);
-           // return $this->redirect('/'. My_Backend().'/{{getNameInput}}',navigate:true);
+            flash()->addSuccess('{{modelName}} Successfully updated.');
+           return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
 			// session()->flash('message', '{{modelName}} Successfully updated.');
         }
     }
@@ -165,13 +154,8 @@ class {{modelName}}s extends Component
         $ids = $this->selecteditem;
         {{modelName}}::wherekey($ids)->delete();
         $this->selecteditem = [];
-        $this->dispatch('refresh-the-component');
-        $this->alert('success', '{{modelName}} Successfully Deleted.', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-            'timerProgressBar' => true,
-           ]);
+        $this->dispatch('closeModal');
+        flash()->addSuccess('{{modelName}} Successfully Deleted.');
     }
 
     public function deactivate($id)
@@ -181,13 +165,8 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 2
                 ]);
-        $this->dispatch('refresh-the-component');
-        $this->alert('success', '{{modelName}} Successfully Deactivated.', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-            'timerProgressBar' => true,
-           ]);
+        $this->dispatch('closeModal');
+        flash()->addSuccess('{{modelName}} Successfully Deactivated.');
         }
     }
 
@@ -198,33 +177,23 @@ class {{modelName}}s extends Component
             $record->update([
                 'status' => 1
                 ]);
-            $this->dispatch('refresh-the-component');
-            $this->alert('success', '{{modelName}} Successfully Activated.', [
-            'position' => 'center',
-            'timer' => 3000,
-            'toast' => true,
-            'timerProgressBar' => true,
-           ]);
+            $this->dispatch('closeModal');
+            flash()->addSuccess('{{modelName}} Successfully Activated.');
         }
     }
 
 
     public function add_{{modelNamePluralLowerCase}}()
     {
-        return $this->redirectRoute(My_Backend().'.add_{{modelNamePluralLowerCase}}');
+        return $this->redirectRoute('backend.add_{{modelNamePluralLowerCase}}');
     }
 
     public function edit_{{modelNamePluralLowerCase}}($id)
     {
         $record = {{modelName}}::findOrFail($id);
-        return $this->redirectRoute(My_Backend().'.edit_{{modelNamePluralLowerCase}}',[
+        return $this->redirectRoute('backend.edit_{{modelNamePluralLowerCase}}',[
             'pat_id'  => $record->id,
         ]);
-    }
-
- public function refreshTheComponent()
-    {
-        $this->dispatch('$refresh');
     }
 
 }

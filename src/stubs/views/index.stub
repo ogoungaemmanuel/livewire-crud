@@ -1,13 +1,15 @@
-@extends('{{getTemplate}}::layouts.backend')
+@extends('{{getTemplate}}::layouts.issuetracker')
 @section('page_title',  __('{{modelTitle}}s'))
+@section('page_t', __('{{getModuleInput}}'))
 @section('content')
-@include('{{getTemplate}}::layouts.header.topbar')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-12">
-            @livewire('{{getModuleInput}}::{{modelNamePluralLowerCase}}')
-        </div>
+@include('backend::aside.{{getModuleInput}}')
+<div class="content">
+    <!-- start: page header -->
+    @include('backend::inc.header')
+    <!-- start: page body area -->
+        @livewire('{{getModuleInput}}::{{modelNamePluralLowerCase}}')
     </div>
+ @endsection
 </div>
-@include('{{getTemplate}}::layouts.header.footerbar')
-@endsection
+
+

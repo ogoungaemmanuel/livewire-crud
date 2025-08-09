@@ -2,7 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/ogoungaemmanuel/livewire-crud.svg?style=flat-square)](https://packagist.org/packages/ogoungaemmanuel/livewire-crud)
 
-A livewire CRUD Generation package to help scaffold basic site files. Package is autoloaded as per PSR-4 autoloading in any laravel version `^5.6` so no extra config required. However is has been tested on version `^7 & ^8`. It uses **_auth_** middleware thus installs `laravel/ui` just incase you don't have any other auth mechanism, this does not mean you have to use `laravel/ui`.
+A livewire CRUD Generation package to help scaffold basic site files. Package is autoloaded as per PSR-4 autoloading in any laravel version `^5.6` so no extra config required. However is has been tested on version `^7 & ^8`. It uses ***auth*** middleware thus installs `laravel/ui` just incase you don't have any other auth mechanism, this does not mean you have to use `laravel/ui`.
 
 ## Documentation
 
@@ -14,20 +14,19 @@ You can install the package via [Composer](https://getcomposer.org/):
 documentation can be found at [laravel-modules](https://nwidart.com/laravel-modules/v1/installation-and-setup)
 
 ```bash
-composer require nwidart/laravel-modules
-composer require xslain/livewire-crud
+composer require nwidart/laravel-modules 
+composer require xslainadmin/livewire-crud
 ```
 
 ## Usage
 
-After running `composer require xslain/livewire-crud` command just run:
+After running `composer require xslainadmin/livewire-crud` command just run:
 
 ```bash
 php artisan crud:install
 composer dump-autoload
 ```
-
-\*\*This command will perfom below actions:
+**This command will perfom below actions:
 
     * Compile css/js based on `bootstrap and fontawesome/free`.
     * Run `npm install && run dev`
@@ -41,14 +40,13 @@ Then generate Crud by:
 ```bash
 php artisan crud:generate {table-name} {module-name}
 ```
-
-\*\*This command will generate:
+**This command will generate:
 
     * Livewire Component.
     * Model.
-    * Views.
+    * Views.    
     * Factory.
-
+    
 **Remember to customise your genertaed factories and migrations if you need to use them later
 **Remember to customise template Name from Crud Command
 
@@ -66,8 +64,8 @@ If you discover any security related issues, please email info@xslain.com instea
 
 ## Credits
 
--   [Ogounga Emmanuel](https://github.com/xslain)
--   [All Contributors](../../contributors)
+- [Ogounga Emmanuel](https://github.com/xslainadmin)
+- [All Contributors](../../contributors)
 
 ## License
 
