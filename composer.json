@@ -20,7 +20,10 @@
         "laravel/framework": "^10.10",
         "laravel/ui": "^4",
         "livewire/livewire": "^3.3",
-        "jantinnerezo/livewire-alert": "^3.0"
+        "aliqasemzadeh/livewire-bootstrap-modal": "^2.3",
+        "php-flasher/flasher-laravel": "^1.15",
+        "intervention/image": "^3.11"
+
     },
     "require-dev": {},
     "autoload": {
