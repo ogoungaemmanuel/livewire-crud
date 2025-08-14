@@ -15,7 +15,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     protected $argument;
     private $replaces = [];
 
-    protected $signature = 'crud:generate {name : Table name} {module}';
+    protected $signature = 'crud:generate {name : Table name} {theme} {module}';
 
     protected $description = 'Generate Livewire Component and CRUD operations';
 
@@ -28,6 +28,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     {
         $this->table = $this->getNameInput();
         $this->module = $this->getModuleInput();
+        $this->theme = $this->getThemeInput();
 
         // If table not exist in DB return
         if (!$this->tableExists()) {
@@ -46,6 +47,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 		//Updating Routes
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
+        $theme = $this->getThemeInput();
         $this->filesystem = new Filesystem;
         $this->argument = $this->getNameInput();
         $routeFile = base_path("Modules/{$module}/routes/web.php");
@@ -87,6 +89,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     {
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
+        $theme = $this->getThemeInput();
         $modelPath = $this->_getModelPath($this->name);
         $createlPath = $this->_getCreatePath($this->name);
         $deletePath = $this->_getDeletePath($this->name);

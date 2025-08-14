@@ -1,0 +1,18 @@
+<!-- Modal -->
+<div>
+        <div class="modal-header">
+            <h5 class="modal-title">Delete {{modelTitle}}</h5>
+            <button type="button" class="btn-close" wire:click="$dispatch('hideModal')" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+                <form>
+					<input type="hidden" wire:model.fill="selected_id" value="{{$selected_id}}">
+                    <p>Are you Sure? you want to Delete this <b>{{$selected_id}} </b> </p>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" wire:click="$dispatch('hideModal')" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" wire:click.prevent="delete({{$selected_id}})" class="btn btn-primary" data-dismiss="modal">Delete</button>
+            </div>
+</div>
+

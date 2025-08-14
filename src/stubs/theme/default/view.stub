@@ -1,0 +1,98 @@
+@section('page_title',  __('{{modelTitle}}s'))
+<div class="px-xl-5 px-lg-4 px-3 py-3 page-body">
+    <div class="row g-3">
+        <div class="col-sm-12">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <h3 class="fw-bold mb-0">@yield('page_title')</h3>
+                <div class="col-auto d-flex w-sm-100">
+                    <a type="button" class="btn btn-dark btn-set-task w-sm-100" wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.create','params' :{'user':'Ali Qasemzadeh'}}})">
+                        Add {{modelTitle}}s
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="card-title">Search Reports Here</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label text-muted">Name / Phone /Email ? <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text" ><i class="bi bi-calendar-user"></i></span>
+                                    <input wire:model.live='indexSearch' type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 text-end">
+						@if ($selecteditem)
+						<button type="button" wire:click='deleteselected()' class="btn btn-primary py-2 px-5">Delete ({{count($selecteditem)}})</button>
+						@else
+                        <button type="button" class="btn btn-primary py-2 px-5">Search</button>
+						@endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--content start-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <table class="table align-middle table-hover table-body" style="width: 100%;">
+                        <thead>
+                        <tr>
+								<td>#</td>
+                                <td>SN</td>
+                                {{-- <td>Photo</td> --}}
+                                {{tableHeader}}
+								<td>Status</td>
+                                <td>Action</td>
+							</tr>
+                        </thead>
+                        <tbody>
+                        @foreach(${{modelNamePluralLowerCase}} as $row)
+							<tr>
+                                <td><input type="checkbox" value="{{$row->id}}" wire:model.live="selecteditem"></td>
+								<td>{{ $loop->iteration }}</td>
+                                {{-- <td><img class="rounded-circle" style="height: 40px; width: 40px;"
+                                 src="{{ asset('uploads/images/{{modelName}}/{{modelName}}' . $row->photo) }}" alt="photo"></td> --}}
+                                {{tableBody}}
+                            <td>@if ($row->status == 1)
+                                <button type="button" wire:click="deactivate({{$row->id}})" class="btn btn-sm btn-success">Active</button>
+                                @else
+                                <button type="button" wire:click="activate({{$row->id}})" class="btn btn-sm btn-warning">Inactive</button>
+                                @endif
+                            </td>
+                            <td width="90">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+										<a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.edit','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-edit"></i> Edit </a>
+                                        <a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.show','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-edit"></i> Show </a>
+                                        @if (Am_admin())
+                                        <a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.delete','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-trash"></i> Delete </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+            <div class="card-footer">
+                {{ ${{modelNamePluralLowerCase}}->links() }}
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
