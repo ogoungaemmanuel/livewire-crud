@@ -27,13 +27,13 @@ class Create extends Component
 
     public function render()
     {
-        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.create');
+        return view('{{getModuleInput}}::livewire.' . My_Theme() . '.{{modelNamePluralLowerCase}}.create');
     }
 
     public function updatingSearch()
     {
         $this->resetPage();
-    }    
+    }
 
     public function store()
     {
@@ -76,6 +76,6 @@ class Create extends Component
         return $ImageName;
     }
 
-    
+
 
 }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 
-class Edit extends Component
+class Delete extends Component
 {
     use WithPagination;
     use WithFileUploads;
@@ -34,33 +34,19 @@ class Edit extends Component
 
     public function render()
     {
-        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update');
+        return view('{{getModuleInput}}::livewire.' . My_Theme() . '.{{modelNamePluralLowerCase}}.delete');
     }
-    
 
-    public function update($selected_id)
+
+    public function destroy($selected_id)
     {
-        $this->validate([{{rules}}
-        ]);
-        // if (!$this->newimage) {
-        //     $photo = $this->photo;
-        // }else{
-        //     $photo = $this->storeImage();
-        // }
-
         if ($selected_id) {
-			$record = {{modelName}}::find($selected_id);
-            $record->update([ {{addfields}}
-            ]);
-
+            $record = {{modelName}}::where('id', $selected_id);
+            $record->delete();
             $this->dispatch('refresh-the-component');
             $this->dispatch('hideModal');
-            $this->updateMode = false;
-            flash()->addSuccess('{{modelName}} Successfully updated.');
-           // return $this->redirect('/{{getModuleInput}}/{{getNameInput}}',navigate:true);
-			// session()->flash('message', '{{modelName}} Successfully updated.');
+            flash()->addSuccess('{{modelName}} Successfully deleted.');
         }
     }
 
-    
 }

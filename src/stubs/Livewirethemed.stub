@@ -27,7 +27,7 @@ class {{modelPluralName}} extends Component
 
     public function render()
     {
-        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
+        return view('{{getModuleInput}}::livewire.' . My_Theme() . '.{{modelNamePluralLowerCase}}.view', [
             '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
                         ->search($this->indexSearch)
 						->paginate(10),

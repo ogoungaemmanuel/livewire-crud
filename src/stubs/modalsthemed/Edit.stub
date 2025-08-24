@@ -34,9 +34,9 @@ class Edit extends Component
 
     public function render()
     {
-        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update');
+        return view('{{getModuleInput}}::livewire.' . My_Theme() . '.{{modelNamePluralLowerCase}}.update');
     }
-    
+
 
     public function update($selected_id)
     {
@@ -62,5 +62,5 @@ class Edit extends Component
         }
     }
 
-    
+
 }

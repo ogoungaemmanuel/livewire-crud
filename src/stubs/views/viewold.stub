@@ -19,7 +19,7 @@
                     </svg>
                 </span>
                 <!--end::Svg Icon-->
-                <input wire:model.live='indexSearch' data-kt-subscription-table-filter="search" type="text" class="form-control form-control-solid w-250px ps-14" name="search" id="search" placeholder="Search {{modelTitle}}s">
+                <input wire:model.live='indexSearch' data-kt-subscription-table-filter="search" type="text" class="form-control form-control-solid w-250px ps-14" name="search" id="search" placeholder="Search {{modelPluralTitle}}">
                </div>
             <!--end::Search-->
         </div>
@@ -75,7 +75,7 @@
                             <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
                         </svg>
                     </span>
-                    <!--end::Svg Icon-->Add {{modelTitle}}s
+                    <!--end::Svg Icon-->Add {{modelPluralTitle}}
                 </button>
                  {{-- <button type="button" wire:click='add_{{modelNamePluralLowerCase}}()' class="btn btn btn-primary me-3" >
                     <span class="svg-icon svg-icon-2">
@@ -85,7 +85,7 @@
                             <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
                         </svg>
                     </span>
-                   Add {{modelTitle}}s
+                   Add {{modelPluralTitle}}
                 </button> --}}
                 <!--end::Add subscription-->
                 @endif
@@ -189,7 +189,7 @@
                                                     <!--end::Menu item-->
 													<!--begin::Menu item-->
                                                     <div class="menu-item">
-                                                        <a onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelTitle}}s cannot be recovered!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})" class="menu-link py-3">
+                                                        <a onclick="confirm('Confirm Delete {{modelTitle}} id {{$row->id}}? \nDeleted {{modelPluralTitle}} cannot be recovered!')||event.stopImmediatePropagation()" wire:click="destroy({{$row->id}})" class="menu-link py-3">
                                                             <span class="menu-bullet">
                                                                 <span class="bullet bullet-dot"></span>
                                                             </span>

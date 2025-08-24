@@ -62,6 +62,11 @@ abstract class LivewireGeneratorCommand extends Command
      * Table name from argument.
      * @var string
      */
+    protected $themeNamespace = 'Yes';
+    /**
+     * Table name from argument.
+     * @var string
+     */
     protected $moduleconvert = null;
     /**
      * Store the DB table columns.
@@ -246,18 +251,21 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getLivewirePath($name)
     {
-        return app_path($this->_getNamespacePath($this->livewireNamespace) . "{$name}s.php");
+		$name = Str::plural($this->name);
+        return app_path($this->_getNamespacePath($this->livewireNamespace) . "{$name}.php");
     }
 
     protected function _getModulePath($name)
     {
-        return base_path($this->_getModuleNamespacePath($this->moduleNamespace()) . "{$name}s.php");
-        // return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}s.php");
+		$name = Str::plural($this->name);
+        return base_path($this->_getModuleNamespacePath($this->moduleNamespace()) . "{$name}.php");
+        // return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}.php");
     }
 
     // protected function _getModulePath($name)
     // {
-    //     return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}s.php");
+	//		$name = Str::plural($this->name);
+    //     return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}.php");
     // }
 
     /**
@@ -267,6 +275,15 @@ abstract class LivewireGeneratorCommand extends Command
     protected function _getModelPath($name)
     {
         return $this->makeDirectory(app_path($this->_getNamespacePath($this->modelNamespace) . "{$name}.php"));
+    }
+
+	protected function _getCreateModelPath($name)
+    {
+        $name = Str::ucfirst($this->name);
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Models/{$name}.php");
+        return $this->makeDirectory($path);
     }
 
     // protected function _getCreatePath($name)
@@ -308,24 +325,24 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getViewPath($view)
     {
-        $name = Str::kebab($this->name);
+        $name = Str::kebab(Str::plural($this->name));
         $module = $this->getModuleInput();
         $theme = $this->getThemeInput();
         $modulelocation = $this->modelNamespace;
         if ($theme == 'none') {
-            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}s/{$view}.blade.php"));
+            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}/{$view}.blade.php"));
         } else {
-            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$theme}/{$name}s/{$view}.blade.php"));
+            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$theme}/{$name}/{$view}.blade.php"));
         }
 
     }
 
     protected function _getCreatePath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst(Str::plural($this->name));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
-        $path = base_path("/Modules/{$module}/livewire/{$name}s/create.php");
+        $path = base_path("/Modules/{$module}/livewire/{$name}/create.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -334,10 +351,10 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getEditPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst(Str::plural($this->name));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
-        $path = base_path("Modules/{$module}/livewire/{$name}s/edit.php");
+        $path = base_path("Modules/{$module}/livewire/{$name}/edit.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -346,10 +363,10 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getShowPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst(Str::plural($this->name));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
-        $path = base_path("/Modules/{$module}/livewire/{$name}s/show.php");
+        $path = base_path("/Modules/{$module}/livewire/{$name}/show.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -358,10 +375,10 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getDeletePath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst(Str::plural($this->name));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
-        $path = base_path("/Modules/{$module}/livewire/{$name}s/delete.php");
+        $path = base_path("/Modules/{$module}/livewire/{$name}/delete.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -377,12 +394,15 @@ abstract class LivewireGeneratorCommand extends Command
         return [
             '{{getTemplate}}' => $this->templateName,
             '{{getNameInput}}' => $this->getNameInput(),
+            '{{getTheme}}' => $this->getThemeInput(),
             '{{getModuleInputModule}}' => $this->getModuleInput(),
             '{{getModuleInputModuleNew}}' => ucfirst($this->getModuleInput()),
             '{{getModuleInput}}' => Str::lower($this->getModuleInput()),
             '{{layout}}' => $this->layout,
             '{{modelName}}' => $this->name,
+			'{{modelPluralName}}' => Str::plural($this->name),
             '{{modelTitle}}' => Str::title(Str::snake($this->name, ' ')),
+			'{{modelPluralTitle}}' => Str::title(Str::snake(Str::plural($this->name), ' ')),
             '{{modelNamespace}}' => $this->modelNamespace,
             '{{controllerNamespace}}' => $this->controllerNamespace,
             '{{modelNamePluralLowerCase}}' => Str::camel(Str::plural($this->name)),

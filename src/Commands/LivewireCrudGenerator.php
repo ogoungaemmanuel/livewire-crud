@@ -52,7 +52,11 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->argument = $this->getNameInput();
         $routeFile = base_path("Modules/{$module}/routes/web.php");
         $routeContents = $this->filesystem->get($routeFile);
-        $routeItemStub = "\tRoute::view('" . 	$this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+        if ($this->getThemeInput() == 'none') {
+            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+        }else {
+            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
+        }
 		$routeItemHook = '//Route Hooks - Do not delete//';
 
         if (!Str::contains($routeContents, $routeItemStub)) {
@@ -63,10 +67,10 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 
 		//Updating Nav Bar
         $layoutFile = 'resources/views/layouts/app.blade.php';
+		//$layoutFile = base_path("Modules/backend/resources/views/pmsmenu/{$modulelower}.blade.php");
         $layoutContents = $this->filesystem->get($layoutFile);
-        $navItemStub = "\t\t\t\t\t\t<li class=\"nav-item\">
-                            <a href=\"{{ url('/".$this->getNameInput()."') }}\" class=\"nav-link\"><i class=\"fab fa-laravel text-info\"></i> ". ucfirst($this->getNameInput()) ."</a>
-                        </li>";
+		//$navItemStub = "\t\t\t\t\t\t<li><a href=\"{{ url('/{$modulelower}/" . $this->getNameInput() . "') }}\"> " . ucfirst($this->getNameInput()) . "</a></li>";
+        $navItemStub = "\t\t\t\t\t\t<li class=\"nav-item\"><a href=\"{{ url('/".$this->getNameInput()."') }}\" class=\"nav-link\"><i class=\"fab fa-laravel text-info\"></i> ". ucfirst($this->getNameInput()) ."</a></li>";
         $navItemHook = '<!--Nav Bar Hooks - Do not delete!!-->';
 
         if (!Str::contains($layoutContents, $navItemStub)) {
@@ -90,7 +94,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
         $theme = $this->getThemeInput();
-        $modelPath = $this->_getModelPath($this->name);
+        $modelPath = $this->_getCreateModelPath($this->name);
+        // $modelPath = $this->_getModelPath($this->name);
         $createlPath = $this->_getCreatePath($this->name);
         $deletePath = $this->_getDeletePath($this->name);
         $editPath = $this->_getEditPath($this->name);
@@ -112,6 +117,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 		$factoryTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub('Factory')
         );
+
+        if ($theme == 'none') {
         $livewireTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub('Livewire')
         );
@@ -127,6 +134,33 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
          $deleteTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub("modals/Delete")
         );
+        }else{
+            $livewireTemplate = str_replace(
+                array_keys($replace),
+                array_values($replace),
+                $this->getStub('Livewirethemed')
+            );
+            $editTemplate = str_replace(
+                array_keys($replace),
+                array_values($replace),
+                $this->getStub("modalsthemed/Edit")
+            );
+            $createTemplate = str_replace(
+                array_keys($replace),
+                array_values($replace),
+                $this->getStub("modalsthemed/Create")
+            );
+            $showTemplate = str_replace(
+                array_keys($replace),
+                array_values($replace),
+                $this->getStub("modalsthemed/Show")
+            );
+            $deleteTemplate = str_replace(
+                array_keys($replace),
+                array_values($replace),
+                $this->getStub("modalsthemed/Delete")
+            );
+        }
         $this->warn('Creating: <info>Livewire Component...</info>');
         // $this->write($livewirePath, $livewireTemplate);
         $this->write($modulePath, $livewireTemplate);
@@ -161,6 +195,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
      */
     protected function buildViews()
     {
+        $theme = $this->getThemeInput();
         $this->warn('Creating:<info> Views ...</info>');
 
         $tableHead = "\n";
@@ -210,12 +245,20 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         ]);
 
         $this->buildLayout();
-
         foreach (['view', 'index', 'create', 'delete', 'show', 'update'] as $view) {
-            $viewTemplate = str_replace(
-                array_keys($replace), array_values($replace), $this->getStub("views/{$view}")
-            );
-
+            if ($this->getThemeInput() == 'none') {
+                $viewTemplate = str_replace(
+                    array_keys($replace),
+                    array_values($replace),
+                    $this->getStub("views/{$view}")
+                );
+            } else {
+                $viewTemplate = str_replace(
+                    array_keys($replace),
+                    array_values($replace),
+                    $this->getStub("themes/{$theme}/views/{$view}")
+                );
+            }
             $this->write($this->_getViewPath($view), $viewTemplate);
         }
 
