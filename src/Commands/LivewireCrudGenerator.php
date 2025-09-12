@@ -54,6 +54,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $routeContents = $this->filesystem->get($routeFile);
         if ($this->getThemeInput() == 'none') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+        }elseif ($this->getThemeInput() == 'nonedefault') {
+            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
         }else {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
         }
@@ -251,6 +253,12 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
                     array_keys($replace),
                     array_values($replace),
                     $this->getStub("views/{$view}")
+                );
+            }elseif ($this->getThemeInput() == 'nonedefault') {
+                $viewTemplate = str_replace(
+                    array_keys($replace),
+                    array_values($replace),
+                    $this->getStub("viewsdefault/{$view}")
                 );
             } else {
                 $viewTemplate = str_replace(
