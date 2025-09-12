@@ -17,15 +17,17 @@
     ],
     "require": {
         "php": "^8.2",
-        "laravel/framework": "^11.0",
+        "laravel/framework": "^12.0",
         "laravel/ui": "^4",
-        "livewire/livewire": "^3.3",
+        "livewire/livewire": "^3.6",
         "aliqasemzadeh/livewire-bootstrap-modal": "^2.3",
-        "php-flasher/flasher-laravel": "^1.15",
-        "intervention/image": "^2.5"
+        "php-flasher/flasher-laravel": "^2.1",
+        "intervention/image": "^3.11.4"
 
     },
-    "require-dev": {},
+    "require-dev": {
+        "rector/rector": "^2.1"
+    },
     "autoload": {
         "psr-4": {
             "Xslainadmin\\LivewireCrud\\": "src"
