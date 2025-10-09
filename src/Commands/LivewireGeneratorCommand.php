@@ -286,6 +286,30 @@ abstract class LivewireGeneratorCommand extends Command
         return $this->makeDirectory($path);
     }
 
+    protected function _getImportPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Imports/{$name}Import.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getExportPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Exports/{$name}Export.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
     // protected function _getCreatePath($name)
     // {
     //     return $this->makeDirectory(app_path($this->_getNamespacePath($this->modelNamespace) . "{$name}.php"));
@@ -435,6 +459,21 @@ abstract class LivewireGeneratorCommand extends Command
             $this->getStub("views/{$type}")
         );
     }
+
+    protected function getDataField($title, $column, $datatype)
+    {
+        $replace = array_merge($this->buildReplacements(), [
+            '{{title}}' => $title,
+            '{{column}}' => $column,
+            '{{datatype}}' => $datatype,
+        ]);
+
+        return str_replace(
+            array_keys($replace),
+            array_values($replace),
+            $this->getStub("views/datatype/{$datatype}")
+        );
+    }
     /**
      * Build the form fields for form.
      * @param $title
@@ -512,12 +551,78 @@ abstract class LivewireGeneratorCommand extends Command
 
     /**
      * Get the DB Table columns.
+     * Supports multiple database drivers (MySQL, PostgreSQL, SQLite, SQL Server)
      * @return array
      */
     protected function getColumns()
     {
         if (empty($this->tableColumns)) {
-            $this->tableColumns = DB::select('SHOW COLUMNS FROM `' . $this->table . '`');
+            $driver = DB::getDriverName();
+
+            try {
+                switch ($driver) {
+                    case 'mysql':
+                        $result = DB::select('SHOW COLUMNS FROM `' . $this->table . '`');
+                        // Ensure we're working with an array
+                        $this->tableColumns = is_array($result) ? $result : [$result];
+                        break;
+
+                    case 'pgsql':
+                        $result = DB::select(
+                            "SELECT column_name as Field, data_type as Type, is_nullable as Null, column_default as Default
+                             FROM information_schema.columns
+                             WHERE table_name = ?
+                             ORDER BY ordinal_position",
+                            [$this->table]
+                        );
+                        $this->tableColumns = is_array($result) ? $result : [$result];
+                        break;
+
+                    case 'sqlite':
+                        $columns = DB::select("PRAGMA table_info(`{$this->table}`)");
+                        $this->tableColumns = collect($columns)->map(function ($column) {
+                            return (object) [
+                                'Field' => $column->name,
+                                'Type' => $column->type,
+                                'Null' => $column->notnull ? 'NO' : 'YES',
+                                'Default' => $column->dflt_value,
+                            ];
+                        })->toArray();
+                        break;
+
+                    case 'sqlsrv':
+                        $result = DB::select(
+                            "SELECT COLUMN_NAME as Field, DATA_TYPE as Type, IS_NULLABLE as Null, COLUMN_DEFAULT as Default
+                             FROM INFORMATION_SCHEMA.COLUMNS
+                             WHERE TABLE_NAME = ?
+                             ORDER BY ORDINAL_POSITION",
+                            [$this->table]
+                        );
+                        $this->tableColumns = is_array($result) ? $result : [$result];
+                        break;
+
+                    default:
+                        // Fallback: Use Laravel's Schema facade
+                        $columns = Schema::getColumnListing($this->table);
+                        $this->tableColumns = collect($columns)->map(function ($column) {
+                            $type = Schema::getColumnType($this->table, $column);
+                            return (object) [
+                                'Field' => $column,
+                                'Type' => $type,
+                                'Null' => 'YES',
+                                'Default' => null,
+                            ];
+                        })->toArray();
+                        break;
+                }
+
+                // Debug output
+                if (method_exists($this, 'info')) {
+                    $this->info("getColumns() returned " . count($this->tableColumns) . " columns");
+                }
+            } catch (\Exception $e) {
+                throw new \Exception("Failed to get columns from table '{$this->table}': " . $e->getMessage());
+            }
         }
 
         return $this->tableColumns;
@@ -688,6 +793,20 @@ abstract class LivewireGeneratorCommand extends Command
             return implode('', $filterColumns);
         };
 
+        $templateHeaders = function () {
+
+            /** @var array $filterColumns Exclude the unwanted columns */
+            $filterColumns = $this->getFilteredColumns();
+
+            // Add quotes to create CSV header array
+            array_walk($filterColumns, function (&$value) {
+                $value = "'" . ucwords(str_replace('_', ' ', $value)) . "'";
+            });
+
+            // CSV format
+            return implode(', ', $filterColumns);
+        };
+
         list($relations, $properties) = (new ModelGenerator($this->table, $properties, $this->modelNamespace))->getEloquentRelations();
 
         return [
@@ -700,6 +819,7 @@ abstract class LivewireGeneratorCommand extends Command
             '{{factory}}' => $factoryfields(),
             '{{rules}}' => $rules(),
             '{{search}}' => $keyWord(),
+            '{{templateHeaders}}' => $templateHeaders(),
             '{{relations}}' => $relations,
             '{{properties}}' => $properties,
             '{{softDeletesNamespace}}' => $softDeletesNamespace,

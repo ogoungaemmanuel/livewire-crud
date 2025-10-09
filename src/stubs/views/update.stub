@@ -1,18 +1,34 @@
-<!-- Modal -->
-<div>
-        <div class="modal-header">
-            <h5 class="modal-title">Update {{modelTitle}}</h5>
-            <button type="button" class="btn-close" wire:click="$dispatch('hideModal')" aria-label="Close"></button>
+<div class="row g-3">
+    <div class="col-12">
+        <div class="alert alert-warning">
+            <i class="bi bi-pencil-square"></i> Update the information below for this {{modelNameLowerCase}}.
         </div>
-        <div class="modal-body">
-                <form>
-					<input type="hidden" wire:model.fill="selected_id" value="{{$selected_id}}">
-                    {{form}}
-                </form>
+    </div>
+
+    <input type="hidden" wire:model="selected_id" value="{{$selected_id}}">
+
+    {{form}}
+
+    @if ($errors->any())
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-            <div class="modal-footer">
-                <button type="button" wire:click="$dispatch('hideModal')" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" wire:click.prevent="update({{$selected_id}})" class="btn btn-primary" data-dismiss="modal">Save</button>
-            </div>
+        </div>
+    @endif
+
+    <div class="col-12">
+        <p class="text-muted small">
+            <i class="bi bi-info-circle"></i> Last updated:
+            @if(isset(${{modelNameLowerCase}}) && ${{modelNameLowerCase}}->updated_at)
+                {{ ${{modelNameLowerCase}}->updated_at->diffForHumans() }}
+            @endif
+        </p>
+    </div>
 </div>
 

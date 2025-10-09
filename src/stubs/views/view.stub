@@ -1,98 +1,697 @@
-@section('page_title',  __('{{modelPluralTitle}}'))
+@section('page_title', __('{{modelPluralTitle}}'))
 <div class="px-xl-5 px-lg-4 px-3 py-3 page-body">
     <div class="row g-3">
+        <!-- Header Section -->
         <div class="col-sm-12">
             <div class="d-flex align-items-center justify-content-between flex-wrap">
                 <h3 class="fw-bold mb-0">@yield('page_title')</h3>
-                <div class="col-auto d-flex w-sm-100">
-                    <a type="button" class="btn btn-dark btn-set-task w-sm-100" wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.create','params' :{'user':'Ali Qasemzadeh'}}})">
-                        Add {{modelPluralTitle}}
-                    </a>
+                <div class="col-auto d-flex gap-2 w-sm-100">
+                    <button type="button" class="btn btn-primary" wire:click="create{{modelName}}" data-bs-toggle="modal" data-bs-target="#create{{modelName}}Modal">
+                        <i class="bi bi-plus-circle"></i> Add {{modelName}}
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" wire:click="import{{modelPluralTitle}}" data-bs-toggle="modal" data-bs-target="#import{{modelPluralTitle}}Modal">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#export{{modelPluralTitle}}Modal">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary" wire:click="printReport">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" wire:click="sendEmail">
+                        <i class="bi bi-envelope"></i> Email
+                    </button>
                 </div>
             </div>
         </div>
+
+        <!-- Statistics Cards -->
         <div class="col-sm-12">
-            <div class="card">
-                <div class="card-header">
-                    <h6 class="card-title">Search Reports Here</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                <label class="form-label text-muted">Name / Phone /Email ? <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <span class="input-group-text" ><i class="bi bi-calendar-user"></i></span>
-                                    <input wire:model.live='indexSearch' type="text" class="form-control">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Total {{modelPluralTitle}}</h6>
+                                    <h3 class="mb-0">{{ $total{{modelPluralTitle}} }}</h3>
                                 </div>
+                                <i class="bi bi-collection fs-1"></i>
                             </div>
                         </div>
-                        <div class="col-md-12 text-end">
-						@if ($selecteditem)
-						<button type="button" wire:click='deleteselected()' class="btn btn-primary py-2 px-5">Delete ({{count($selecteditem)}})</button>
-						@else
-                        <button type="button" class="btn btn-primary py-2 px-5">Search</button>
-						@endif
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Active</h6>
+                                    <h3 class="mb-0">{{ $active{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-check-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Inactive</h6>
+                                    <h3 class="mb-0">{{ $inactive{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-x-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">This Month</h6>
+                                    <h3 class="mb-0">{{ $thisMonth{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-calendar-month fs-1"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!--content start-->
+
+        <!-- Filter Section -->
         <div class="col-sm-12">
             <div class="card">
-                <div class="card-body table-responsive">
-                    <table class="table align-middle table-hover table-body" style="width: 100%;">
-                        <thead>
-                        <tr>
-								<td>#</td>
-                                <td>SN</td>
-                                {{-- <td>Photo</td> --}}
-                                {{tableHeader}}
-								<td>Status</td>
-                                <td>Action</td>
-							</tr>
-                        </thead>
-                        <tbody>
-                        @foreach(${{modelNamePluralLowerCase}} as $row)
-							<tr>
-                                <td><input type="checkbox" value="{{$row->id}}" wire:model.live="selecteditem"></td>
-								<td>{{ $loop->iteration }}</td>
-                                {{-- <td><img class="rounded-circle" style="height: 40px; width: 40px;"
-                                 src="{{ asset('uploads/images/{{modelName}}/{{modelName}}' . $row->photo) }}" alt="photo"></td> --}}
-                                {{tableBody}}
-                            <td>@if ($row->status == 1)
-                                <button type="button" wire:click="deactivate({{$row->id}})" class="btn btn-sm btn-success">Active</button>
-                                @else
-                                <button type="button" wire:click="activate({{$row->id}})" class="btn btn-sm btn-warning">Inactive</button>
-                                @endif
-                            </td>
-                            <td width="90">
-                                <div class="btn-group">
-                                    <button type="button" class="btn btn-info btn-sm dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <div class="dropdown-menu dropdown-menu-right">
-										<a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.edit','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-edit"></i> Edit </a>
-                                        <a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.show','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-edit"></i> Show </a>
-                                        @if (Am_admin())
-                                        <a wire:click="$dispatch('showModal', {data: {'alias' : '{{getModuleInput}}::{{modelNamePluralLowerCase}}.delete','params' :{'id': {{$row->id}}}}})" class="dropdown-item"><i class="fa fa-trash"></i> Delete </a>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-funnel"></i> Filters & Search
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="resetFilters">
+                        <i class="bi bi-x-circle"></i> Reset
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input wire:model.live.debounce.300ms="search" type="text" class="form-control" placeholder="Search...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select wire:model.live="filterStatus" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select wire:model.live="filterDateRange" class="form-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Per Page</label>
+                            <select wire:model.live="perPage" class="form-select">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-            <div class="card-footer">
-                {{ ${{modelNamePluralLowerCase}}->links() }}
+
+        <!-- Bulk Actions Bar -->
+        @if($selectedItems && count($selectedItems) > 0)
+        <div class="col-sm-12">
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span><strong>{{ count($selectedItems) }}</strong> item(s) selected</span>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-danger" wire:click="bulkDelete">
+                        <i class="bi bi-trash"></i> Delete Selected
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" wire:click="bulkActivate">
+                        <i class="bi bi-check-circle"></i> Activate
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" wire:click="bulkDeactivate">
+                        <i class="bi bi-x-circle"></i> Deactivate
+                    </button>
+                </div>
             </div>
         </div>
+        @endif
 
+        <!-- Data Table -->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body table-responsive">
+                    <table class="table align-middle table-hover" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th width="30">
+                                    <input type="checkbox" wire:model.live="selectAll" class="form-check-input">
+                                </th>
+                                <th width="50">SN</th>
+                                {{tableHeader}}
+                                <th>
+                                    <a href="#" wire:click.prevent="sortBy('status')" class="text-decoration-none text-dark">
+                                        Status
+                                        @if($sortField === 'status')
+                                            <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="#" wire:click.prevent="sortBy('created_at')" class="text-decoration-none text-dark">
+                                        Created
+                                        @if($sortField === 'created_at')
+                                            <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th width="100">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse(${{modelNamePluralLowerCase}} as $row)
+                            <tr wire:key="{{modelNameLowerCase}}-{{ $row->id }}">
+                                <td>
+                                    <input type="checkbox" value="{{ $row->id }}" wire:model.live="selectedItems" class="form-check-input">
+                                </td>
+                                <td>{{ ${{modelNamePluralLowerCase}}->firstItem() + $loop->index }}</td>
+                                {{tableBody}}
+                                <td>
+                                    @if($row->status === 'active')
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-warning">Inactive</span>
+                                    @endif
+                                </td>
+                                <td>{{ $row->created_at->format('M d, Y') }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="view{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#show{{modelName}}Modal">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="edit{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#update{{modelName}}Modal">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            @if(isset($row->status))
+                                                @if($row->status === 'active')
+                                                    <li><a class="dropdown-item" href="#" wire:click.prevent="deactivate({{ $row->id }})"><i class="bi bi-x-circle"></i> Deactivate</a></li>
+                                                @else
+                                                    <li><a class="dropdown-item" href="#" wire:click.prevent="activate({{ $row->id }})"><i class="bi bi-check-circle"></i> Activate</a></li>
+                                                @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="printRow({{ $row->id }})">
+                                                    <i class="bi bi-printer"></i> Print
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="sendEmailRow({{ $row->id }})">
+                                                    <i class="bi bi-envelope"></i> Email
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" wire:click.prevent="delete{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#delete{{modelName}}Modal">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="100" class="text-center py-4">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted">No {{modelNamePluralLowerCase}} found</p>
+                                    <button type="button" class="btn btn-primary" wire:click="create{{modelName}}" data-bs-toggle="modal" data-bs-target="#create{{modelName}}Modal">
+                                        <i class="bi bi-plus-circle"></i> Create First {{modelName}}
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div>
+                        Showing {{ ${{modelNamePluralLowerCase}}->firstItem() ?? 0 }} to {{ ${{modelNamePluralLowerCase}}->lastItem() ?? 0 }} of {{ ${{modelNamePluralLowerCase}}->total() }} entries
+                    </div>
+                    <div>
+                        {{ ${{modelNamePluralLowerCase}}->links() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div wire:loading.delay class="position-fixed top-50 start-50 translate-middle">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 mb-0">Processing...</p>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Create Modal -->
+<div wire:ignore.self class="modal fade" id="create{{modelName}}Modal" tabindex="-1" aria-labelledby="create{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="create{{modelName}}ModalLabel">
+                    <i class="bi bi-plus-circle"></i> Create New {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="store">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.create')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="store">
+                            <i class="bi bi-save"></i> Save {{modelName}}
+                        </span>
+                        <span wire:loading wire:target="store">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Saving...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Modal -->
+<div wire:ignore.self class="modal fade" id="update{{modelName}}Modal" tabindex="-1" aria-labelledby="update{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="update{{modelName}}ModalLabel">
+                    <i class="bi bi-pencil-square"></i> Edit {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="update">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="update">
+                            <i class="bi bi-save"></i> Update {{modelName}}
+                        </span>
+                        <span wire:loading wire:target="update">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Updating...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Show Modal -->
+<div wire:ignore.self class="modal fade" id="show{{modelName}}Modal" tabindex="-1" aria-labelledby="show{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="show{{modelName}}ModalLabel">
+                    <i class="bi bi-eye"></i> View {{modelName}} Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.show')
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div wire:ignore.self class="modal fade" id="delete{{modelName}}Modal" tabindex="-1" aria-labelledby="delete{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="delete{{modelName}}ModalLabel">
+                    <i class="bi bi-trash"></i> Delete {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.delete')
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" wire:click="destroy" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="destroy">
+                        <i class="bi bi-trash"></i> Delete
+                    </span>
+                    <span wire:loading wire:target="destroy">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Deleting...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div wire:ignore.self class="modal fade" id="import{{modelPluralTitle}}Modal" tabindex="-1" aria-labelledby="import{{modelPluralTitle}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="import{{modelPluralTitle}}ModalLabel">
+                    <i class="bi bi-upload"></i> Import {{modelPluralTitle}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="import">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.import')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="import">
+                            <i class="bi bi-upload"></i> Import
+                        </span>
+                        <span wire:loading wire:target="import">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Importing...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div wire:ignore.self class="modal fade" id="export{{modelPluralTitle}}Modal" tabindex="-1" aria-labelledby="export{{modelPluralTitle}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="export{{modelPluralTitle}}ModalLabel">
+                    <i class="bi bi-download"></i> Export {{modelPluralTitle}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- Export Format Selection -->
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Choose your preferred export format and customize the options below.
+                        </div>
+                    </div>
+
+                    <!-- Format Options -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-earmark"></i> Export Format
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'excel')">
+                                    <div class="card-body text-center" :class="{ 'border-primary': exportFormat === 'excel' }">
+                                        <i class="bi bi-file-earmark-excel text-success fs-1"></i>
+                                        <h6 class="mt-2">Excel (XLSX)</h6>
+                                        <small class="text-muted">Best for data analysis</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="excel" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'csv')">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-earmark-text text-info fs-1"></i>
+                                        <h6 class="mt-2">CSV</h6>
+                                        <small class="text-muted">Universal compatibility</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="csv" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'pdf')">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-earmark-pdf text-danger fs-1"></i>
+                                        <h6 class="mt-2">PDF</h6>
+                                        <small class="text-muted">Professional reports</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="pdf" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-gear"></i> Export Options
+                        </label>
+                    </div>
+
+                    <!-- Data Range -->
+                    <div class="col-md-6">
+                        <label class="form-label">Data Range</label>
+                        <select class="form-select" wire:model="exportRange">
+                            <option value="all">All Records ({{ $total{{modelPluralTitle}} }})</option>
+                            <option value="filtered">Filtered Records Only ({{ ${{modelNamePluralLowerCase}}->total() }})</option>
+                            <option value="selected">Selected Records ({{ count($selectedItems) }})</option>
+                            <option value="current_page">Current Page Only ({{ ${{modelNamePluralLowerCase}}->count() }})</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Range Filter -->
+                    <div class="col-md-6">
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" wire:model="exportDateRange">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="this_week">This Week</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="this_month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Date Range (shown when custom is selected) -->
+                    @if($exportDateRange === 'custom')
+                    <div class="col-md-6">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" wire:model="exportStartDate">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" wire:model="exportEndDate">
+                    </div>
+                    @endif
+
+                    <!-- Column Selection -->
+                    <div class="col-12">
+                        <label class="form-label">Columns to Export</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" wire:model="selectAllColumns" id="selectAllColumns">
+                                            <label class="form-check-label fw-bold" for="selectAllColumns">
+                                                Select All Columns
+                                            </label>
+                                        </div>
+                                        <hr>
+                                    </div>
+                                    @foreach($availableColumns ?? [] as $column)
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ $column }}" wire:model="exportColumns" id="export_{{ $column }}">
+                                            <label class="form-check-label" for="export_{{ $column }}">
+                                                {{ ucwords(str_replace('_', ' ', $column)) }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Options (PDF Only) -->
+                    @if($exportFormat === 'pdf')
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-pdf"></i> PDF Options
+                        </label>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Orientation</label>
+                        <select class="form-select" wire:model="pdfOrientation">
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Landscape</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Paper Size</label>
+                        <select class="form-select" wire:model="pdfPaperSize">
+                            <option value="a4">A4</option>
+                            <option value="letter">Letter</option>
+                            <option value="legal">Legal</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" wire:model="includeStatistics" id="includeStatistics">
+                            <label class="form-check-label" for="includeStatistics">
+                                Include Statistics Summary
+                            </label>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- File Name -->
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label">
+                            <i class="bi bi-file-earmark-text"></i> File Name
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" wire:model="exportFileName" placeholder="Enter file name">
+                            <span class="input-group-text">.{{ $exportFormat }}</span>
+                        </div>
+                        <small class="text-muted">Leave blank to use default naming ({{modelNamePluralLowerCase}}-YYYY-MM-DD)</small>
+                    </div>
+
+                    <!-- Export Summary -->
+                    <div class="col-12">
+                        <div class="alert alert-light border">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Export Summary</h6>
+                            <ul class="mb-0">
+                                <li><strong>Format:</strong> {{ strtoupper($exportFormat ?? 'Not Selected') }}</li>
+                                <li><strong>Records:</strong>
+                                    @if($exportRange === 'all')
+                                        All ({{ $total{{modelPluralTitle}} }})
+                                    @elseif($exportRange === 'filtered')
+                                        Filtered ({{ ${{modelNamePluralLowerCase}}->total() }})
+                                    @elseif($exportRange === 'selected')
+                                        Selected ({{ count($selectedItems) }})
+                                    @else
+                                        Current Page ({{ ${{modelNamePluralLowerCase}}->count() }})
+                                    @endif
+                                </li>
+                                <li><strong>Columns:</strong> {{ count($exportColumns ?? []) }} selected</li>
+                                @if($exportFormat === 'pdf')
+                                <li><strong>PDF Settings:</strong> {{ ucfirst($pdfOrientation ?? 'portrait') }}, {{ strtoupper($pdfPaperSize ?? 'A4') }}</li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" wire:click="export" wire:loading.attr="disabled" :disabled="!exportFormat">
+                    <span wire:loading.remove wire:target="export">
+                        <i class="bi bi-download"></i> Export Now
+                    </span>
+                    <span wire:loading wire:target="export">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Exporting...
+                    </span>
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 </div>
+@push('scripts')
+<script>
+    // Listen for notification events
+    window.addEventListener('notify', event => {
+        const { type, message } = event.detail;
+
+        // Using SweetAlert2 (if available)
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: type,
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            // Fallback to alert
+            alert(message);
+        }
+    });
+
+    // Print functionality
+    window.addEventListener('print-report', event => {
+        window.print();
+    });
+</script>
+@endpush

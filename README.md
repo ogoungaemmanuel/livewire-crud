@@ -38,7 +38,7 @@ to generate Auth scaffolds using `laravel/ui` package. You can skip this step if
 Then generate Crud by:
 
 ```bash
-php artisan crud:generate {table-name} {module-name}
+php artisan crud:generate {name : Table name} {theme} {module}
 ```
 **This command will generate:
 

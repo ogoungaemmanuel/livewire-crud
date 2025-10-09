@@ -1,17 +1,22 @@
-<!-- Modal -->
-<div>
-        <div class="modal-header">
-            <h5 class="modal-title">Create New {{modelTitle}}</h5>
-            <button type="button" class="btn-close" wire:click="$dispatch('hideModal')" aria-label="Close"></button>
+<div class="row g-3">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Fill in the form below to create a new {{modelNameLowerCase}}.
         </div>
-            <div class="modal-body">
-				<form>
-                {{form}}
-                </form>
+    </div>
+
+    {{form}}
+
+    @if ($errors->any())
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
-            <div class="modal-footer">
-                <button type="button" wire:click="$dispatch('hideModal')" class="btn btn-secondary close-btn" data-dismiss="modal">Close</button>
-                <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Save</button>
-            </div>
+        </div>
+    @endif
 </div>
-  

@@ -3,38 +3,228 @@
 namespace Modules\{{getModuleInputModule}}\Livewire;
 
 use Livewire\Component;
+//use App\Enums\{{modelName}} as Enums{{modelName}};
 use Livewire\WithPagination;
-use App\Models\{{modelName}};
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
 use Carbon\Carbon;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Modules\{{getModuleInputModule}}\Exports\{{modelPluralName}}Export;
+use Modules\{{getModuleInputModule}}\Imports\{{modelPluralName}}Import;
 
 class {{modelPluralName}} extends Component
 {
     use WithPagination;
     use WithFileUploads;
 	protected $paginationTheme = 'bootstrap';
+
+    // Form fields
     public $selected_id, $newimage, {{updatefield}};
+    public ${{modelNameLowerCase}};
+
+    // Search and filters
     public $indexSearch = '';
+    public $search = '';
+    public $filterStatus = '';
+    public $filterDateRange = '';
+    public $perPage = 10;
+
+    // Sorting
+    public $sortField = 'created_at';
+    public $sortDirection = 'desc';
+
+    // Bulk operations
     public $selecteditem = [];
-    protected $queryString = ['indexSearch'];
+    public $selectedItems = [];
+    public $selectAll = false;
+    public $confirmDelete = false;
+
+    // Export properties
+    public $exportFormat = 'excel';
+    public $exportRange = 'all';
+    public $exportDateRange = '';
+    public $exportStartDate = null;
+    public $exportEndDate = null;
+    public $exportColumns = [];
+    public $selectAllColumns = true;
+    public $availableColumns = [];
+    public $pdfOrientation = 'portrait';
+    public $pdfPaperSize = 'a4';
+    public $includeStatistics = true;
+    public $exportFileName = '';
+
+    // Import
+    public $importFile;
+    public $importResults = [];
+
+    protected $queryString = ['indexSearch', 'search', 'sortField', 'sortDirection'];
     public $updateMode = false;
+
     #[On('refresh-the-component')]
+
+     // public function mount()
+    // {
+    //     $this->posted_by = User_Detail()->name;
+    //     $this->status = 'active';
+    // }
+
+    public function mount()
+    {
+        // Initialize available columns for export
+        $model = new {{modelName}}();
+        $this->availableColumns = $model->getFillable();
+        $this->exportColumns = $this->availableColumns;
+    }
+
+    public function updatedSelectAllColumns($value)
+    {
+        if ($value) {
+            $this->exportColumns = $this->availableColumns;
+        } else {
+            $this->exportColumns = [];
+        }
+    }
 
     public function render()
     {
-        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
-            '{{modelNamePluralLowerCase}}' => {{modelName}}::latest()
-                        ->search($this->indexSearch)
-						->paginate(10),
-        ]);
+        $query = {{modelName}}::query();
 
+        // Apply search
+        if ($this->search || $this->indexSearch) {
+            $query->search($this->search ?: $this->indexSearch);
+        }
+
+        // Apply filters
+        if ($this->filterStatus) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterDateRange) {
+            $query->whereBetween('created_at', $this->getDateRange($this->filterDateRange));
+        }
+
+        // Apply sorting
+        $query->orderBy($this->sortField, $this->sortDirection);
+
+        return view('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.view', [
+            '{{modelNamePluralLowerCase}}' => $query->paginate($this->perPage),
+            'total{{modelPluralTitle}}' => $this->getTotalCount(),
+            'active{{modelPluralTitle}}' => $this->getActiveCount(),
+            'inactive{{modelPluralTitle}}' => $this->getInactiveCount(),
+            'thisMonth{{modelPluralTitle}}' => $this->getThisMonthCount(),
+        ]);
     }
 
+    protected function getDateRange($range)
+    {
+        return match($range) {
+            'today' => [now()->startOfDay(), now()->endOfDay()],
+            'week' => [now()->startOfWeek(), now()->endOfWeek()],
+            'month' => [now()->startOfMonth(), now()->endOfMonth()],
+            'year' => [now()->startOfYear(), now()->endOfYear()],
+            default => [now()->subYears(100), now()],
+        };
+    }
+
+    protected function getTotalCount()
+    {
+        return {{modelName}}::count();
+    }
+
+    protected function getActiveCount()
+    {
+        return {{modelName}}::where('status', 'active')->count();
+    }
+
+    protected function getInactiveCount()
+    {
+        return {{modelName}}::where('status', 'inactive')->count();
+    }
+
+    protected function getThisMonthCount()
+    {
+        return {{modelName}}::whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])->count();
+    }
+
+    public function closeModal()
+    {
+        $this->resetInput();
+        $this->updateMode = false;
+    }
+
+    public function showModal()
+    {
+        $this->resetInput();
+        $this->updateMode = false;
+    }
+
+    public function create{{modelName}}()
+    {
+        $this->resetInput();
+        $this->updateMode = false;
+    }
+
+    public function view{{modelName}}($id)
+    {
+        $this->show($id);
+    }
+
+    public function edit{{modelName}}($id)
+    {
+        $this->edit($id);
+    }
+
+    public function delete{{modelName}}($id)
+    {
+        $this->selected_id = $id;
+        $record = {{modelName}}::findOrFail($id);
+        $this->{{modelNameLowerCase}} = $record;
+    }
+
+    public function import{{modelPluralTitle}}()
+    {
+        $this->reset(['importFile', 'importResults']);
+    }
+
+
+ public function updatingIndexSearch()
+    {
+        $this->resetPage();
+    }
+
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedItems = {{modelName}}::pluck('id')->toArray();
+        } else {
+            $this->selectedItems = [];
+        }
+    }
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function resetFilters()
+    {
+        $this->reset(['search', 'indexSearch', 'filterStatus', 'filterDateRange', 'perPage']);
+        $this->perPage = 10;
+        $this->resetPage();
+    }
 
     public function reload()
     {
@@ -106,6 +296,7 @@ class {{modelPluralName}} extends Component
     {
         $record = {{modelName}}::findOrFail($id);
         $this->selected_id = $id; {{showfields}}
+        $this->{{modelNameLowerCase}} = $record;
         $this->updateMode = false;
     }
 
@@ -147,7 +338,295 @@ class {{modelPluralName}} extends Component
         if ($id) {
             $record = {{modelName}}::where('id', $id);
             $record->delete();
+            $this->dispatch('closeModal');
+            flash()->addSuccess('{{modelName}} Successfully Deleted.');
         }
+    }
+
+    // Import Methods
+    public function import()
+    {
+        $this->validate(['importFile' => 'required|file|mimes:xlsx,xls,csv|max:10240']);
+
+        try {
+            Excel::import(
+                new {{modelPluralName}}Import,
+                $this->importFile
+            );
+
+            $this->importResults = [
+                'success' => true,
+                'message' => '{{modelPluralTitle}} imported successfully!',
+            ];
+
+            flash()->addSuccess($this->importResults['message']);
+            $this->dispatch('closeModal');
+            return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
+
+        } catch (\Exception $e) {
+            $this->importResults = [
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+            ];
+            flash()->addError($this->importResults['message']);
+        }
+    }
+
+    public function export()
+    {
+        try {
+            // Build export query based on range
+            $query = $this->getExportQuery();
+
+            // Apply date range if specified
+            if ($this->exportDateRange && $this->exportDateRange !== '') {
+                $query = $this->applyDateRange($query);
+            }
+
+            // Get filename
+            $filename = $this->exportFileName ?: Str::slug('{{modelName}}') . '_' . now()->format('Y-m-d_His');
+
+            // Export based on format
+            switch ($this->exportFormat) {
+                case 'excel':
+                    return Excel::download(
+                        new {{modelPluralName}}Export($query, $this->exportColumns, $this->includeStatistics),
+                        $filename . '.xlsx'
+                    );
+
+                case 'csv':
+                    return Excel::download(
+                        new {{modelPluralName}}Export($query, $this->exportColumns, $this->includeStatistics),
+                        $filename . '.csv',
+                        \Maatwebsite\Excel\Excel::CSV
+                    );
+
+                case 'pdf':
+                    $data = [
+                        'records' => $query->get(),
+                        'columns' => $this->exportColumns,
+                        'includeStatistics' => $this->includeStatistics,
+                        'statistics' => $this->includeStatistics ? [
+                            'total' => $this->getTotalCount(),
+                            'active' => $this->getActiveCount(),
+                            'inactive' => $this->getInactiveCount(),
+                            'thisMonth' => $this->getThisMonthCount(),
+                        ] : null,
+                        'filters' => [
+                            'search' => $this->search,
+                            'status' => $this->filterStatus,
+                            'dateRange' => $this->exportDateRange,
+                        ],
+                    ];
+
+                    $pdf = PDF::loadView('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.pdf-export', $data)
+                        ->setPaper($this->pdfPaperSize, $this->pdfOrientation);
+
+                    return response()->streamDownload(function () use ($pdf) {
+                        echo $pdf->output();
+                    }, $filename . '.pdf');
+            }
+
+            $this->dispatch('show-notification', message: 'Export completed successfully!', type: 'success');
+
+        } catch (\Exception $e) {
+            $this->dispatch('show-notification', message: 'Export failed: ' . $e->getMessage(), type: 'error');
+            Log::error('Export error: ' . $e->getMessage());
+        }
+    }
+
+    protected function getExportQuery()
+    {
+        $query = {{modelName}}::query();
+
+        // Apply filters based on export range
+        switch ($this->exportRange) {
+            case 'filtered':
+                // Apply current filters
+                if ($this->search) {
+                    $query->search($this->search);
+                }
+                if ($this->filterStatus !== '') {
+                    $query->where('status', $this->filterStatus);
+                }
+                break;
+
+            case 'selected':
+                // Only selected items
+                if (count($this->selectedItems) > 0) {
+                    $query->whereIn('id', $this->selectedItems);
+                }
+                break;
+
+            case 'current_page':
+                // Current page items
+                $perPage = $this->perPage;
+                $page = Livewire::request()->page ?? 1;
+                $query->skip(($page - 1) * $perPage)->take($perPage);
+                break;
+
+            // 'all' - no additional filters
+        }
+
+        return $query;
+    }
+
+    protected function applyDateRange($query)
+    {
+        $today = now();
+
+        switch ($this->exportDateRange) {
+            case 'today':
+                $query->whereDate('created_at', $today);
+                break;
+
+            case 'yesterday':
+                $query->whereDate('created_at', $today->copy()->subDay());
+                break;
+
+            case 'this_week':
+                $query->whereBetween('created_at', [
+                    $today->copy()->startOfWeek(),
+                    $today->copy()->endOfWeek()
+                ]);
+                break;
+
+            case 'last_week':
+                $query->whereBetween('created_at', [
+                    $today->copy()->subWeek()->startOfWeek(),
+                    $today->copy()->subWeek()->endOfWeek()
+                ]);
+                break;
+
+            case 'this_month':
+                $query->whereMonth('created_at', $today->month)
+                      ->whereYear('created_at', $today->year);
+                break;
+
+            case 'last_month':
+                $query->whereMonth('created_at', $today->copy()->subMonth()->month)
+                      ->whereYear('created_at', $today->copy()->subMonth()->year);
+                break;
+
+            case 'this_year':
+                $query->whereYear('created_at', $today->year);
+                break;
+
+            case 'last_year':
+                $query->whereYear('created_at', $today->copy()->subYear()->year);
+                break;
+
+            case 'custom':
+                if ($this->exportStartDate) {
+                    $query->whereDate('created_at', '>=', $this->exportStartDate);
+                }
+                if ($this->exportEndDate) {
+                    $query->whereDate('created_at', '<=', $this->exportEndDate);
+                }
+                break;
+        }
+
+        return $query;
+    }
+
+    public function downloadTemplate()
+    {
+        // Get fillable fields from the model
+        $model = new {{modelName}}();
+        $fillable = $model->getFillable();
+
+        // Remove system fields that shouldn't be in import template
+        $excludeFields = ['created_at', 'updated_at', 'deleted_at', 'created_by', 'updated_by', 'deleted_by'];
+        $headers = array_diff($fillable, $excludeFields);
+
+        // Convert to readable format (snake_case to Title Case)
+        $headers = array_map(function($header) {
+            return ucwords(str_replace('_', ' ', $header));
+        }, $headers);
+
+        $templateData = [$headers];
+
+        return response()->streamDownload(function() use ($templateData) {
+            $file = fopen('php://output', 'w');
+            foreach ($templateData as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        }, '{{modelNamePluralLowerCase}}-template.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    // Print Methods
+    public function printReport()
+    {
+        $this->dispatch('print-report');
+    }
+
+    public function printRow($id)
+    {
+        $record = {{modelName}}::findOrFail($id);
+        $pdf = PDF::loadView('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.print', ['record' => $record]);
+        return $pdf->download('{{modelNameLowerCase}}-' . $id . '.pdf');
+    }
+
+    // Email Methods
+    public function sendEmail()
+    {
+        $this->dispatch('notify', ['type' => 'info', 'message' => 'Email report feature will be implemented']);
+    }
+
+    public function sendEmailRow($id)
+    {
+        $this->dispatch('notify', ['type' => 'info', 'message' => 'Email feature will be implemented for record #' . $id]);
+    }
+
+    // Bulk Operations
+    public function bulkDelete()
+    {
+        if (count($this->selectedItems) > 0) {
+            {{modelName}}::whereIn('id', $this->selectedItems)->delete();
+            $this->selectedItems = [];
+            flash()->addSuccess('Selected {{modelNamePluralLowerCase}} deleted successfully!');
+            return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
+        }
+    }
+
+    public function bulkActivate()
+    {
+        if (count($this->selectedItems) > 0) {
+            {{modelName}}::whereIn('id', $this->selectedItems)->update(['status' => 'active']);
+            $this->selectedItems = [];
+            flash()->addSuccess('Selected {{modelNamePluralLowerCase}} activated successfully!');
+            return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
+        }
+    }
+
+    public function bulkDeactivate()
+    {
+        if (count($this->selectedItems) > 0) {
+            {{modelName}}::whereIn('id', $this->selectedItems)->update(['status' => 'inactive']);
+            $this->selectedItems = [];
+            flash()->addSuccess('Selected {{modelNamePluralLowerCase}} deactivated successfully!');
+            return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
+        }
+    }
+
+    protected function getFilteredQuery()
+    {
+        $query = {{modelName}}::query();
+
+        if ($this->search || $this->indexSearch) {
+            $query->search($this->search ?: $this->indexSearch);
+        }
+
+        if ($this->filterStatus) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterDateRange) {
+            $query->whereBetween('created_at', $this->getDateRange($this->filterDateRange));
+        }
+
+        return $query->orderBy($this->sortField, $this->sortDirection);
     }
 
     public function deleteselected()
@@ -164,7 +643,7 @@ class {{modelPluralName}} extends Component
         if ($id) {
             $record = {{modelName}}::where('id', $id);
             $record->update([
-                'status' => 2
+                'status' => 'inactive'
                 ]);
         $this->dispatch('closeModal');
         flash()->addSuccess('{{modelName}} Successfully Deactivated.');
@@ -176,7 +655,7 @@ class {{modelPluralName}} extends Component
         if ($id) {
             $record = {{modelName}}::where('id', $id);
             $record->update([
-                'status' => 1
+                'status' => 'active'
                 ]);
             $this->dispatch('closeModal');
             flash()->addSuccess('{{modelName}} Successfully Activated.');

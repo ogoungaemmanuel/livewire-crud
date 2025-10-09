@@ -4,17 +4,110 @@ namespace Modules\{{getModuleInputModule}}\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class {{modelName}} extends Model
 {
-	use HasFactory;
+    use HasFactory, SoftDeletes;
 
     public $timestamps = true;
     protected $searchableFields = ['*'];
     protected $table = '{{modelNamePluralLowerCase}}';
 
     protected $fillable = [{{fillable}}];
-	{{relations}}
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    {{relations}}
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    public function scopeOldest($query)
+    {
+        return $query->orderBy('created_at', 'asc');
+    }
+
+    // Accessors
+    public function getStatusBadgeAttribute()
+    {
+        return match($this->status) {
+            'active' => '<span class="badge bg-success">Active</span>',
+            'inactive' => '<span class="badge bg-danger">Inactive</span>',
+            'draft' => '<span class="badge bg-secondary">Draft</span>',
+            'pending' => '<span class="badge bg-warning">Pending</span>',
+            'approved' => '<span class="badge bg-primary">Approved</span>',
+            'rejected' => '<span class="badge bg-danger">Rejected</span>',
+            default => '<span class="badge bg-secondary">' . ucfirst($this->status ?? 'Unknown') . '</span>',
+        };
+    }
+
+    public function getStatusClassAttribute()
+    {
+        return match($this->status) {
+            'active' => 'success',
+            'inactive' => 'danger',
+            'draft' => 'secondary',
+            'pending' => 'warning',
+            'approved' => 'primary',
+            'rejected' => 'danger',
+            default => 'secondary',
+        };
+    }
+
+    // Helper Methods
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isInactive()
+    {
+        return $this->status === 'inactive';
+    }
+
+    public function isDraft()
+    {
+        return $this->status === 'draft';
+    }
+
+    public function activate()
+    {
+        return $this->update(['status' => 'active']);
+    }
+
+    public function deactivate()
+    {
+        return $this->update(['status' => 'inactive']);
+    }
 
 
     /**
