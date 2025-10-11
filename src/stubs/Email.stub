@@ -1,0 +1,328 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Emails;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Attachment;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use Illuminate\Support\Collection;
+
+class {{modelName}}Email extends Mailable implements ShouldQueue
+{
+    use Queueable, SerializesModels;
+
+    public ${{modelNameLowerCase}};
+    public ${{modelNamePluralLowerCase}};
+    public $emailType;
+    public $customSubject;
+    public $customBody;
+    public $includeAttachment;
+    public $includeStatistics;
+    public $sender;
+    public $additionalData;
+
+    const TYPE_SINGLE_RECORD = 'single_record';
+    const TYPE_MULTIPLE_RECORDS = 'multiple_records';
+    const TYPE_REPORT = 'report';
+    const TYPE_NOTIFICATION = 'notification';
+    const TYPE_EXPORT_READY = 'export_ready';
+    const TYPE_IMPORT_RESULTS = 'import_results';
+    const TYPE_REMINDER = 'reminder';
+    const TYPE_CUSTOM = 'custom';
+
+    /**
+     * Create a new message instance.
+     */
+    public function __construct(
+        ${{modelNameLowerCase}} = null,
+        Collection ${{modelNamePluralLowerCase}} = null,
+        string $emailType = self::TYPE_SINGLE_RECORD,
+        string $customSubject = '',
+        string $customBody = '',
+        bool $includeAttachment = false,
+        bool $includeStatistics = false,
+        $sender = null,
+        array $additionalData = []
+    ) {
+        $this->{{modelNameLowerCase}} = ${{modelNameLowerCase}};
+        $this->{{modelNamePluralLowerCase}} = ${{modelNamePluralLowerCase}} ?: collect();
+        $this->emailType = $emailType;
+        $this->customSubject = $customSubject;
+        $this->customBody = $customBody;
+        $this->includeAttachment = $includeAttachment;
+        $this->includeStatistics = $includeStatistics;
+        $this->sender = $sender;
+        $this->additionalData = $additionalData;
+    }
+
+    /**
+     * Get the message envelope.
+     */
+    public function envelope(): Envelope
+    {
+        $subject = $this->getEmailSubject();
+        
+        return Envelope::make(
+            subject: $subject,
+            tags: $this->getEmailTags(),
+            metadata: $this->getEmailMetadata(),
+        );
+    }
+
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return Content::make(
+            view: $this->getEmailView(),
+            with: $this->getEmailData(),
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     */
+    public function attachments(): array
+    {
+        $attachments = [];
+
+        if ($this->includeAttachment && $this->emailType === self::TYPE_EXPORT_READY) {
+            $exportPath = $this->additionalData['export_path'] ?? null;
+            if ($exportPath && file_exists($exportPath)) {
+                $attachments[] = Attachment::fromPath($exportPath)
+                    ->as($this->additionalData['export_filename'] ?? '{{modelNamePluralLowerCase}}_export.xlsx')
+                    ->withMime('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            }
+        }
+
+        if ($this->includeAttachment && $this->emailType === self::TYPE_SINGLE_RECORD && $this->{{modelNameLowerCase}}) {
+            // Generate PDF for single record if needed
+            $pdfPath = $this->generateRecordPdf();
+            if ($pdfPath) {
+                $attachments[] = Attachment::fromPath($pdfPath)
+                    ->as("{{modelNameLowerCase}}_{$this->{{modelNameLowerCase}}->id}.pdf")
+                    ->withMime('application/pdf');
+            }
+        }
+
+        return $attachments;
+    }
+
+    /**
+     * Get email subject based on type.
+     */
+    protected function getEmailSubject(): string
+    {
+        if ($this->customSubject) {
+            return $this->customSubject;
+        }
+
+        switch ($this->emailType) {
+            case self::TYPE_SINGLE_RECORD:
+                return "{{modelName}} Details - ID #{$this->{{modelNameLowerCase}}->id}";
+
+            case self::TYPE_MULTIPLE_RECORDS:
+                $count = $this->{{modelNamePluralLowerCase}}->count();
+                return "{{modelPluralTitle}} Report - {$count} Records";
+
+            case self::TYPE_REPORT:
+                return "{{modelPluralTitle}} Report - " . now()->format('M d, Y');
+
+            case self::TYPE_NOTIFICATION:
+                return "{{modelName}} Notification";
+
+            case self::TYPE_EXPORT_READY:
+                return "Your {{modelPluralTitle}} Export is Ready";
+
+            case self::TYPE_IMPORT_RESULTS:
+                $imported = $this->additionalData['imported_count'] ?? 0;
+                return "{{modelPluralTitle}} Import Completed - {$imported} Records";
+
+            case self::TYPE_REMINDER:
+                return "{{modelName}} Reminder";
+
+            case self::TYPE_CUSTOM:
+                return "{{modelName}} Communication";
+
+            default:
+                return "{{modelName}} Email";
+        }
+    }
+
+    /**
+     * Get the email view based on type.
+     */
+    protected function getEmailView(): string
+    {
+        switch ($this->emailType) {
+            case self::TYPE_SINGLE_RECORD:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.single-record';
+
+            case self::TYPE_MULTIPLE_RECORDS:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.multiple-records';
+
+            case self::TYPE_REPORT:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.report';
+
+            case self::TYPE_NOTIFICATION:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.notification';
+
+            case self::TYPE_EXPORT_READY:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.export-ready';
+
+            case self::TYPE_IMPORT_RESULTS:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.import-results';
+
+            case self::TYPE_REMINDER:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.reminder';
+
+            case self::TYPE_CUSTOM:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.custom';
+
+            default:
+                return '{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.default';
+        }
+    }
+
+    /**
+     * Get email data for the view.
+     */
+    protected function getEmailData(): array
+    {
+        $data = [
+            '{{modelNameLowerCase}}' => $this->{{modelNameLowerCase}},
+            '{{modelNamePluralLowerCase}}' => $this->{{modelNamePluralLowerCase}},
+            'emailType' => $this->emailType,
+            'customBody' => $this->customBody,
+            'sender' => $this->sender,
+            'additionalData' => $this->additionalData,
+            'generatedAt' => now(),
+        ];
+
+        if ($this->includeStatistics) {
+            $data['statistics'] = $this->getStatistics();
+        }
+
+        return $data;
+    }
+
+    /**
+     * Get statistics for the email.
+     */
+    protected function getStatistics(): array
+    {
+        return [
+            'total_{{modelNamePluralLowerCase}}' => {{modelName}}::count(),
+            'active_{{modelNamePluralLowerCase}}' => {{modelName}}::where('status', 'active')->count(),
+            'inactive_{{modelNamePluralLowerCase}}' => {{modelName}}::where('status', 'inactive')->count(),
+            'this_month_{{modelNamePluralLowerCase}}' => {{modelName}}::whereBetween('created_at', [
+                now()->startOfMonth(),
+                now()->endOfMonth()
+            ])->count(),
+            'this_week_{{modelNamePluralLowerCase}}' => {{modelName}}::whereBetween('created_at', [
+                now()->startOfWeek(),
+                now()->endOfWeek()
+            ])->count(),
+            'today_{{modelNamePluralLowerCase}}' => {{modelName}}::whereBetween('created_at', [
+                now()->startOfDay(),
+                now()->endOfDay()
+            ])->count(),
+        ];
+    }
+
+    /**
+     * Get email tags for tracking.
+     */
+    protected function getEmailTags(): array
+    {
+        $tags = [
+            '{{modelNameLowerCase}}-email',
+            "type-{$this->emailType}"
+        ];
+
+        if ($this->{{modelNameLowerCase}}) {
+            $tags[] = "{{modelNameLowerCase}}-{$this->{{modelNameLowerCase}}->id}";
+        }
+
+        if ($this->sender) {
+            $tags[] = "sender-{$this->sender->id}";
+        }
+
+        return $tags;
+    }
+
+    /**
+     * Get email metadata.
+     */
+    protected function getEmailMetadata(): array
+    {
+        return [
+            'email_type' => $this->emailType,
+            '{{modelNameLowerCase}}_id' => $this->{{modelNameLowerCase}}?->id,
+            '{{modelNamePluralLowerCase}}_count' => $this->{{modelNamePluralLowerCase}}->count(),
+            'sender_id' => $this->sender?->id,
+            'generated_at' => now()->toISOString(),
+        ];
+    }
+
+    /**
+     * Generate PDF for single record.
+     */
+    protected function generateRecordPdf(): ?string
+    {
+        if (!$this->{{modelNameLowerCase}}) {
+            return null;
+        }
+
+        try {
+            $pdf = \PDF::loadView('{{getModuleInputModuleLowerCase}}::livewire.{{modelNameLowerCase}}.print', [
+                'record' => $this->{{modelNameLowerCase}}
+            ]);
+
+            $filename = "{{modelNameLowerCase}}_{$this->{{modelNameLowerCase}}->id}_" . now()->format('Y-m-d_H-i-s') . '.pdf';
+            $path = storage_path("app/temp/{$filename}");
+
+            // Ensure directory exists
+            if (!file_exists(dirname($path))) {
+                mkdir(dirname($path), 0755, true);
+            }
+
+            $pdf->save($path);
+
+            return $path;
+        } catch (\Exception $e) {
+            \Log::error("Failed to generate PDF for {{modelNameLowerCase}} {$this->{{modelNameLowerCase}}->id}: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Configure the job.
+     */
+    public function tags(): array
+    {
+        return $this->getEmailTags();
+    }
+
+    /**
+     * Calculate the number of seconds to wait before retrying the job.
+     */
+    public function backoff(): array
+    {
+        return [1, 5, 10];
+    }
+
+    /**
+     * Determine the time at which the job should timeout.
+     */
+    public function retryUntil(): \DateTime
+    {
+        return now()->addMinutes(5);
+    }
+}

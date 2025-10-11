@@ -99,6 +99,13 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $modelPath = $this->_getCreateModelPath($this->name);
         $importPath = $this->_getImportPath($this->name);
         $exportPath = $this->_getExportPath($this->name);
+        $notificationPath = $this->_getNotificationPath($this->name);
+        $emailPath = $this->_getEmailPath($this->name);
+        $chartPath = $this->_getChartPath($this->name);
+        $fullcalendarPath = $this->_getFullcalendarPath($this->name);
+        // $factoryPath = $this->_getFactoryPath($this->name);
+        $printPath = $this->_getPrintPath($this->name);
+        $pdfexportPath = $this->_getPdfExportPath($this->name);
         // $modelPath = $this->_getModelPath($this->name);
         // $createlPath = $this->_getCreatePath($this->name);
         // $deletePath = $this->_getDeletePath($this->name);
@@ -126,6 +133,24 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         );
         $exportTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub('Export')
+        );
+        $notificationTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Notification')
+        );
+        $emailTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Email')
+        );
+        $chartTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Chart')
+        );
+        $fullcalendarTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Fullcalendar')
+        );
+        $printTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Print')
+        );
+        $pdfexportTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('PdfExport')
         );
 
         if ($theme == 'none') {
@@ -198,6 +223,20 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->write($importPath, $importTemplate);
         $this->warn('Creating: <info>Export, Please edit before using ...</info>');
         $this->write($exportPath, $exportTemplate);
+        $this->warn('Creating: <info>Notification, Please edit before using ...</info>');
+        $this->write($notificationPath, $notificationTemplate);
+        $this->warn('Creating: <info>Email, Please edit before using ...</info>');
+        $this->write($emailPath, $emailTemplate);
+        $this->warn('Creating: <info>Chart, Please edit before using ...</info>');
+        $this->write($chartPath, $chartTemplate);
+        $this->warn('Creating: <info>Fullcalendar, Please edit before using ...</info>');
+        $this->write($fullcalendarPath, $fullcalendarTemplate);
+        $this->warn('Creating: <info>Print, Please edit before using ...</info>');
+        $this->write($printPath, $printTemplate);
+        $this->warn('Creating: <info>Pdf Export, Please edit before using ...</info>');
+        $this->write($pdfexportPath, $pdfexportTemplate);
+        $this->warn('Creating: <info>Excel Export, Please edit before using ...</info>');
+    
 
         return $this;
     }

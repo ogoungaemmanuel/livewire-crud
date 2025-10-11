@@ -238,11 +238,26 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getMigrationPath($name)
     {
-        return base_path("database/migrations/" . date('Y-m-d_His') . "_create_" . Str::lower(Str::plural($name)) . "_table.php");
+        $name = Str::ucfirst($this->name);
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Database/Migrations/" . date('Y-m-d_His') . "_create_" . Str::lower(Str::plural($name)) . "_table.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+        // return base_path("database/migrations/" . date('Y-m-d_His') . "_create_" . Str::lower(Str::plural($name)) . "_table.php");
     }
     protected function _getFactoryPath($name)
     {
-        return base_path("database/factories/{$name}Factory.php");
+        $name = Str::ucfirst($this->name);
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Database/factories/{$name}Factory.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
     }
 
     /**
@@ -309,6 +324,83 @@ abstract class LivewireGeneratorCommand extends Command
         }
         return $this->makeDirectory($path);
     }
+
+    protected function _getPrintPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Exports/{$name}Print.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getNotificationPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Notifications/{$name}Notification.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getEmailPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Emails/{$name}Email.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getChartPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Charts/{$name}Chart.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getFullcalendarPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Fullcalendar/{$name}Fullcalendar.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getPdfExportPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/Exports/{$name}PdfExport.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * @param $name
+     * @return string
+     */
 
     // protected function _getCreatePath($name)
     // {
