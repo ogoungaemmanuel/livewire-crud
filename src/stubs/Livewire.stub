@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Log;
 use Intervention\Image\Facades\Image;
 use Livewire\Features\SupportFileUploads\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Modules\{{getModuleInputModule}}\Exports\{{modelPluralName}}Export;
 use Modules\{{getModuleInputModule}}\Exports\{{modelName}}PdfExport;

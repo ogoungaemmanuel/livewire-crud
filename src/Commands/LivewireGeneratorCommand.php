@@ -516,6 +516,7 @@ abstract class LivewireGeneratorCommand extends Command
             '{{getModuleInput}}' => Str::lower($this->getModuleInput()),
             '{{layout}}' => $this->layout,
             '{{modelName}}' => $this->name,
+            '{{modelNameSingularLowerCase}}' => Str::lower($this->name),
 			'{{modelPluralName}}' => Str::plural($this->name),
             '{{modelTitle}}' => Str::title(Str::snake($this->name, ' ')),
 			'{{modelPluralTitle}}' => Str::title(Str::snake(Str::plural($this->name), ' ')),
