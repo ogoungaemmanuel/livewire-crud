@@ -1,4 +1,155 @@
 preset: laravel
 
+risky: true
+
+enabled:
+  - alpha_ordered_imports
+  - array_indentation
+  - array_syntax
+  - blank_line_after_namespace
+  - blank_line_after_opening_tag
+  - blank_line_before_statement
+  - cast_spaces
+  - class_attributes_separation
+  - combine_consecutive_issets
+  - combine_consecutive_unsets
+  - compact_nullable_typehint
+  - concat_space
+  - declare_equal_normalize
+  - declare_strict_types
+  - dir_constant
+  - ereg_to_preg
+  - escape_implicit_backslashes
+  - explicit_indirect_variable
+  - explicit_string_variable
+  - final_internal_class
+  - function_to_constant
+  - heredoc_to_nowdoc
+  - implode_call
+  - include
+  - increment_style
+  - is_null
+  - linebreak_after_opening_tag
+  - logical_operators
+  - lowercase_cast
+  - lowercase_constants
+  - lowercase_keywords
+  - lowercase_static_reference
+  - magic_constant_casing
+  - magic_method_casing
+  - method_chaining_indentation
+  - modernize_types_casting
+  - native_function_casing
+  - native_function_type_declaration_casing
+  - new_with_braces
+  - no_alias_functions
+  - no_alternative_syntax
+  - no_binary_string
+  - no_blank_lines_after_class_opening
+  - no_blank_lines_after_phpdoc
+  - no_blank_lines_before_namespace
+  - no_empty_comment
+  - no_empty_phpdoc
+  - no_empty_statement
+  - no_extra_blank_lines
+  - no_leading_import_slash
+  - no_leading_namespace_whitespace
+  - no_mixed_echo_print
+  - no_multiline_whitespace_around_double_arrow
+  - no_short_bool_cast
+  - no_singleline_whitespace_before_semicolons
+  - no_spaces_around_offset
+  - no_trailing_comma_in_list_call
+  - no_trailing_comma_in_singleline_array
+  - no_unneeded_control_parentheses
+  - no_unneeded_curly_braces
+  - no_unneeded_final_method
+  - no_unused_imports
+  - no_useless_return
+  - no_whitespace_before_comma_in_array
+  - no_whitespace_in_blank_line
+  - normalize_index_brace
+  - object_operator_without_whitespace
+  - ordered_imports
+  - php_unit_construct
+  - php_unit_dedicate_assert
+  - php_unit_expectation
+  - php_unit_mock
+  - php_unit_namespaced
+  - php_unit_no_expectation_annotation
+  - phpdoc_add_missing_param_annotation
+  - phpdoc_align
+  - phpdoc_annotation_without_dot
+  - phpdoc_indent
+  - phpdoc_inline_tag
+  - phpdoc_no_access
+  - phpdoc_no_alias_tag
+  - phpdoc_no_empty_return
+  - phpdoc_no_package
+  - phpdoc_no_useless_inheritdoc
+  - phpdoc_order
+  - phpdoc_return_self_reference
+  - phpdoc_scalar
+  - phpdoc_separation
+  - phpdoc_single_line_var_spacing
+  - phpdoc_summary
+  - phpdoc_to_comment
+  - phpdoc_trim
+  - phpdoc_types
+  - phpdoc_types_order
+  - phpdoc_var_without_name
+  - pow_to_exponentiation
+  - protected_to_private
+  - psr4
+  - random_api_migration
+  - return_type_declaration
+  - self_accessor
+  - semicolon_after_instruction
+  - short_scalar_cast
+  - simplified_null_return
+  - single_blank_line_before_namespace
+  - single_line_comment_style
+  - single_quote
+  - space_after_semicolon
+  - standardize_increment
+  - standardize_not_equals
+  - static_lambda
+  - strict_comparison
+  - strict_param
+  - string_line_ending
+  - ternary_operator_spaces
+  - ternary_to_null_coalescing
+  - trailing_comma_in_multiline_array
+  - trim_array_spaces
+  - unary_operator_spaces
+  - visibility_required
+  - void_return
+  - whitespace_after_comma_in_array
+  - yoda_style
+
 disabled:
   - single_class_element_per_statement
+  - not_operator_with_successor_space
+  - concat_without_spaces
+  - length_ordered_imports
+  - multiline_comment_opening_closing
+  - phpdoc_summary_to_sentence
+  - simplified_if_return
+
+finder:
+  name: "*.php"
+  not-name:
+    - "*.blade.php"
+    - "_ide_helper*.php"
+  not-path:
+    - "bootstrap"
+    - "storage"
+    - "vendor"
+    - "node_modules"
+    - "resources/views"
+  path:
+    - "src"
+    - "config"
+    - "tests"
+
+version: 8

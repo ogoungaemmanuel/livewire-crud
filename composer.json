@@ -1,32 +1,64 @@
 {
     "name": "xslainadmin/livewire-crud",
-    "description": "Scaffold Livewire Components, migrations, factory and crud in one command based on database tables.",
+    "description": "Enterprise Laravel Livewire CRUD generator with advanced analytics, calendar management, export/import capabilities, notification systems, and modern Bootstrap 5 UI. Perfect for rapid application development with production-ready components.",
     "keywords": [
-        "xslainadmin",
-        "livewire-crud"
+        "laravel",
+        "livewire",
+        "crud",
+        "generator",
+        "bootstrap",
+        "charts",
+        "calendar",
+        "export",
+        "import",
+        "notifications",
+        "alpine",
+        "apexcharts",
+        "fullcalendar",
+        "enterprise",
+        "admin",
+        "dashboard",
+        "scaffolding",
+        "rapid-development"
     ],
-    "homepage": "https://github.com/xslainadmin/livewire-crud",
+    "homepage": "https://github.com/ogoungaemmanuel/livewire-crud",
     "license": "MIT",
     "type": "library",
     "authors": [
         {
             "name": "Ogounga Emmanuel",
-            "email": "xslainconcept@gmail.com",
+            "email": "info@xslain.com",
+            "homepage": "https://github.com/ogoungaemmanuel",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.2",
-        "laravel/framework": "^12.0",
-        "laravel/ui": "^4",
-        "livewire/livewire": "^3.6",
+        "php": "^8.0|^8.1|^8.2|^8.3",
+        "laravel/framework": "^9.0|^10.0|^11.0|^12.0",
+        "livewire/livewire": "^3.0",
+        "laravel/ui": "^4.0",
         "aliqasemzadeh/livewire-bootstrap-modal": "^2.3",
         "php-flasher/flasher-laravel": "^2.1",
-        "intervention/image": "^3.11.4"
-
+        "intervention/image": "^3.0",
+        "maatwebsite/excel": "^3.1",
+        "barryvdh/laravel-dompdf": "^2.0",
+        "spatie/laravel-permission": "^6.0",
+        "spatie/laravel-activitylog": "^4.7",
+        "league/flysystem": "^3.0",
+        "pusher/pusher-php-server": "^7.0",
+        "laravel/sanctum": "^3.0|^4.0"
     },
     "require-dev": {
-        "rector/rector": "^2.1"
+        "rector/rector": "^2.1",
+        "phpunit/phpunit": "^10.0|^11.0",
+        "orchestra/testbench": "^8.0|^9.0",
+        "mockery/mockery": "^1.4",
+        "laravel/pint": "^1.0",
+        "nunomaduro/collision": "^7.0|^8.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0",
+        "spatie/laravel-ray": "^1.32",
+        "fakerphp/faker": "^1.21"
     },
     "autoload": {
         "psr-4": {
@@ -39,13 +71,30 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit",
-        "test-coverage": "vendor/bin/phpunit --coverage-html coverage"
-
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "test-unit": "vendor/bin/pest --testsuite=Unit",
+        "test-feature": "vendor/bin/pest --testsuite=Feature",
+        "format": "vendor/bin/pint",
+        "format-check": "vendor/bin/pint --test",
+        "analyse": "vendor/bin/phpstan analyse",
+        "rector": "vendor/bin/rector process",
+        "rector-dry": "vendor/bin/rector process --dry-run",
+        "post-install-cmd": [
+            "@php artisan vendor:publish --provider=\"LivewireCrud\\LivewireCrudServiceProvider\" --tag=config --force"
+        ]
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "php-http/discovery": true
+        },
+        "optimize-autoloader": true,
+        "preferred-install": "dist"
     },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "extra": {
         "laravel": {
             "providers": [
@@ -54,6 +103,25 @@
             "aliases": {
                 "LivewireCrud": "Xslainadmin\\LivewireCrud\\LivewireCrudFacade"
             }
+        },
+        "branch-alias": {
+            "dev-main": "3.0-dev"
         }
-    }
+    },
+    "support": {
+        "issues": "https://github.com/ogoungaemmanuel/livewire-crud/issues",
+        "source": "https://github.com/ogoungaemmanuel/livewire-crud",
+        "docs": "https://ogoungaemmanuel.github.io/livewire-crud",
+        "chat": "https://github.com/ogoungaemmanuel/livewire-crud/discussions"
+    },
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/ogoungaemmanuel"
+        },
+        {
+            "type": "paypal",
+            "url": "https://paypal.me/ogoungaemmanuel"
+        }
+    ]
 }
