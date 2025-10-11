@@ -1,11 +1,423 @@
+/**
+ * Bootstrap JavaScript
+ * 
+ * This file loads all necessary JavaScript dependencies and configures
+ * global libraries for the Laravel Livewire CRUD application.
+ */
+
+// Load utility libraries
 window._ = require('lodash');
 
+// Load UI framework dependencies
 try {
-    window.Popper = require('popper.js').default;
+    // Load Popper.js for tooltip and popover positioning
+    window.Popper = require('@popperjs/core');
+    
+    // Load jQuery for legacy compatibility
     window.$ = window.jQuery = require('jquery');
+    
+    // Load Bootstrap JavaScript components
     require('bootstrap');
-} catch (e) {}
+} catch (e) {
+    console.warn('Bootstrap dependencies failed to load:', e);
+}
 
+// Load HTTP client
 window.axios = require('axios');
 
+// Configure Axios defaults
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.headers.common['Content-Type'] = 'application/json';
+window.axios.defaults.headers.common['Accept'] = 'application/json';
+
+// Add CSRF token to Axios headers
+let token = document.head.querySelector('meta[name="csrf-token"]');
+if (token) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+} else {
+    console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+}
+
+// Configure Axios interceptors for better error handling
+window.axios.interceptors.request.use(
+    (config) => {
+        // Add timestamp to prevent caching
+        config.params = {
+            ...config.params,
+            _t: Date.now()
+        };
+        
+        // Show loading indicator if available
+        if (window.App && window.App.showLoading) {
+            window.App.showLoading();
+        }
+        
+        return config;
+    },
+    (error) => {
+        return Promise.reject(error);
+    }
+);
+
+window.axios.interceptors.response.use(
+    (response) => {
+        // Hide loading indicator if available
+        if (window.App && window.App.hideLoading) {
+            window.App.hideLoading();
+        }
+        
+        return response;
+    },
+    (error) => {
+        // Hide loading indicator if available
+        if (window.App && window.App.hideLoading) {
+            window.App.hideLoading();
+        }
+        
+        // Handle common HTTP errors
+        if (error.response) {
+            switch (error.response.status) {
+                case 401:
+                    // Unauthorized - redirect to login
+                    if (window.App && window.App.notifications) {
+                        window.App.notifications.show('Session expired. Please log in again.', 'warning');
+                    }
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                    break;
+                    
+                case 403:
+                    // Forbidden
+                    if (window.App && window.App.notifications) {
+                        window.App.notifications.show('Access denied.', 'error');
+                    }
+                    break;
+                    
+                case 404:
+                    // Not found
+                    if (window.App && window.App.notifications) {
+                        window.App.notifications.show('Resource not found.', 'error');
+                    }
+                    break;
+                    
+                case 422:
+                    // Validation error
+                    if (window.App && window.App.notifications) {
+                        const message = error.response.data.message || 'Validation failed.';
+                        window.App.notifications.show(message, 'error');
+                    }
+                    break;
+                    
+                case 500:
+                    // Server error
+                    if (window.App && window.App.notifications) {
+                        window.App.notifications.show('Server error occurred. Please try again.', 'error');
+                    }
+                    break;
+                    
+                default:
+                    // Generic error
+                    if (window.App && window.App.notifications) {
+                        const message = error.response.data.message || 'An error occurred.';
+                        window.App.notifications.show(message, 'error');
+                    }
+            }
+        } else if (error.request) {
+            // Network error
+            if (window.App && window.App.notifications) {
+                window.App.notifications.show('Network error. Please check your connection.', 'error');
+            }
+        }
+        
+        return Promise.reject(error);
+    }
+);
+
+// Load chart libraries
+try {
+    // Load ApexCharts for advanced charting
+    window.ApexCharts = require('apexcharts');
+    
+    // Configure ApexCharts global options
+    window.ApexCharts.setGlobalOptions({
+        chart: {
+            fontFamily: 'Inter, sans-serif',
+            toolbar: {
+                show: true,
+                tools: {
+                    download: true,
+                    selection: true,
+                    zoom: true,
+                    zoomin: true,
+                    zoomout: true,
+                    pan: true,
+                    reset: true
+                }
+            },
+            animations: {
+                enabled: true,
+                easing: 'easeinout',
+                speed: 800,
+                animateGradually: {
+                    enabled: true,
+                    delay: 150
+                },
+                dynamicAnimation: {
+                    enabled: true,
+                    speed: 350
+                }
+            }
+        },
+        colors: ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#546E7A', '#26a69a', '#D10CE8'],
+        grid: {
+            borderColor: '#e0e6ed'
+        },
+        xaxis: {
+            axisBorder: {
+                color: '#e0e6ed'
+            },
+            axisTicks: {
+                color: '#e0e6ed'
+            }
+        },
+        yaxis: {
+            axisBorder: {
+                color: '#e0e6ed'
+            },
+            axisTicks: {
+                color: '#e0e6ed'
+            }
+        }
+    });
+    
+} catch (e) {
+    console.warn('ApexCharts failed to load:', e);
+}
+
+// Load calendar library
+try {
+    // Load FullCalendar for calendar functionality
+    const { Calendar } = require('@fullcalendar/core');
+    const dayGridPlugin = require('@fullcalendar/daygrid');
+    const timeGridPlugin = require('@fullcalendar/timegrid');
+    const listPlugin = require('@fullcalendar/list');
+    const interactionPlugin = require('@fullcalendar/interaction');
+    
+    // Make FullCalendar available globally
+    window.FullCalendar = {
+        Calendar,
+        dayGridPlugin,
+        timeGridPlugin,
+        listPlugin,
+        interactionPlugin
+    };
+    
+} catch (e) {
+    console.warn('FullCalendar failed to load:', e);
+}
+
+// Load Alpine.js for reactive components
+try {
+    const Alpine = require('alpinejs');
+    
+    // Configure Alpine.js
+    Alpine.prefix = 'x-';
+    
+    // Add custom Alpine.js directives
+    Alpine.directive('tooltip', (el, { expression }, { evaluate }) => {
+        const content = evaluate(expression);
+        if (window.bootstrap && window.bootstrap.Tooltip) {
+            new window.bootstrap.Tooltip(el, {
+                title: content,
+                placement: 'top'
+            });
+        }
+    });
+    
+    Alpine.directive('clipboard', (el, { expression }, { evaluate }) => {
+        el.addEventListener('click', async () => {
+            const text = evaluate(expression);
+            try {
+                await navigator.clipboard.writeText(text);
+                if (window.App && window.App.notifications) {
+                    window.App.notifications.show('Copied to clipboard!', 'success');
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                if (window.App && window.App.notifications) {
+                    window.App.notifications.show('Failed to copy text', 'error');
+                }
+            }
+        });
+    });
+    
+    // Make Alpine available globally
+    window.Alpine = Alpine;
+    
+    // Start Alpine.js
+    Alpine.start();
+    
+} catch (e) {
+    console.warn('Alpine.js failed to load:', e);
+}
+
+// Load additional utility libraries
+try {
+    // Load date manipulation library
+    window.dayjs = require('dayjs');
+    const utc = require('dayjs/plugin/utc');
+    const timezone = require('dayjs/plugin/timezone');
+    const relativeTime = require('dayjs/plugin/relativeTime');
+    const customParseFormat = require('dayjs/plugin/customParseFormat');
+    
+    // Extend dayjs with plugins
+    window.dayjs.extend(utc);
+    window.dayjs.extend(timezone);
+    window.dayjs.extend(relativeTime);
+    window.dayjs.extend(customParseFormat);
+    
+} catch (e) {
+    console.warn('Day.js failed to load:', e);
+}
+
+// Configure Livewire
+if (typeof Livewire !== 'undefined') {
+    // Configure Livewire hooks
+    Livewire.hook('component.initialized', (component) => {
+        console.log('Livewire component initialized:', component.name);
+    });
+    
+    Livewire.hook('element.updated', (el, component) => {
+        // Re-initialize tooltips after Livewire updates
+        if (window.bootstrap && window.bootstrap.Tooltip) {
+            const tooltips = el.querySelectorAll('[data-bs-toggle="tooltip"]');
+            tooltips.forEach(tooltip => {
+                new window.bootstrap.Tooltip(tooltip);
+            });
+        }
+        
+        // Re-initialize popovers after Livewire updates
+        if (window.bootstrap && window.bootstrap.Popover) {
+            const popovers = el.querySelectorAll('[data-bs-toggle="popover"]');
+            popovers.forEach(popover => {
+                new window.bootstrap.Popover(popover);
+            });
+        }
+    });
+    
+    Livewire.hook('message.sent', (message, component) => {
+        // Show loading state during Livewire requests
+        if (window.App && window.App.showLoading) {
+            window.App.showLoading();
+        }
+    });
+    
+    Livewire.hook('message.processed', (message, component) => {
+        // Hide loading state after Livewire requests
+        if (window.App && window.App.hideLoading) {
+            window.App.hideLoading();
+        }
+    });
+    
+    Livewire.hook('message.failed', (message, component) => {
+        // Hide loading state and show error
+        if (window.App && window.App.hideLoading) {
+            window.App.hideLoading();
+        }
+        
+        if (window.App && window.App.notifications) {
+            window.App.notifications.show('Request failed. Please try again.', 'error');
+        }
+    });
+}
+
+// Initialize Bootstrap components when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize tooltips
+    if (window.bootstrap && window.bootstrap.Tooltip) {
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(tooltipTriggerEl => {
+            return new window.bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+    
+    // Initialize popovers
+    if (window.bootstrap && window.bootstrap.Popover) {
+        const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+        popoverTriggerList.map(popoverTriggerEl => {
+            return new window.bootstrap.Popover(popoverTriggerEl);
+        });
+    }
+    
+    // Initialize custom dropdowns
+    const dropdowns = document.querySelectorAll('.dropdown-toggle');
+    dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('click', (e) => {
+            e.preventDefault();
+            const menu = dropdown.nextElementSibling;
+            if (menu && menu.classList.contains('dropdown-menu')) {
+                menu.classList.toggle('show');
+            }
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.dropdown')) {
+            const openMenus = document.querySelectorAll('.dropdown-menu.show');
+            openMenus.forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+    });
+    
+    // Initialize theme toggle
+    const themeToggle = document.querySelector('[data-theme-toggle]');
+    if (themeToggle) {
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        // Handle theme toggle
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // Update ApexCharts theme if available
+            if (window.App && window.App.charts) {
+                window.App.charts.toggleTheme(isDark);
+            }
+        });
+    }
+    
+    console.log('Bootstrap.js initialization complete');
+});
+
+// Handle service worker registration for PWA support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('ServiceWorker registration successful');
+            })
+            .catch(registrationError => {
+                console.log('ServiceWorker registration failed');
+            });
+    });
+}
+
+// Export for module usage
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        axios: window.axios,
+        Alpine: window.Alpine,
+        ApexCharts: window.ApexCharts,
+        FullCalendar: window.FullCalendar,
+        dayjs: window.dayjs,
+        _: window._,
+        $: window.$
+    };
+}

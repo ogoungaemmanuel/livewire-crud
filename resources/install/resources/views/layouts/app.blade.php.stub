@@ -1,69 +1,173 @@
 <!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="{{ config('app.name', 'Laravel') }} - Modern CRUD Application">
+    <meta name="author" content="{{ config('app.name', 'Laravel') }}">
 
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-	<title>@hasSection('title') @yield('title') | @endif {{ config('app.name', 'Laravel') }}</title>
+    <!-- Title -->
+    <title>@hasSection('title') @yield('title') | @endif {{ config('app.name', 'Laravel') }}</title>
 
-    <!-- Scripts -->
-    <script src="{{ asset('js/app.js') }}" defer></script>
-
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    
     <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-	 @livewireStyles
+    
+    <!-- Additional Styles -->
+    @stack('styles')
+    
+    <!-- Livewire Styles -->
+    @livewireStyles
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body>
-    <div id="app">
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm">
-            <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay d-none">
+        <div class="loading-spinner">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-2">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="min-vh-100 d-flex flex-column">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
+            <div class="container-fluid">
+                <!-- Brand -->
+                <a class="navbar-brand fw-bold" href="{{ url('/') }}">
+                    <i class="fas fa-cube text-primary me-2"></i>
                     {{ config('app.name', 'Laravel') }}
                 </a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" 
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
+                <!-- Navigation Content -->
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <!-- Left Side Of Navbar -->
-					@auth()
-                    <ul class="navbar-nav mr-auto">
-						<!--Nav Bar Hooks - Do not delete!!-->
+                    <!-- Left Side Navigation -->
+                    @auth
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('home') ?? url('/home') }}">
+                                <i class="fas fa-home me-1"></i>
+                                {{ __('Dashboard') }}
+                            </a>
+                        </li>
+                        <!--Nav Bar Hooks - Do not delete!!-->
                     </ul>
-					@endauth()
-					
-                    <!-- Right Side Of Navbar -->
-                    <ul class="navbar-nav ml-auto">
+                    @endauth
+
+                    <!-- Right Side Navigation -->
+                    <ul class="navbar-nav ms-auto align-items-center">
+                        <!-- Theme Toggle -->
+                        <li class="nav-item me-2">
+                            <button class="btn btn-outline-secondary btn-sm" id="theme-toggle" data-theme-toggle>
+                                <i class="fas fa-moon" id="theme-icon"></i>
+                            </button>
+                        </li>
+
+                        <!-- Notifications -->
+                        @auth
+                        <li class="nav-item dropdown me-2">
+                            <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-bell"></i>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                      style="font-size: 0.6rem;">
+                                    3
+                                    <span class="visually-hidden">unread notifications</span>
+                                </span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="min-width: 300px;">
+                                <li><h6 class="dropdown-header">{{ __('Notifications') }}</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <div class="d-flex">
+                                            <div class="flex-shrink-0">
+                                                <i class="fas fa-info-circle text-info"></i>
+                                            </div>
+                                            <div class="flex-grow-1 ms-2">
+                                                <p class="mb-1 fw-semibold">{{ __('System Update') }}</p>
+                                                <p class="mb-0 small text-muted">{{ __('New features available') }}</p>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center small" href="#">{{ __('View all notifications') }}</a></li>
+                            </ul>
+                        </li>
+                        @endauth
+
                         <!-- Authentication Links -->
                         @guest
                             @if (Route::has('login'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                    <a class="nav-link" href="{{ route('login') }}">
+                                        <i class="fas fa-sign-in-alt me-1"></i>
+                                        {{ __('Login') }}
+                                    </a>
                                 </li>
                             @endif
                             
                             @if (Route::has('register'))
                                 <li class="nav-item">
-                                    <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                    <a class="nav-link" href="{{ route('register') }}">
+                                        <i class="fas fa-user-plus me-1"></i>
+                                        {{ __('Register') }}
+                                    </a>
                                 </li>
                             @endif
                         @else
-                                <li class="nav-item dropdown">
-                                <a id="navbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                                    {{ Auth::user()->name }}
+                            <!-- User Dropdown -->
+                            <li class="nav-item dropdown">
+                                <a id="navbarDropdown" class="nav-link dropdown-toggle d-flex align-items-center" href="#" 
+                                   role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 32px; height: 32px; font-size: 14px;">
+                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                    </div>
+                                    <span class="d-none d-md-inline">{{ Auth::user()->name }}</span>
                                 </a>
 
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                                    <h6 class="dropdown-header">{{ Auth::user()->name }}</h6>
+                                    <div class="dropdown-divider"></div>
+                                    
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-user me-2"></i>
+                                        {{ __('Profile') }}
+                                    </a>
+                                    
+                                    <a class="dropdown-item" href="#">
+                                        <i class="fas fa-cog me-2"></i>
+                                        {{ __('Settings') }}
+                                    </a>
+                                    
+                                    <div class="dropdown-divider"></div>
+                                    
                                     <a class="dropdown-item" href="{{ route('logout') }}"
-                                       onclick="event.preventDefault();
-                                                     document.getElementById('logout-form').submit();">
+                                       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fas fa-sign-out-alt me-2"></i>
                                         {{ __('Logout') }}
                                     </a>
 
@@ -78,15 +182,165 @@
             </div>
         </nav>
 
-        <main class="py-2">
+        <!-- Main Content -->
+        <main class="flex-grow-1 py-4">
+            <!-- Breadcrumb -->
+            @if(isset($breadcrumbs) || View::hasSection('breadcrumb'))
+            <div class="container-fluid">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb bg-transparent p-0 mb-3">
+                        <li class="breadcrumb-item">
+                            <a href="{{ url('/') }}" class="text-decoration-none">
+                                <i class="fas fa-home"></i>
+                            </a>
+                        </li>
+                        @yield('breadcrumb')
+                        @if(isset($breadcrumbs))
+                            @foreach($breadcrumbs as $breadcrumb)
+                                @if($loop->last)
+                                    <li class="breadcrumb-item active" aria-current="page">{{ $breadcrumb['title'] }}</li>
+                                @else
+                                    <li class="breadcrumb-item">
+                                        <a href="{{ $breadcrumb['url'] }}" class="text-decoration-none">{{ $breadcrumb['title'] }}</a>
+                                    </li>
+                                @endif
+                            @endforeach
+                        @endif
+                    </ol>
+                </nav>
+            </div>
+            @endif
+
+            <!-- Page Content -->
             @yield('content')
         </main>
+
+        <!-- Footer -->
+        <footer class="bg-light border-top py-3 mt-auto">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            © {{ date('Y') }} {{ config('app.name', 'Laravel') }}. {{ __('All rights reserved.') }}
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <small class="text-muted">
+                            {{ __('Version') }} 1.0.0 | 
+                            <a href="#" class="text-decoration-none">{{ __('Documentation') }}</a> |
+                            <a href="#" class="text-decoration-none">{{ __('Support') }}</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </footer>
     </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1090;"></div>
+
+    <!-- Scripts -->
+    <script src="{{ asset('js/app.js') }}"></script>
+    
+    <!-- Additional Scripts -->
+    @stack('scripts')
+    
+    <!-- Livewire Scripts -->
     @livewireScripts
-<script type="text/javascript">
-	window.livewire.on('closeModal', () => {
-		$('#createDataModal').modal('hide');
-	});
-</script>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // Theme Toggle Functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const htmlElement = document.documentElement;
+            
+            // Check for saved theme or default to light
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            htmlElement.setAttribute('data-bs-theme', currentTheme);
+            updateThemeIcon(currentTheme);
+            
+            // Theme toggle event listener
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    const currentTheme = htmlElement.getAttribute('data-bs-theme');
+                    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+                    
+                    htmlElement.setAttribute('data-bs-theme', newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    updateThemeIcon(newTheme);
+                    
+                    // Dispatch theme change event
+                    window.dispatchEvent(new CustomEvent('theme-changed', { detail: { theme: newTheme } }));
+                });
+            }
+            
+            function updateThemeIcon(theme) {
+                if (themeIcon) {
+                    themeIcon.className = theme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+                }
+            }
+        });
+
+        // Livewire Event Listeners
+        @if(class_exists('Livewire\Livewire'))
+        document.addEventListener('DOMContentLoaded', function() {
+            // Modal close event
+            Livewire.on('closeModal', () => {
+                const modals = document.querySelectorAll('.modal.show');
+                modals.forEach(modal => {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                });
+            });
+
+            // Show loading overlay
+            Livewire.on('showLoading', () => {
+                document.getElementById('loading-overlay').classList.remove('d-none');
+            });
+
+            // Hide loading overlay
+            Livewire.on('hideLoading', () => {
+                document.getElementById('loading-overlay').classList.add('d-none');
+            });
+
+            // Show notification
+            Livewire.on('showNotification', (data) => {
+                if (window.App && window.App.notifications) {
+                    window.App.notifications.show(data.message, data.type || 'info', data.options || {});
+                }
+            });
+
+            // Refresh page
+            Livewire.on('refreshPage', () => {
+                window.location.reload();
+            });
+
+            // Redirect
+            Livewire.on('redirect', (url) => {
+                window.location.href = url;
+            });
+        });
+        @endif
+
+        // Global error handler
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
+            if (window.App && window.App.notifications) {
+                window.App.notifications.show('An unexpected error occurred.', 'error');
+            }
+        });
+
+        // Handle unhandled promise rejections
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('Unhandled promise rejection:', e.reason);
+            if (window.App && window.App.notifications) {
+                window.App.notifications.show('An unexpected error occurred.', 'error');
+            }
+        });
+    </script>
 </body>
 </html>
