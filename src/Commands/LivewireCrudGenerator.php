@@ -15,7 +15,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     protected $argument;
     private $replaces = [];
 
-    protected $signature = 'crud:generate {name : Table name} {theme} {module}';
+    protected $signature = 'crud:generate {name : Table name} {theme} {menu} {module}';
 
     protected $description = 'Generate Livewire Component and CRUD operations';
 
@@ -29,6 +29,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->table = $this->getNameInput();
         $this->module = $this->getModuleInput();
         $this->theme = $this->getThemeInput();
+        $this->menu = $this->getMenuInput();
 
         // If table not exist in DB return
         if (!$this->tableExists()) {
@@ -47,6 +48,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 		//Updating Routes
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
+        $menu = Str::lower($this->getMenuInput());
         $theme = $this->getThemeInput();
         $this->filesystem = new Filesystem;
         $this->argument = $this->getNameInput();
@@ -56,6 +58,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
         }elseif ($this->getThemeInput() == 'nonedefault') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+            // $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', Modules\\{$this->getNameInput()}\\App\\Http\\Controllers\\{$module}Controller::class, 'uploadPhoto')->name('{$modulelower}.upload-photo');";
         }else {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
         }
@@ -69,7 +72,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 
 		//Updating Nav Bar
         // $layoutFile = 'resources/views/layouts/app.blade.php';
-		$layoutFile = base_path("Modules/backend/resources/views/pmsmenu/{$modulelower}.blade.php");
+		$layoutFile = base_path("Modules/backend/resources/views/pmsmenu/{$menu}.blade.php");
         $layoutContents = $this->filesystem->get($layoutFile);
 		$navItemStub = "\t\t\t\t\t\t<li><a href=\"{{ url('/{$modulelower}/" . $this->getNameInput() . "') }}\"> " . ucfirst($this->getNameInput()) . "</a></li>";
         // $navItemStub = "\t\t\t\t\t\t<li class=\"nav-item\"><a href=\"{{ url('/".$this->getNameInput()."') }}\" class=\"nav-link\"><i class=\"fab fa-laravel text-info\"></i> ". ucfirst($this->getNameInput()) ."</a></li>";
@@ -102,6 +105,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $notificationPath = $this->_getNotificationPath($this->name);
         $emailPath = $this->_getEmailPath($this->name);
         $chartPath = $this->_getChartPath($this->name);
+        $uploadPath = $this->_getUploadPath($this->name);
         $fullcalendarPath = $this->_getFullcalendarPath($this->name);
         // $factoryPath = $this->_getFactoryPath($this->name);
         $printPath = $this->_getPrintPath($this->name);
@@ -151,6 +155,9 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         );
         $pdfexportTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub('PdfExport')
+        );
+        $uploadTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Upload')
         );
 
         if ($theme == 'none') {
@@ -235,7 +242,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->write($printPath, $printTemplate);
         $this->warn('Creating: <info>Pdf Export, Please edit before using ...</info>');
         $this->write($pdfexportPath, $pdfexportTemplate);
-        $this->warn('Creating: <info>Excel Export, Please edit before using ...</info>');
+        $this->warn('Creating: <info>Upload, Please edit before using ...</info>');
+        $this->write($uploadPath, $uploadTemplate);
     
 
         return $this;
@@ -327,8 +335,9 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             '{{show}}' => $show,
             '{{type}}' => $type,
             '{{showfields}}' => $showfields,
+            '{{themelower}}' => Str::lower($this->getThemeInput()),
             '{{getModuleInputClass}}' => Str::studly($this->getModuleInput()),
-            // '{{getModuleInput}}' => $this->getModuleInput(),
+            '{{getModuleInput}}' => $this->getModuleInput(),
             '{{getModuleInputLower}}' => Str::lower($this->getModuleInput()),
             '{{getThemeInput}}' => $this->getThemeInput(),
             '{{getThemeInputLower}}' => Str::lower($this->getThemeInput()),
@@ -338,7 +347,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         ]);
 
         $this->buildLayout();
-        foreach (['view', 'index', 'create', 'delete', 'show', 'import', 'update', 'pdf-export', 'print'] as $view) {
+        foreach (['view', 'index', 'create', 'delete', 'show', 'import', 'update', 'pdf-export', 'print','mobile_index','mobile_index'] as $view) {
             if ($this->getThemeInput() == 'none') {
                 $viewTemplate = str_replace(
                     array_keys($replace),

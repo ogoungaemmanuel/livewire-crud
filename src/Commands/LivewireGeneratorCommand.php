@@ -63,6 +63,12 @@ abstract class LivewireGeneratorCommand extends Command
      * @var string
      */
     protected $themeNamespace = 'Yes';
+
+    /**
+     * Table name from argument.
+     * @var string
+     */
+    protected $menu = null;
     /**
      * Table name from argument.
      * @var string
@@ -367,6 +373,18 @@ abstract class LivewireGeneratorCommand extends Command
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Charts/{$name}Chart.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    protected function _getUploadPath($name)
+    {
+        $name = Str::ucfirst(Str::plural($this->name));
+        $module = $this->getModuleInput();
+        // $modulelocation = $this->modelNamespace;
+        $path = base_path("/Modules/{$module}/App/Http/Controllers/{$name}Controller.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -948,6 +966,11 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getThemeInput()
     {
         return trim($this->argument('theme'), '{}');
+    }
+
+    protected function getMenuInput()
+    {
+        return trim($this->argument('menu'), '{}');
     }
     /**
      * Get the console command arguments.

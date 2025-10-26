@@ -1,6 +1,6 @@
-        <div class="row">
-            <div class="form-group">
-                <label for="{{column}}">{{title}}</label>
-                <p class="form-control" id="{{column}}">{{${{column}}}}</p>
-            </div>
-        </div>
+<div class="col-md-6 mb-3">
+    <div class="border-bottom pb-2">
+        <label class="text-muted small mb-1">{{title}}</label>
+        <p class="mb-0 fw-semibold">{{ ${{modelNameLowerCase}}->{{column}} ?? 'N/A' }}</p>
+    </div>
+</div>

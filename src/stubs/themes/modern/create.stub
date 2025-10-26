@@ -1,17 +1,137 @@
-<!-- Modal -->
-<div>
-        <div class="modal-header">
-            <h5 class="modal-title">Create New {{modelTitle}}</h5>
-            <button type="button" class="btn-close" wire:click="$dispatch('hideModal')" aria-label="Close"></button>
+<div class="row g-3">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Fill in the form below to create a new {{modelNameLowerCase}}.
         </div>
-            <div class="modal-body">
-				<form>
-                {{form}}
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" wire:click="$dispatch('hideModal')" class="btn btn-secondary close-btn" data-dismiss="modal">Close</button>
-                <button type="button" wire:click.prevent="store()" class="btn btn-primary close-modal">Save</button>
-            </div>
+    </div>
+<div class="col-md-6 mb-3">
+    <label for="photo" class="form-label">Photo</label>
+    <div class="input-group">
+        <input wire:model="photo"
+               type="text"
+               class="form-control @error('photo') is-invalid @enderror"
+               id="photo"
+               placeholder="Enter Photo URL or Upload"
+               readonly>
+        <input type="file"
+               id="photoFileInput"
+               accept="image/*"
+               style="display: none;"
+               onchange="uploadPhoto(event)">
+        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('photoFileInput').click()">
+            <i class="bi bi-upload"></i> Browse
+        </button>
+    </div>
+    @error('photo')
+        <div class="invalid-feedback d-block">{{ $message }}</div>
+    @enderror
+    <div id="photoUploadProgress" class="mt-2" style="display: none;">
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" id="photoProgressBar"></div>
+        </div>
+        <small class="text-muted">Uploading...</small>
+    </div>
+    <div id="photoPreview" class="mt-2" style="display: none;">
+        <img id="photoPreviewImg" src="" alt="Preview" class="img-thumbnail" style="max-height: 150px;">
+        <button type="button" class="btn btn-sm btn-danger ms-2" onclick="removePhoto()">
+            <i class="bi bi-trash"></i> Remove
+        </button>
+    </div>
 </div>
-  
+
+<script>
+function uploadPhoto(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('photoPreviewImg').src = e.target.result;
+        document.getElementById('photoPreview').style.display = 'block';
+    }
+    reader.readAsDataURL(file);
+
+    // Upload file via AJAX
+    const formData = new FormData();
+    formData.append('photo', file);
+    formData.append('_token', '{{ csrf_token() }}');
+
+    // Show progress
+    document.getElementById('photoUploadProgress').style.display = 'block';
+
+    const xhr = new XMLHttpRequest();
+
+    // Progress handler
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            document.getElementById('photoProgressBar').style.width = percentComplete + '%';
+        }
+    });
+
+    // Success handler
+    xhr.addEventListener('load', function() {
+        document.getElementById('photoUploadProgress').style.display = 'none';
+
+        if (xhr.status === 200) {
+            const response = JSON.parse(xhr.responseText);
+            if (response.success) {
+                // Update the text input with the uploaded file path
+                document.getElementById('photo').value = response.path;
+                document.getElementById('photo').dispatchEvent(new Event('input'));
+                @this.set('photo', response.path);
+
+                // Show success message
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: 'Photo uploaded successfully',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                }
+            } else {
+                alert('Upload failed: ' + (response.message || 'Unknown error'));
+            }
+        } else {
+            alert('Upload failed with status: ' + xhr.status);
+        }
+    });
+
+    // Error handler
+    xhr.addEventListener('error', function() {
+        document.getElementById('photoUploadProgress').style.display = 'none';
+        alert('Upload failed. Please try again.');
+    });
+
+    xhr.open('POST', '{{ route("{{getModuleInput}}.{{modelNamePluralLowerCase}}.upload-photo") }}', true);
+    xhr.send(formData);
+}
+
+function removePhoto() {
+    document.getElementById('photo').value = '';
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('photoFileInput').value = '';
+    @this.set('photo', '');
+}
+</script> --}}
+
+    {{form}}
+
+    @if ($errors->any())
+        <div class="col-12">
+            <div class="alert alert-danger">
+                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+</div>
