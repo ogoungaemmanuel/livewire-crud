@@ -1,0 +1,305 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\DatabaseMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Notifications\Notification;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+
+class {{modelName}}Notification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public ${{modelNameLowerCase}};
+    public $action;
+    public $user;
+    public $data;
+    public $notificationType;
+
+    const TYPE_CREATED = 'created';
+    const TYPE_UPDATED = 'updated';
+    const TYPE_DELETED = 'deleted';
+    const TYPE_STATUS_CHANGED = 'status_changed';
+    const TYPE_BULK_ACTION = 'bulk_action';
+    const TYPE_IMPORT_COMPLETED = 'import_completed';
+    const TYPE_EXPORT_READY = 'export_ready';
+    const TYPE_REMINDER = 'reminder';
+
+    /**
+     * Create a new notification instance.
+     */
+    public function __construct({{modelName}} ${{modelNameLowerCase}}, string $action, $user = null, array $data = [])
+    {
+        $this->{{modelNameLowerCase}} = ${{modelNameLowerCase}};
+        $this->action = $action;
+        $this->user = $user;
+        $this->data = $data;
+        $this->notificationType = $this->getNotificationType();
+    }
+
+    /**
+     * Get the notification's delivery channels.
+     */
+    public function via($notifiable): array
+    {
+        $channels = ['database'];
+
+        // Add mail channel based on action type
+        if (in_array($this->action, [self::TYPE_CREATED, self::TYPE_IMPORT_COMPLETED, self::TYPE_EXPORT_READY])) {
+            $channels[] = 'mail';
+        }
+
+        // Add broadcast channel for real-time notifications
+        if (in_array($this->action, [self::TYPE_CREATED, self::TYPE_UPDATED, self::TYPE_DELETED])) {
+            $channels[] = 'broadcast';
+        }
+
+        return $channels;
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail($notifiable): MailMessage
+    {
+        $mailMessage = new MailMessage();
+        
+        switch ($this->action) {
+            case self::TYPE_CREATED:
+                return $mailMessage
+                    ->subject('New {{modelName}} Created')
+                    ->greeting('Hello!')
+                    ->line('A new {{modelNameLowerCase}} has been created.')
+                    ->line('{{modelName}} ID: ' . $this->{{modelNameLowerCase}}->id)
+                    ->action('View {{modelName}}', $this->get{{modelName}}Url())
+                    ->line('Thank you for using our application!');
+
+            case self::TYPE_UPDATED:
+                return $mailMessage
+                    ->subject('{{modelName}} Updated')
+                    ->greeting('Hello!')
+                    ->line('A {{modelNameLowerCase}} has been updated.')
+                    ->line('{{modelName}} ID: ' . $this->{{modelNameLowerCase}}->id)
+                    ->action('View {{modelName}}', $this->get{{modelName}}Url())
+                    ->line('Thank you for using our application!');
+
+            case self::TYPE_STATUS_CHANGED:
+                $status = $this->data['new_status'] ?? 'updated';
+                return $mailMessage
+                    ->subject('{{modelName}} Status Changed')
+                    ->greeting('Hello!')
+                    ->line('The status of {{modelNameLowerCase}} has been changed to: ' . $status)
+                    ->line('{{modelName}} ID: ' . $this->{{modelNameLowerCase}}->id)
+                    ->action('View {{modelName}}', $this->get{{modelName}}Url())
+                    ->line('Thank you for using our application!');
+
+            case self::TYPE_IMPORT_COMPLETED:
+                $imported = $this->data['imported_count'] ?? 0;
+                return $mailMessage
+                    ->subject('{{modelPluralTitle}} Import Completed')
+                    ->greeting('Hello!')
+                    ->line('Your {{modelNamePluralLowerCase}} import has been completed successfully.')
+                    ->line('Total imported: ' . $imported . ' {{modelNamePluralLowerCase}}')
+                    ->action('View {{modelPluralTitle}}', $this->getListUrl())
+                    ->line('Thank you for using our application!');
+
+            case self::TYPE_EXPORT_READY:
+                return $mailMessage
+                    ->subject('{{modelPluralTitle}} Export Ready')
+                    ->greeting('Hello!')
+                    ->line('Your {{modelNamePluralLowerCase}} export is ready for download.')
+                    ->action('Download Export', $this->data['download_url'] ?? '#')
+                    ->line('Thank you for using our application!');
+
+            default:
+                return $mailMessage
+                    ->subject('{{modelName}} Notification')
+                    ->greeting('Hello!')
+                    ->line('A {{modelNameLowerCase}} notification has been triggered.')
+                    ->line('{{modelName}} ID: ' . $this->{{modelNameLowerCase}}->id)
+                    ->action('View {{modelName}}', $this->get{{modelName}}Url())
+                    ->line('Thank you for using our application!');
+        }
+    }
+
+    /**
+     * Get the array representation of the notification.
+     */
+    public function toArray($notifiable): array
+    {
+        return [
+            'id' => $this->id,
+            '{{modelNameLowerCase}}_id' => $this->{{modelNameLowerCase}}->id,
+            'action' => $this->action,
+            'message' => $this->getNotificationMessage(),
+            'user_id' => $this->user?->id,
+            'user_name' => $this->user?->name,
+            'data' => $this->data,
+            'created_at' => now(),
+            'notification_type' => $this->notificationType,
+        ];
+    }
+
+    /**
+     * Get the database representation of the notification.
+     */
+    public function toDatabase($notifiable): array
+    {
+        return $this->toArray($notifiable);
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast($notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'id' => $this->id,
+            '{{modelNameLowerCase}}_id' => $this->{{modelNameLowerCase}}->id,
+            'action' => $this->action,
+            'message' => $this->getNotificationMessage(),
+            'user_name' => $this->user?->name,
+            'timestamp' => now()->toISOString(),
+            'type' => 'success'
+        ]);
+    }
+
+    /**
+     * Get the notification message based on action.
+     */
+    protected function getNotificationMessage(): string
+    {
+        switch ($this->action) {
+            case self::TYPE_CREATED:
+                return "New {{modelNameLowerCase}} #{$this->{{modelNameLowerCase}}->id} has been created" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_UPDATED:
+                return "{{modelName}} #{$this->{{modelNameLowerCase}}->id} has been updated" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_DELETED:
+                return "{{modelName}} #{$this->{{modelNameLowerCase}}->id} has been deleted" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_STATUS_CHANGED:
+                $status = $this->data['new_status'] ?? 'updated';
+                return "{{modelName}} #{$this->{{modelNameLowerCase}}->id} status changed to {$status}" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_BULK_ACTION:
+                $count = $this->data['affected_count'] ?? 0;
+                $bulkAction = $this->data['bulk_action'] ?? 'modified';
+                return "{$count} {{modelNamePluralLowerCase}} have been {$bulkAction}" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_IMPORT_COMPLETED:
+                $count = $this->data['imported_count'] ?? 0;
+                return "{$count} {{modelNamePluralLowerCase}} have been imported successfully" . 
+                       ($this->user ? " by {$this->user->name}" : "");
+
+            case self::TYPE_EXPORT_READY:
+                return "{{modelPluralTitle}} export is ready for download";
+
+            case self::TYPE_REMINDER:
+                $reminder = $this->data['reminder_message'] ?? 'Reminder about {{modelNameLowerCase}}';
+                return $reminder . " - {{modelName}} #{$this->{{modelNameLowerCase}}->id}";
+
+            default:
+                return "{{modelName}} #{$this->{{modelNameLowerCase}}->id} notification";
+        }
+    }
+
+    /**
+     * Get the notification type for categorization.
+     */
+    protected function getNotificationType(): string
+    {
+        switch ($this->action) {
+            case self::TYPE_CREATED:
+            case self::TYPE_UPDATED:
+            case self::TYPE_IMPORT_COMPLETED:
+                return 'success';
+
+            case self::TYPE_DELETED:
+                return 'warning';
+
+            case self::TYPE_STATUS_CHANGED:
+                return 'info';
+
+            case self::TYPE_BULK_ACTION:
+                return 'info';
+
+            case self::TYPE_EXPORT_READY:
+                return 'success';
+
+            case self::TYPE_REMINDER:
+                return 'info';
+
+            default:
+                return 'info';
+        }
+    }
+
+    /**
+     * Get the URL to view the {{modelName}}.
+     */
+    protected function get{{modelName}}Url(): string
+    {
+        return url("/{{getModuleInput}}/{{getNameInput}}/show/{$this->{{modelNameLowerCase}}->id}");
+    }
+
+    /**
+     * Get the URL to list {{modelPluralTitle}}.
+     */
+    protected function getListUrl(): string
+    {
+        return url("/{{getModuleInput}}/{{getNameInput}}");
+    }
+
+    /**
+     * Determine if the notification should be sent now or queued.
+     */
+    public function shouldSend($notifiable, $channel): bool
+    {
+        // Don't send email notifications during bulk operations to avoid spam
+        if ($channel === 'mail' && $this->action === self::TYPE_BULK_ACTION) {
+            $count = $this->data['affected_count'] ?? 0;
+            return $count <= 10; // Only send email for small bulk operations
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the tags that should be assigned to the job.
+     */
+    public function tags(): array
+    {
+        return [
+            '{{modelNameLowerCase}}-notification',
+            "{{modelNameLowerCase}}-{$this->{{modelNameLowerCase}}->id}",
+            "action-{$this->action}"
+        ];
+    }
+
+    /**
+     * Calculate the number of seconds to wait before retrying the job.
+     */
+    public function backoff(): array
+    {
+        return [1, 5, 10];
+    }
+
+    /**
+     * Determine the time at which the job should timeout.
+     */
+    public function retryUntil(): \DateTime
+    {
+        return now()->addMinutes(10);
+    }
+}

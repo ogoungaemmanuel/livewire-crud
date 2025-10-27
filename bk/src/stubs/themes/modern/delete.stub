@@ -1,0 +1,57 @@
+@if(isset(${{modelNameLowerCase}}))
+<div class="row g-3">
+    <div class="col-12">
+        <div class="alert alert-danger">
+            <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill"></i> Warning!</h5>
+            <p>You are about to permanently delete this {{modelNameLowerCase}}. This action cannot be undone.</p>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0">Item to be deleted:</h6>
+            </div>
+            <div class="card-body">
+                <input type="hidden" wire:model="selected_id" value="{{$selected_id}}">
+                <table class="table table-sm table-borderless">
+                    <tr>
+                        <td class="text-muted" width="30%">ID:</td>
+                        <td><strong>{{ ${{modelNameLowerCase}}->id }}</strong></td>
+                    </tr>
+                    @if(isset(${{modelNameLowerCase}}->name))
+                    <tr>
+                        <td class="text-muted">Name:</td>
+                        <td>{{ ${{modelNameLowerCase}}->name }}</td>
+                    </tr>
+                    @endif
+                    @if(isset(${{modelNameLowerCase}}->title))
+                    <tr>
+                        <td class="text-muted">Title:</td>
+                        <td>{{ ${{modelNameLowerCase}}->title }}</td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td class="text-muted">Created:</td>
+                        <td>{{ ${{modelNameLowerCase}}->created_at?->format('M d, Y h:i A') }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" wire:model="confirmDelete" id="confirmDelete">
+            <label class="form-check-label" for="confirmDelete">
+                I understand that this action is permanent and cannot be reversed
+            </label>
+        </div>
+    </div>
+</div>
+@else
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i> {{modelTitle}} not found.
+</div>
+@endif
+

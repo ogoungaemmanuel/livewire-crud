@@ -1,0 +1,284 @@
+// Bootstrap Variable Overrides
+
+// Color System
+$primary: #0d6efd;
+$secondary: #6c757d;
+$success: #198754;
+$info: #0dcaf0;
+$warning: #ffc107;
+$danger: #dc3545;
+$light: #f8f9fa;
+$dark: #212529;
+
+// Body
+$body-bg: #f8f9fa;
+$body-color: #212529;
+
+// Typography
+$font-family-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 0.875rem;
+$font-size-lg: 1rem;
+$font-size-sm: 0.75rem;
+$font-weight-lighter: 300;
+$font-weight-light: 400;
+$font-weight-normal: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-bolder: 800;
+$line-height-base: 1.6;
+$line-height-lg: 1.5;
+$line-height-sm: 1.4;
+
+// Headings
+$headings-font-family: 'Inter', sans-serif;
+$headings-font-weight: 600;
+$headings-line-height: 1.2;
+$headings-color: $dark;
+
+// Components
+$border-width: 1px;
+$border-color: #dee2e6;
+$border-radius: 0.375rem;
+$border-radius-sm: 0.25rem;
+$border-radius-lg: 0.5rem;
+$border-radius-xl: 1rem;
+
+// Box Shadow
+$box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$box-shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+$box-shadow-lg: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+
+// Spacing
+$spacer: 1rem;
+$spacers: (
+  0: 0,
+  1: $spacer * 0.25,
+  2: $spacer * 0.5,
+  3: $spacer,
+  4: $spacer * 1.5,
+  5: $spacer * 3,
+  6: $spacer * 4
+);
+
+// Grid
+$grid-gutter-width: 1.5rem;
+$container-max-widths: (
+  sm: 540px,
+  md: 720px,
+  lg: 960px,
+  xl: 1140px,
+  xxl: 1320px
+);
+
+// Cards
+$card-spacer-y: 1rem;
+$card-spacer-x: 1rem;
+$card-title-spacer-y: 0.5rem;
+$card-border-width: $border-width;
+$card-border-color: rgba($black, 0.125);
+$card-border-radius: $border-radius;
+$card-box-shadow: $box-shadow-sm;
+$card-inner-border-radius: calc($border-radius - $border-width);
+$card-cap-padding-y: 0.5rem;
+$card-cap-padding-x: 1rem;
+$card-cap-bg: rgba($black, 0.03);
+$card-cap-color: inherit;
+
+// Buttons
+$btn-padding-y: 0.375rem;
+$btn-padding-x: 0.75rem;
+$btn-font-family: null;
+$btn-font-size: $font-size-base;
+$btn-line-height: $line-height-base;
+$btn-white-space: null;
+$btn-padding-y-sm: 0.25rem;
+$btn-padding-x-sm: 0.5rem;
+$btn-font-size-sm: $font-size-sm;
+$btn-padding-y-lg: 0.5rem;
+$btn-padding-x-lg: 1rem;
+$btn-font-size-lg: $font-size-lg;
+$btn-border-width: $border-width;
+$btn-font-weight: 500;
+$btn-box-shadow: inset 0 1px 0 rgba($white, 0.15), 0 1px 1px rgba($black, 0.075);
+$btn-focus-width: 0.25rem;
+$btn-focus-box-shadow: 0 0 0 $btn-focus-width rgba($primary, 0.25);
+$btn-disabled-opacity: 0.65;
+$btn-active-box-shadow: inset 0 3px 5px rgba($black, 0.125);
+$btn-border-radius: $border-radius;
+$btn-border-radius-sm: $border-radius-sm;
+$btn-border-radius-lg: $border-radius-lg;
+$btn-transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+// Forms
+$form-label-margin-bottom: 0.5rem;
+$form-label-font-size: $font-size-sm;
+$form-label-font-style: null;
+$form-label-font-weight: 500;
+$form-label-color: null;
+$input-padding-y: $btn-padding-y;
+$input-padding-x: $btn-padding-x;
+$input-font-family: $btn-font-family;
+$input-font-size: $btn-font-size;
+$input-font-weight: $font-weight-normal;
+$input-line-height: $btn-line-height;
+$input-padding-y-sm: $btn-padding-y-sm;
+$input-padding-x-sm: $btn-padding-x-sm;
+$input-font-size-sm: $btn-font-size-sm;
+$input-padding-y-lg: $btn-padding-y-lg;
+$input-padding-x-lg: $btn-padding-x-lg;
+$input-font-size-lg: $btn-font-size-lg;
+$input-bg: $white;
+$input-disabled-color: null;
+$input-disabled-bg: $gray-200;
+$input-disabled-border-color: null;
+$input-color: $body-color;
+$input-border-color: $gray-400;
+$input-border-width: $border-width;
+$input-box-shadow: inset 0 1px 2px rgba($black, 0.075);
+$input-border-radius: $border-radius;
+$input-border-radius-sm: $border-radius-sm;
+$input-border-radius-lg: $border-radius-lg;
+$input-focus-bg: $input-bg;
+$input-focus-border-color: lighten($primary, 25%);
+$input-focus-color: $input-color;
+$input-focus-width: 0.25rem;
+$input-focus-box-shadow: 0 0 0 $input-focus-width rgba($primary, 0.25);
+$input-placeholder-color: $gray-600;
+$input-plaintext-color: $body-color;
+$input-height-border: $input-border-width * 2;
+$input-height-inner: add($input-line-height * 1em, $input-padding-y * 2);
+$input-height-inner-half: add($input-line-height * 0.5em, $input-padding-y);
+$input-height-inner-quarter: add($input-line-height * 0.25em, $input-padding-y * 0.5);
+$input-height: add($input-height-inner, $input-height-border);
+$input-height-sm: add($input-height-inner-half, $input-height-border);
+$input-height-lg: add($input-height-inner-quarter, $input-height-border);
+$input-transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+// Tables
+$table-cell-padding-y: 0.75rem;
+$table-cell-padding-x: 0.75rem;
+$table-cell-padding-y-sm: 0.5rem;
+$table-cell-padding-x-sm: 0.5rem;
+$table-cell-vertical-align: top;
+$table-color: $body-color;
+$table-bg: null;
+$table-accent-bg: rgba($black, 0.05);
+$table-th-font-weight: null;
+$table-striped-color: $table-color;
+$table-striped-bg-factor: 0.05;
+$table-striped-bg: rgba($black, $table-striped-bg-factor);
+$table-active-color: $table-color;
+$table-active-bg-factor: 0.1;
+$table-active-bg: rgba($black, $table-active-bg-factor);
+$table-hover-color: $table-color;
+$table-hover-bg-factor: 0.075;
+$table-hover-bg: rgba($black, $table-hover-bg-factor);
+$table-border-factor: 0.1;
+$table-border-width: $border-width;
+$table-border-color: $border-color;
+$table-striped-order: odd;
+$table-striped-columns-order: even;
+$table-group-separator-color: currentcolor;
+$table-caption-color: $text-muted;
+$table-bg-scale: -80%;
+
+// Navbar
+$navbar-padding-y: 0.5rem;
+$navbar-padding-x: null;
+$navbar-nav-link-padding-x: 0.5rem;
+$navbar-brand-font-size: $font-size-lg;
+$navbar-brand-height: $navbar-brand-font-size * $line-height-base;
+$navbar-brand-padding-y: subtract(multiply($nav-link-height, 0.5), multiply($navbar-brand-font-size, $line-height-base) * 0.5);
+$navbar-brand-margin-end: 1rem;
+$navbar-toggler-padding-y: 0.25rem;
+$navbar-toggler-padding-x: 0.75rem;
+$navbar-toggler-font-size: $font-size-lg;
+$navbar-toggler-border-radius: $btn-border-radius;
+$navbar-toggler-focus-width: $btn-focus-width;
+$navbar-toggler-transition: box-shadow 0.15s ease-in-out;
+$navbar-dark-color: rgba($white, 0.55);
+$navbar-dark-hover-color: rgba($white, 0.75);
+$navbar-dark-active-color: $white;
+$navbar-dark-disabled-color: rgba($white, 0.25);
+$navbar-dark-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-dark-color}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
+$navbar-dark-toggler-border-color: rgba($white, 0.1);
+$navbar-light-color: rgba($black, 0.55);
+$navbar-light-hover-color: rgba($black, 0.7);
+$navbar-light-active-color: rgba($black, 0.9);
+$navbar-light-disabled-color: rgba($black, 0.3);
+$navbar-light-toggler-icon-bg: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke='#{$navbar-light-color}' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg>");
+$navbar-light-toggler-border-color: rgba($black, 0.1);
+
+// Modals
+$modal-inner-padding: 1rem;
+$modal-footer-margin-between: 0.5rem;
+$modal-dialog-margin: 0.5rem;
+$modal-dialog-margin-y-sm-up: 1.75rem;
+$modal-title-line-height: $line-height-base;
+$modal-content-color: null;
+$modal-content-bg: $white;
+$modal-content-border-color: rgba($black, 0.2);
+$modal-content-border-width: $border-width;
+$modal-content-border-radius: $border-radius-lg;
+$modal-content-inner-border-radius: subtract($modal-content-border-radius, $modal-content-border-width);
+$modal-content-box-shadow-xs: 0 0.25rem 0.5rem rgba($black, 0.5);
+$modal-content-box-shadow-sm-up: 0 0.5rem 1rem rgba($black, 0.5);
+$modal-backdrop-bg: $black;
+$modal-backdrop-opacity: 0.5;
+$modal-header-border-color: $border-color;
+$modal-footer-border-color: $modal-header-border-color;
+$modal-header-border-width: $modal-content-border-width;
+$modal-footer-border-width: $modal-header-border-width;
+$modal-header-padding-y: $modal-inner-padding;
+$modal-header-padding-x: $modal-inner-padding;
+$modal-header-padding: $modal-header-padding-y $modal-header-padding-x;
+$modal-sm: 300px;
+$modal-md: 500px;
+$modal-lg: 800px;
+$modal-xl: 1140px;
+$modal-fade-transform: translate(0, -50px);
+$modal-show-transform: none;
+$modal-transition: transform 0.3s ease-out;
+$modal-scale-transform: scale(1.02);
+
+// Progress bars
+$progress-height: 1rem;
+$progress-font-size: $font-size-base * 0.75;
+$progress-bg: $gray-200;
+$progress-border-radius: $border-radius;
+$progress-box-shadow: inset 0 0.1rem 0.1rem rgba($black, 0.1);
+$progress-bar-color: $white;
+$progress-bar-bg: $primary;
+$progress-bar-animation-timing: 1s linear infinite;
+$progress-bar-transition: width 0.6s ease;
+
+// Tooltips
+$tooltip-font-size: $font-size-sm;
+$tooltip-max-width: 200px;
+$tooltip-color: $white;
+$tooltip-bg: $black;
+$tooltip-border-radius: $border-radius;
+$tooltip-opacity: 0.9;
+$tooltip-padding-y: 0.25rem;
+$tooltip-padding-x: 0.5rem;
+$tooltip-margin: 0;
+$tooltip-arrow-width: 0.8rem;
+$tooltip-arrow-height: 0.4rem;
+$tooltip-arrow-color: null;
+
+// Z-index master list
+$zindex-dropdown: 1000;
+$zindex-sticky: 1020;
+$zindex-fixed: 1030;
+$zindex-modal-backdrop: 1040;
+$zindex-offcanvas: 1045;
+$zindex-modal: 1055;
+$zindex-popover: 1070;
+$zindex-tooltip: 1080;
+
+// Dark mode colors
+$dark-bg: #212529;
+$dark-text: #dee2e6;
+$dark-border: #495057;
+$dark-card-bg: #343a40;
+$dark-input-bg: #495057;

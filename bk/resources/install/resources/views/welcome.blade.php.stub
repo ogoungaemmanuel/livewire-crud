@@ -1,0 +1,369 @@
+@extends('layouts.app')
+@section('title', __('Welcome'))
+
+@section('breadcrumb')
+<li class="breadcrumb-item active" aria-current="page">{{ __('Welcome') }}</li>
+@endsection
+
+@section('content')
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg overflow-hidden">
+                <div class="row g-0">
+                    <div class="col-lg-6">
+                        <div class="card-body p-5 h-100 d-flex flex-column justify-content-center">
+                            @guest
+                                <div class="text-center text-lg-start">
+                                    <div class="mb-4">
+                                        <i class="fas fa-rocket text-primary" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h1 class="display-5 fw-bold text-primary mb-3">
+                                        {{ __('Welcome to :app', ['app' => config('app.name', 'Laravel')]) }}
+                                    </h1>
+                                    <p class="lead text-muted mb-4">
+                                        {{ __('Experience the power of modern web applications with our comprehensive CRUD system. Built with Laravel, Livewire, and Bootstrap for maximum efficiency and user experience.') }}
+                                    </p>
+                                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                                        @if (Route::has('login'))
+                                            <a href="{{ route('login') }}" class="btn btn-primary btn-lg px-4">
+                                                <i class="fas fa-sign-in-alt me-2"></i>
+                                                {{ __('Get Started') }}
+                                            </a>
+                                        @endif
+                                        @if (Route::has('register'))
+                                            <a href="{{ route('register') }}" class="btn btn-outline-primary btn-lg px-4">
+                                                <i class="fas fa-user-plus me-2"></i>
+                                                {{ __('Create Account') }}
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <div class="mt-4">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {{ __('Please contact admin to get your login credentials or click "Get Started" to access your dashboard.') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="text-center text-lg-start">
+                                    <div class="mb-4">
+                                        <i class="fas fa-user-check text-success" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h1 class="display-5 fw-bold text-success mb-3">
+                                        {{ __('Welcome back, :name!', ['name' => Auth::user()->name]) }}
+                                    </h1>
+                                    <p class="lead text-muted mb-4">
+                                        {{ __('You\'re successfully logged in to :app. Explore all the features and manage your data efficiently.', ['app' => config('app.name', 'Laravel')]) }}
+                                    </p>
+                                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                                        <a href="{{ route('home') ?? url('/home') }}" class="btn btn-success btn-lg px-4">
+                                            <i class="fas fa-tachometer-alt me-2"></i>
+                                            {{ __('Go to Dashboard') }}
+                                        </a>
+                                        <button class="btn btn-outline-success btn-lg px-4" onclick="startTour()">
+                                            <i class="fas fa-play-circle me-2"></i>
+                                            {{ __('Take a Tour') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            @endguest
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="bg-gradient-primary h-100 d-flex align-items-center justify-content-center text-white">
+                            <div class="text-center p-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-laptop-code" style="font-size: 5rem; opacity: 0.9;"></i>
+                                </div>
+                                <h3 class="fw-bold mb-3">{{ __('Modern Technology Stack') }}</h3>
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fab fa-laravel me-2"></i>
+                                            <span>Laravel</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-bolt me-2"></i>
+                                            <span>Livewire</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fab fa-bootstrap me-2"></i>
+                                            <span>Bootstrap</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-chart-line me-2"></i>
+                                            <span>Charts</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h2 class="h1 fw-bold text-dark">{{ __('Powerful Features') }}</h2>
+                <p class="lead text-muted">{{ __('Everything you need to manage your data effectively') }}</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 text-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Advanced CRUD Operations') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Complete Create, Read, Update, and Delete functionality with modern UI components and real-time updates.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-success bg-opacity-10 text-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-chart-pie"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Interactive Analytics') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Beautiful charts and graphs powered by ApexCharts for comprehensive data visualization and insights.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-info bg-opacity-10 text-info rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Calendar Integration') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Full-featured calendar system with event management, scheduling, and multiple view options.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-warning bg-opacity-10 text-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-file-export"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Export & Import') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Seamless data export to PDF, Excel, CSV formats and bulk import capabilities for efficient data management.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Smart Notifications') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Real-time notifications system with email, database, and broadcast channels for instant updates.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body text-center p-4">
+                            <div class="feature-icon bg-secondary bg-opacity-10 text-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h5 class="fw-semibold mb-3">{{ __('Responsive Design') }}</h5>
+                            <p class="text-muted mb-0">
+                                {{ __('Fully responsive interface that works perfectly on desktop, tablet, and mobile devices with dark mode support.') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 bg-light">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h3 class="fw-bold text-dark">{{ __('System Statistics') }}</h3>
+                        <p class="text-muted">{{ __('Real-time insights into system performance') }}</p>
+                    </div>
+                    
+                    <div class="row g-4 text-center">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-item">
+                                <h2 class="display-6 fw-bold text-primary mb-0">99.9%</h2>
+                                <p class="text-muted mb-0">{{ __('Uptime') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-item">
+                                <h2 class="display-6 fw-bold text-success mb-0">24/7</h2>
+                                <p class="text-muted mb-0">{{ __('Support') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-item">
+                                <h2 class="display-6 fw-bold text-info mb-0">100+</h2>
+                                <p class="text-muted mb-0">{{ __('Features') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="stat-item">
+                                <h2 class="display-6 fw-bold text-warning mb-0">1K+</h2>
+                                <p class="text-muted mb-0">{{ __('Active Users') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('styles')
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+}
+
+.feature-icon {
+    transition: all 0.3s ease;
+}
+
+.card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-item {
+    transition: all 0.3s ease;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.stat-item:hover {
+    background: white;
+    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .display-5 {
+        font-size: 2rem;
+    }
+    
+    .display-6 {
+        font-size: 2.5rem;
+    }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+function startTour() {
+    if (window.App && window.App.notifications) {
+        window.App.notifications.show('{{ __("Tour feature coming soon!") }}', 'info');
+    } else {
+        alert('{{ __("Tour feature coming soon!") }}');
+    }
+}
+
+// Add some interactive animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate feature cards on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+
+    // Animate statistics counters
+    const animateCounter = (element, target) => {
+        let current = 0;
+        const increment = target / 100;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                element.textContent = target + (element.dataset.suffix || '');
+                clearInterval(timer);
+            } else {
+                element.textContent = Math.floor(current) + (element.dataset.suffix || '');
+            }
+        }, 20);
+    };
+
+    // Example: animate some numbers (you can expand this)
+    const statElements = document.querySelectorAll('.stat-item h2');
+    statElements.forEach(stat => {
+        if (stat.textContent.includes('100+')) {
+            stat.dataset.suffix = '+';
+            animateCounter(stat, 100);
+        } else if (stat.textContent.includes('1K+')) {
+            stat.dataset.suffix = 'K+';
+            animateCounter(stat, 1);
+        }
+    });
+});
+</script>
+@endpush

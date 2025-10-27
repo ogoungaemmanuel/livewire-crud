@@ -1,0 +1,25 @@
+{{-- Table Cell for {{title}} --}}
+<td>
+    @if(isset($item->{{column}}))
+        @if(is_bool($item->{{column}}))
+            {{-- Boolean field --}}
+            <span class="badge {{ $item->{{column}} ? 'bg-success' : 'bg-secondary' }}">
+                <i class="bi {{ $item->{{column}} ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
+                {{ $item->{{column}} ? 'Yes' : 'No' }}
+            </span>
+        @elseif($item->{{column}} instanceof \Carbon\Carbon)
+            {{-- Date field --}}
+            <span class="text-muted small">
+                <i class="bi bi-calendar3"></i>
+                {{ $item->{{column}}->format('M d, Y') }}
+            </span>
+        @else
+            {{-- Regular text field --}}
+            <div class="text-truncate" style="max-width: 200px;" title="{{ $item->{{column}} }}">
+                {{ $item->{{column}} }}
+            </div>
+        @endif
+    @else
+        <span class="text-muted fst-italic">N/A</span>
+    @endif
+</td>

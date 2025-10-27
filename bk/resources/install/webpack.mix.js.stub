@@ -1,0 +1,290 @@
+const mix = require('laravel-mix');
+
+/*
+ |--------------------------------------------------------------------------
+ | Mix Asset Management
+ |--------------------------------------------------------------------------
+ |
+ | Mix provides a clean, fluent API for defining some Webpack build steps
+ | for your Laravel applications. By default, we are compiling the CSS
+ | file for the application as well as bundling up all the JS files.
+ |
+ | Enhanced configuration for Livewire CRUD with advanced features:
+ | - ApexCharts for analytics dashboards
+ | - FullCalendar for calendar functionality
+ | - Chart.js as fallback option
+ | - Bootstrap Icons and custom fonts
+ | - PDF generation support
+ | - Real-time notifications
+ | - Image optimization
+ | - CSS preprocessing with advanced features
+ |
+ */
+
+// Main application assets
+mix.js('resources/js/app.js', 'public/js')
+    .sass('resources/sass/app.scss', 'public/css')
+    .options({
+        processCssUrls: false,
+        postCss: [
+            require('tailwindcss'), // Optional Tailwind CSS support
+            require('autoprefixer'),
+        ],
+    });
+
+// Vendor libraries compilation
+mix.js([
+        'node_modules/apexcharts/dist/apexcharts.min.js',
+        'node_modules/@fullcalendar/core/index.global.min.js',
+        'node_modules/@fullcalendar/daygrid/index.global.min.js',
+        'node_modules/@fullcalendar/timegrid/index.global.min.js',
+        'node_modules/@fullcalendar/list/index.global.min.js',
+        'node_modules/@fullcalendar/interaction/index.global.min.js',
+        'node_modules/sweetalert2/dist/sweetalert2.min.js',
+        'node_modules/bootstrap/dist/js/bootstrap.bundle.min.js',
+    ], 'public/js/vendor.js')
+    .css([
+        'node_modules/apexcharts/dist/apexcharts.css',
+        'node_modules/@fullcalendar/core/main.css',
+        'node_modules/@fullcalendar/daygrid/main.css',
+        'node_modules/@fullcalendar/timegrid/main.css',
+        'node_modules/@fullcalendar/list/main.css',
+        'node_modules/sweetalert2/dist/sweetalert2.min.css',
+        'node_modules/bootstrap/dist/css/bootstrap.min.css',
+        'node_modules/bootstrap-icons/font/bootstrap-icons.css',
+    ], 'public/css/vendor.css');
+
+// Chart libraries (separate bundle for analytics)
+mix.js([
+        'resources/js/charts/apexcharts-config.js',
+        'resources/js/charts/chart-themes.js',
+        'resources/js/charts/analytics-dashboard.js',
+    ], 'public/js/charts.js');
+
+// Calendar functionality
+mix.js([
+        'resources/js/calendar/fullcalendar-config.js',
+        'resources/js/calendar/event-handlers.js',
+        'resources/js/calendar/calendar-themes.js',
+    ], 'public/js/calendar.js');
+
+// Export and PDF functionality
+mix.js([
+        'resources/js/export/pdf-generator.js',
+        'resources/js/export/excel-handler.js',
+        'resources/js/export/csv-handler.js',
+        'resources/js/export/print-manager.js',
+    ], 'public/js/export.js');
+
+// Notifications and real-time features
+mix.js([
+        'resources/js/notifications/notification-manager.js',
+        'resources/js/notifications/real-time-updates.js',
+        'resources/js/notifications/toast-handler.js',
+    ], 'public/js/notifications.js');
+
+// Email functionality
+mix.js([
+        'resources/js/email/email-composer.js',
+        'resources/js/email/attachment-handler.js',
+        'resources/js/email/template-manager.js',
+    ], 'public/js/email.js');
+
+// CRUD specific functionality
+mix.js([
+        'resources/js/crud/livewire-helpers.js',
+        'resources/js/crud/bulk-operations.js',
+        'resources/js/crud/form-validation.js',
+        'resources/js/crud/modal-manager.js',
+        'resources/js/crud/search-filter.js',
+    ], 'public/js/crud.js');
+
+// Admin dashboard (if applicable)
+mix.js('resources/js/admin/dashboard.js', 'public/js/admin-dashboard.js')
+    .sass('resources/sass/admin/dashboard.scss', 'public/css/admin-dashboard.css');
+
+// Theme and styling
+mix.sass('resources/sass/themes/default.scss', 'public/css/themes/default.css')
+    .sass('resources/sass/themes/dark.scss', 'public/css/themes/dark.css')
+    .sass('resources/sass/themes/modern.scss', 'public/css/themes/modern.css')
+    .sass('resources/sass/components/charts.scss', 'public/css/components/charts.css')
+    .sass('resources/sass/components/calendar.scss', 'public/css/components/calendar.css')
+    .sass('resources/sass/components/modals.scss', 'public/css/components/modals.css')
+    .sass('resources/sass/components/tables.scss', 'public/css/components/tables.css')
+    .sass('resources/sass/components/forms.scss', 'public/css/components/forms.css');
+
+// Copy static assets
+mix.copy('resources/images', 'public/images')
+    .copy('resources/fonts', 'public/fonts')
+    .copy('node_modules/bootstrap-icons/font/fonts', 'public/fonts');
+
+// Copy PDF templates
+mix.copy('resources/views/pdf-templates', 'public/pdf-templates');
+
+// Development configuration
+if (mix.inProduction()) {
+    // Production optimizations
+    mix.version()
+        .options({
+            terser: {
+                terserOptions: {
+                    compress: {
+                        drop_console: true, // Remove console.log in production
+                        drop_debugger: true,
+                    },
+                },
+            },
+        });
+} else {
+    // Development configuration
+    mix.sourceMaps(true, 'eval-source-map')
+        .options({
+            hmrOptions: {
+                host: 'localhost',
+                port: 8080,
+            },
+        });
+}
+
+// Browser sync for development
+mix.browserSync({
+    proxy: process.env.APP_URL || 'localhost:8000',
+    files: [
+        'app/**/*.php',
+        'resources/views/**/*.php',
+        'resources/views/**/*.blade.php',
+        'public/js/**/*.js',
+        'public/css/**/*.css'
+    ],
+    watchOptions: {
+        usePolling: true,
+        interval: 1000,
+    },
+});
+
+// Webpack configuration customization
+mix.webpackConfig({
+    resolve: {
+        alias: {
+            '@': path.resolve('resources/js'),
+            '@sass': path.resolve('resources/sass'),
+            '@images': path.resolve('resources/images'),
+            '@components': path.resolve('resources/js/components'),
+            '@charts': path.resolve('resources/js/charts'),
+            '@calendar': path.resolve('resources/js/calendar'),
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.(png|jpe?g|gif|svg)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash:8].[ext]',
+                            outputPath: 'images/',
+                        },
+                    },
+                    {
+                        loader: 'image-webpack-loader',
+                        options: {
+                            mozjpeg: {
+                                progressive: true,
+                                quality: 85,
+                            },
+                            optipng: {
+                                enabled: true,
+                            },
+                            pngquant: {
+                                quality: [0.6, 0.8],
+                            },
+                            gifsicle: {
+                                interlaced: false,
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.(woff|woff2|eot|ttf|otf)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: '[name].[hash:8].[ext]',
+                            outputPath: 'fonts/',
+                        },
+                    },
+                ],
+            },
+        ],
+    },
+    plugins: [
+        new (require('webpack')).DefinePlugin({
+            __VUE_OPTIONS_API__: true,
+            __VUE_PROD_DEVTOOLS__: false,
+        }),
+    ],
+    externals: {
+        // External libraries that should not be bundled
+        'jquery': 'jQuery',
+        'bootstrap': 'bootstrap',
+    },
+});
+
+// Additional Mix plugins
+mix.extend('chartjs', new class {
+    webpackRules() {
+        return {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: ['@babel/preset-env'],
+                    plugins: ['@babel/plugin-transform-runtime'],
+                },
+            },
+        };
+    }
+}());
+
+// Notification for build completion
+mix.then(() => {
+    console.log('✅ Laravel Mix build completed successfully!');
+    console.log('📊 Charts: ApexCharts and Chart.js configured');
+    console.log('📅 Calendar: FullCalendar integration ready');
+    console.log('📄 PDF: Export functionality configured');
+    console.log('🔔 Notifications: Real-time features enabled');
+    console.log('💌 Email: Composer and templates ready');
+    console.log('🎨 Themes: Multiple theme support configured');
+});
+
+// Error handling
+mix.then(() => {
+    // Success callback
+}).catch((error) => {
+    console.error('❌ Build failed:', error);
+    process.exit(1);
+});
+
+// Custom Mix macros for advanced functionality
+mix.extend('livewireCrud', function(webpackConfig) {
+    // Custom CRUD-specific optimizations
+    webpackConfig.resolve.alias = {
+        ...webpackConfig.resolve.alias,
+        '@crud': path.resolve('resources/js/crud'),
+        '@livewire': path.resolve('resources/js/livewire'),
+    };
+});
+
+// Apply CRUD optimizations
+mix.livewireCrud();
+
+// Performance monitoring in development
+if (!mix.inProduction()) {
+    mix.options({
+        runtimeChunkPath: 'js',
+    }).extract(['vue', 'axios', 'lodash']);
+}

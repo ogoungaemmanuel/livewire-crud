@@ -1,0 +1,1608 @@
+@section('page_title', __('{{modelPluralTitle}}'))
+<div class="px-xl-5 px-lg-4 px-3 py-3 page-body">
+    <div class="row g-3">
+        <!-- Header Section -->
+        <div class="col-sm-12">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <h3 class="fw-bold mb-0">@yield('page_title')</h3>
+                <div class="col-auto d-flex gap-2 w-sm-100">
+                    <button type="button" class="btn btn-primary" wire:click="create{{modelName}}" data-bs-toggle="modal" data-bs-target="#create{{modelName}}Modal">
+                        <i class="bi bi-plus-circle"></i> Add {{modelName}}
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" wire:click="import{{modelPluralTitle}}" data-bs-toggle="modal" data-bs-target="#import{{modelPluralTitle}}Modal">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#export{{modelPluralTitle}}Modal">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" wire:click="printReport">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#analytics{{modelPluralTitle}}Modal"><i class="bi bi-graph-up"></i> Analytics</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#calendar{{modelPluralTitle}}Modal"><i class="bi bi-calendar3"></i> Calendar</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#notifications{{modelPluralTitle}}Modal"><i class="bi bi-bell"></i> Notifications</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" wire:click="resetExportSettings"><i class="bi bi-arrow-clockwise"></i> Reset Settings</a></li>
+                        </ul>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#email{{modelPluralTitle}}Modal" wire:click="prepareEmailModal">
+                        <i class="bi bi-envelope"></i> Email
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="col-sm-12">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Total {{modelPluralTitle}}</h6>
+                                    <h3 class="mb-0">{{ $total{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-collection fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Active</h6>
+                                    <h3 class="mb-0">{{ $active{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-check-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">Inactive</h6>
+                                    <h3 class="mb-0">{{ $inactive{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-x-circle fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-0">This Month</h6>
+                                    <h3 class="mb-0">{{ $thisMonth{{modelPluralTitle}} }}</h3>
+                                </div>
+                                <i class="bi bi-calendar-month fs-1"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">
+                        <i class="bi bi-funnel"></i> Filters & Search
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="resetFilters">
+                        <i class="bi bi-x-circle"></i> Reset
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input wire:model.live.debounce.300ms="search" type="text" class="form-control" placeholder="Search...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select wire:model.live="filterStatus" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select wire:model.live="filterDateRange" class="form-select">
+                                <option value="">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                                <option value="month">This Month</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Per Page</label>
+                            <select wire:model.live="perPage" class="form-select">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        @if($selectedItems && count($selectedItems) > 0)
+        <div class="col-sm-12">
+            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                <span><strong>{{ count($selectedItems) }}</strong> item(s) selected</span>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-danger" wire:click="bulkDelete">
+                        <i class="bi bi-trash"></i> Delete Selected
+                    </button>
+                    <button type="button" class="btn btn-sm btn-success" wire:click="bulkActivate">
+                        <i class="bi bi-check-circle"></i> Activate
+                    </button>
+                    <button type="button" class="btn btn-sm btn-warning" wire:click="bulkDeactivate">
+                        <i class="bi bi-x-circle"></i> Deactivate
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Data Table -->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body table-responsive">
+                    <table class="table align-middle table-hover" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th width="30">
+                                    <input type="checkbox" wire:model.live="selectAll" class="form-check-input">
+                                </th>
+                                <th width="50">SN</th>
+                                {{tableHeader}}
+                                <th>
+                                    <a href="#" wire:click.prevent="sortBy('status')" class="text-decoration-none text-dark">
+                                        Status
+                                        @if($sortField === 'status')
+                                            <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="#" wire:click.prevent="sortBy('created_at')" class="text-decoration-none text-dark">
+                                        Created
+                                        @if($sortField === 'created_at')
+                                            <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                                        @endif
+                                    </a>
+                                </th>
+                                <th width="100">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse(${{modelNamePluralLowerCase}} as $row)
+                            <tr wire:key="{{modelNameLowerCase}}-{{ $row->id }}">
+                                <td>
+                                    <input type="checkbox" value="{{ $row->id }}" wire:model.live="selectedItems" class="form-check-input">
+                                </td>
+                                <td>{{ ${{modelNamePluralLowerCase}}->firstItem() + $loop->index }}</td>
+                                {{tableBody}}
+                                <td>
+                                    @if($row->status === 'active')
+                                        <span class="badge bg-success">Active</span>
+                                    @else
+                                        <span class="badge bg-warning">Inactive</span>
+                                    @endif
+                                </td>
+                                <td>{{ $row->created_at->format('M d, Y') }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                            <i class="bi bi-three-dots-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="view{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#show{{modelName}}Modal">
+                                                    <i class="bi bi-eye"></i> View
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="edit{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#update{{modelName}}Modal">
+                                                    <i class="bi bi-pencil"></i> Edit
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            @if(isset($row->status))
+                                                @if($row->status === 'active')
+                                                    <li><a class="dropdown-item" href="#" wire:click.prevent="deactivate({{ $row->id }})"><i class="bi bi-x-circle"></i> Deactivate</a></li>
+                                                @else
+                                                    <li><a class="dropdown-item" href="#" wire:click.prevent="activate({{ $row->id }})"><i class="bi bi-check-circle"></i> Activate</a></li>
+                                                @endif
+                                                <li><hr class="dropdown-divider"></li>
+                                            @endif
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="printRow({{ $row->id }})">
+                                                    <i class="bi bi-printer"></i> Print
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="#" wire:click.prevent="prepareEmailModal({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#emailRecord{{modelName}}Modal">
+                                                    <i class="bi bi-envelope"></i> Email
+                                                </a>
+                                            </li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li>
+                                                <a class="dropdown-item text-danger" href="#" wire:click.prevent="delete{{modelName}}({{ $row->id }})" data-bs-toggle="modal" data-bs-target="#delete{{modelName}}Modal">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="100" class="text-center py-4">
+                                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                                    <p class="text-muted">No {{modelNamePluralLowerCase}} found</p>
+                                    <button type="button" class="btn btn-primary" wire:click="create{{modelName}}" data-bs-toggle="modal" data-bs-target="#create{{modelName}}Modal">
+                                        <i class="bi bi-plus-circle"></i> Create First {{modelName}}
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div>
+                        Showing {{ ${{modelNamePluralLowerCase}}->firstItem() ?? 0 }} to {{ ${{modelNamePluralLowerCase}}->lastItem() ?? 0 }} of {{ ${{modelNamePluralLowerCase}}->total() }} entries
+                    </div>
+                    <div>
+                        {{ ${{modelNamePluralLowerCase}}->links() }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div wire:loading.delay class="position-fixed top-50 start-50 translate-middle">
+        <div class="card shadow">
+            <div class="card-body text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 mb-0">Processing...</p>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Create Modal -->
+<div wire:ignore.self class="modal fade" id="create{{modelName}}Modal" tabindex="-1" aria-labelledby="create{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="create{{modelName}}ModalLabel">
+                    <i class="bi bi-plus-circle"></i> Create New {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="store">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.create')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="store">
+                            <i class="bi bi-save"></i> Save {{modelName}}
+                        </span>
+                        <span wire:loading wire:target="store">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Saving...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Update Modal -->
+<div wire:ignore.self class="modal fade" id="update{{modelName}}Modal" tabindex="-1" aria-labelledby="update{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title" id="update{{modelName}}ModalLabel">
+                    <i class="bi bi-pencil-square"></i> Edit {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="update">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.update')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-warning" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="update">
+                            <i class="bi bi-save"></i> Update {{modelName}}
+                        </span>
+                        <span wire:loading wire:target="update">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Updating...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Show Modal -->
+<div wire:ignore.self class="modal fade" id="show{{modelName}}Modal" tabindex="-1" aria-labelledby="show{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="show{{modelName}}ModalLabel">
+                    <i class="bi bi-eye"></i> View {{modelName}} Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.show')
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div wire:ignore.self class="modal fade" id="delete{{modelName}}Modal" tabindex="-1" aria-labelledby="delete{{modelName}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="delete{{modelName}}ModalLabel">
+                    <i class="bi bi-trash"></i> Delete {{modelName}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.delete')
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-danger" wire:click="destroy" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="destroy">
+                        <i class="bi bi-trash"></i> Delete
+                    </span>
+                    <span wire:loading wire:target="destroy">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Deleting...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div wire:ignore.self class="modal fade" id="import{{modelPluralTitle}}Modal" tabindex="-1" aria-labelledby="import{{modelPluralTitle}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="import{{modelPluralTitle}}ModalLabel">
+                    <i class="bi bi-upload"></i> Import {{modelPluralTitle}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form wire:submit.prevent="import">
+                <div class="modal-body">
+                    @include('{{getModuleInput}}::livewire.{{modelNamePluralLowerCase}}.import')
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="import">
+                            <i class="bi bi-upload"></i> Import
+                        </span>
+                        <span wire:loading wire:target="import">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Importing...
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div wire:ignore.self class="modal fade" id="export{{modelPluralTitle}}Modal" tabindex="-1" aria-labelledby="export{{modelPluralTitle}}ModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="export{{modelPluralTitle}}ModalLabel">
+                    <i class="bi bi-download"></i> Export {{modelPluralTitle}}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- Export Format Selection -->
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Choose your preferred export format and customize the options below.
+                        </div>
+                    </div>
+
+                    <!-- Format Options -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-earmark"></i> Export Format
+                        </label>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'excel')">
+                                    <div class="card-body text-center" :class="{ 'border-primary': exportFormat === 'excel' }">
+                                        <i class="bi bi-file-earmark-excel text-success fs-1"></i>
+                                        <h6 class="mt-2">Excel (XLSX)</h6>
+                                        <small class="text-muted">Best for data analysis</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="excel" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'csv')">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-earmark-text text-info fs-1"></i>
+                                        <h6 class="mt-2">CSV</h6>
+                                        <small class="text-muted">Universal compatibility</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="csv" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card h-100 export-format-card" style="cursor: pointer;" wire:click="$set('exportFormat', 'pdf')">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-file-earmark-pdf text-danger fs-1"></i>
+                                        <h6 class="mt-2">PDF</h6>
+                                        <small class="text-muted">Professional reports</small>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="radio" name="exportFormat" value="pdf" wire:model="exportFormat">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Options -->
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-gear"></i> Export Options
+                        </label>
+                    </div>
+
+                    <!-- Data Range -->
+                    <div class="col-md-6">
+                        <label class="form-label">Data Range</label>
+                        <select class="form-select" wire:model="exportRange">
+                            <option value="all">All Records ({{ $total{{modelPluralTitle}} }})</option>
+                            <option value="filtered">Filtered Records Only ({{ ${{modelNamePluralLowerCase}}->total() }})</option>
+                            <option value="selected">Selected Records ({{ count($selectedItems) }})</option>
+                            <option value="current_page">Current Page Only ({{ ${{modelNamePluralLowerCase}}->count() }})</option>
+                        </select>
+                    </div>
+
+                    <!-- Date Range Filter -->
+                    <div class="col-md-6">
+                        <label class="form-label">Date Range</label>
+                        <select class="form-select" wire:model="exportDateRange">
+                            <option value="">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="yesterday">Yesterday</option>
+                            <option value="this_week">This Week</option>
+                            <option value="last_week">Last Week</option>
+                            <option value="this_month">This Month</option>
+                            <option value="last_month">Last Month</option>
+                            <option value="this_year">This Year</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+
+                    <!-- Custom Date Range (shown when custom is selected) -->
+                    @if($exportDateRange === 'custom')
+                    <div class="col-md-6">
+                        <label class="form-label">Start Date</label>
+                        <input type="date" class="form-control" wire:model="exportStartDate">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">End Date</label>
+                        <input type="date" class="form-control" wire:model="exportEndDate">
+                    </div>
+                    @endif
+
+                    <!-- Column Selection -->
+                    <div class="col-12">
+                        <label class="form-label">Columns to Export</label>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" wire:model="selectAllColumns" id="selectAllColumns">
+                                            <label class="form-check-label fw-bold" for="selectAllColumns">
+                                                Select All Columns
+                                            </label>
+                                        </div>
+                                        <hr>
+                                    </div>
+                                    @foreach($availableColumns ?? [] as $column)
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" value="{{ $column }}" wire:model="exportColumns" id="export_{{ $column }}">
+                                            <label class="form-check-label" for="export_{{ $column }}">
+                                                {{ ucwords(str_replace('_', ' ', $column)) }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Options (PDF Only) -->
+                    @if($exportFormat === 'pdf')
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-file-pdf"></i> PDF Options
+                        </label>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Template</label>
+                        <select class="form-select" wire:model="pdfTemplate">
+                            <option value="default">Default</option>
+                            <option value="detailed">Detailed Report</option>
+                            <option value="summary">Summary Report</option>
+                            <option value="minimal">Minimal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Orientation</label>
+                        <select class="form-select" wire:model="pdfOrientation">
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Landscape</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Paper Size</label>
+                        <select class="form-select" wire:model="pdfPaperSize">
+                            <option value="a4">A4</option>
+                            <option value="letter">Letter</option>
+                            <option value="legal">Legal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Watermark (Optional)</label>
+                        <input type="text" class="form-control" wire:model="pdfWatermark" placeholder="e.g., Confidential">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Password Protection (Optional)</label>
+                        <input type="password" class="form-control" wire:model="pdfPassword" placeholder="PDF password">
+                    </div>
+                    <div class="col-12">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" wire:model="includeStatistics" id="includeStatistics">
+                                    <label class="form-check-label" for="includeStatistics">
+                                        Include Statistics Summary
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" wire:model="exportCharts" id="exportCharts">
+                                    <label class="form-check-label" for="exportCharts">
+                                        Include Analytics Charts
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" wire:model="pdfCompress" id="pdfCompress">
+                                    <label class="form-check-label" for="pdfCompress">
+                                        Compress PDF
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- File Name -->
+                    <div class="col-12">
+                        <hr>
+                        <label class="form-label">
+                            <i class="bi bi-file-earmark-text"></i> File Name
+                        </label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" wire:model="exportFileName" placeholder="Enter file name">
+                            <span class="input-group-text">.{{ $exportFormat }}</span>
+                        </div>
+                        <small class="text-muted">Leave blank to use default naming ({{modelNamePluralLowerCase}}-YYYY-MM-DD)</small>
+                    </div>
+
+                    <!-- Export Summary -->
+                    <div class="col-12">
+                        <div class="alert alert-light border">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle"></i> Export Summary</h6>
+                            <ul class="mb-0">
+                                <li><strong>Format:</strong> {{ strtoupper($exportFormat ?? 'Not Selected') }}</li>
+                                <li><strong>Records:</strong>
+                                    @if($exportRange === 'all')
+                                        All ({{ $total{{modelPluralTitle}} }})
+                                    @elseif($exportRange === 'filtered')
+                                        Filtered ({{ ${{modelNamePluralLowerCase}}->total() }})
+                                    @elseif($exportRange === 'selected')
+                                        Selected ({{ count($selectedItems) }})
+                                    @else
+                                        Current Page ({{ ${{modelNamePluralLowerCase}}->count() }})
+                                    @endif
+                                </li>
+                                <li><strong>Columns:</strong> {{ count($exportColumns ?? []) }} selected</li>
+                                @if($exportFormat === 'pdf')
+                                <li><strong>PDF Settings:</strong> {{ ucfirst($pdfOrientation ?? 'portrait') }}, {{ strtoupper($pdfPaperSize ?? 'A4') }}</li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-outline-primary" wire:click="previewExport('pdf')" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="previewExport">
+                            <i class="bi bi-eye"></i> Preview
+                        </span>
+                        <span wire:loading wire:target="previewExport">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Loading...
+                        </span>
+                    </button>
+                    <button type="button" class="btn btn-outline-info" wire:click="exportToStorage" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="exportToStorage">
+                            <i class="bi bi-cloud-arrow-up"></i> Save to Storage
+                        </span>
+                        <span wire:loading wire:target="exportToStorage">
+                            <span class="spinner-border spinner-border-sm" role="status"></span> Saving...
+                        </span>
+                    </button>
+                </div>
+                <button type="button" class="btn btn-primary" wire:click="export" wire:loading.attr="disabled" :disabled="!exportFormat">
+                    <span wire:loading.remove wire:target="export">
+                        <i class="bi bi-download"></i> Export Now
+                    </span>
+                    <span wire:loading wire:target="export">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Exporting...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="email{{modelPluralTitle}}Modal" tabindex="-1" wire:ignore.self>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope"></i> Email {{modelPluralTitle}}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @if ($emailResults && isset($emailResults['message']))
+                    <div class="alert alert-{{ $emailResults['success'] ? 'success' : 'danger' }} alert-dismissible fade show">
+                        {{ $emailResults['message'] }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                <form wire:submit.prevent="sendEmail">
+                    <div class="row g-3">
+                        <!-- Email Type Selection -->
+                        <div class="col-12">
+                            <label class="form-label">What would you like to email?</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" wire:model.live="emailAll" value="true" id="emailAll">
+                                <label class="form-check-label" for="emailAll">
+                                    All {{modelPluralTitle}} ({{ $total{{modelPluralTitle}} }} records)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" wire:model.live="emailAll" value="false" id="emailSelected">
+                                <label class="form-check-label" for="emailSelected">
+                                    Selected {{modelPluralTitle}} only
+                                    @if(count($selectedItems) > 0)
+                                        ({{ count($selectedItems) }} selected)
+                                    @endif
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Recipient Email -->
+                        <div class="col-md-6">
+                            <label for="emailRecipient" class="form-label">Recipient Email *</label>
+                            <input type="email" class="form-control @error('emailRecipient') is-invalid @enderror" 
+                                   id="emailRecipient" wire:model="emailRecipient" placeholder="recipient@example.com">
+                            @error('emailRecipient')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="col-md-6">
+                            <label for="emailSubject" class="form-label">Subject *</label>
+                            <input type="text" class="form-control @error('emailSubject') is-invalid @enderror" 
+                                   id="emailSubject" wire:model="emailSubject" placeholder="Email subject">
+                            @error('emailSubject')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Message Body -->
+                        <div class="col-12">
+                            <label for="emailBody" class="form-label">Message</label>
+                            <textarea class="form-control" id="emailBody" wire:model="emailBody" rows="4" 
+                                      placeholder="Optional message to include in the email"></textarea>
+                        </div>
+
+                        <!-- Email Options -->
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" wire:model="emailIncludeStatistics" id="emailIncludeStatistics">
+                                <label class="form-check-label" for="emailIncludeStatistics">
+                                    Include statistics in email
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" wire:model="emailAttachment" id="emailAttachment">
+                                <label class="form-check-label" for="emailAttachment">
+                                    Attach data as file
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Preview Recipients -->
+                        @if(!$emailAll && count($selectedItems) > 0)
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <strong>Selected {{modelPluralTitle}}:</strong>
+                                    {{ implode(', ', $selectedItems) }}
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetEmailForm">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" wire:click="sendEmail" wire:loading.attr="disabled" 
+                        :disabled="!emailRecipient || !emailSubject">
+                    <span wire:loading.remove wire:target="sendEmail">
+                        <i class="bi bi-send"></i> Send Email
+                    </span>
+                    <span wire:loading wire:target="sendEmail">
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Sending...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Single Record Email Modal -->
+<div class="modal fade" id="emailRecord{{modelName}}Modal" tabindex="-1" wire:ignore.self>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-envelope"></i> Email {{modelName}}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form wire:submit.prevent="sendEmailRow({{ $emailRecordId }})">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="emailRecipientSingle" class="form-label">Recipient Email *</label>
+                            <input type="email" class="form-control" id="emailRecipientSingle" 
+                                   wire:model="emailRecipient" placeholder="recipient@example.com">
+                        </div>
+                        <div class="col-12">
+                            <label for="emailSubjectSingle" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="emailSubjectSingle" 
+                                   wire:model="emailSubject">
+                        </div>
+                        <div class="col-12">
+                            <label for="emailBodySingle" class="form-label">Message</label>
+                            <textarea class="form-control" id="emailBodySingle" wire:model="emailBody" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" wire:model="emailAttachment" id="emailAttachmentSingle">
+                                <label class="form-check-label" for="emailAttachmentSingle">
+                                    Attach {{modelName}} details as PDF
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" wire:click="sendEmailRow({{ $emailRecordId }})" 
+                        wire:loading.attr="disabled">
+                    <span wire:loading.remove>
+                        <i class="bi bi-send"></i> Send Email
+                    </span>
+                    <span wire:loading>
+                        <span class="spinner-border spinner-border-sm" role="status"></span> Sending...
+                    </span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analytics Modal -->
+<div class="modal fade" id="analytics{{modelPluralTitle}}Modal" tabindex="-1" wire:ignore.self>
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-graph-up"></i> {{modelPluralTitle}} Analytics Dashboard
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <!-- Analytics Controls -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0"><i class="bi bi-gear"></i> Chart Settings</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">Chart Type</label>
+                                        <select class="form-select" wire:model.live="chartType" wire:change="loadChartData">
+                                            <option value="line">Line Chart</option>
+                                            <option value="bar">Bar Chart</option>
+                                            <option value="pie">Pie Chart</option>
+                                            <option value="area">Area Chart</option>
+                                            <option value="status_distribution">Status Distribution</option>
+                                            <option value="monthly_comparison">Monthly Comparison</option>
+                                            <option value="trend_analysis">Trend Analysis</option>
+                                            <option value="heatmap">Heatmap</option>
+                                            <option value="gauge">Gauge Chart</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Period</label>
+                                        <select class="form-select" wire:model.live="chartPeriod" wire:change="updateChartPeriod">
+                                            <option value="day">Daily</option>
+                                            <option value="week">Weekly</option>
+                                            <option value="month">Monthly</option>
+                                            <option value="quarter">Quarterly</option>
+                                            <option value="year">Yearly</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-outline-primary mt-4" wire:click="loadChartData">
+                                            <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                                        </button>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-outline-success mt-4" wire:click="exportChartData('json')">
+                                            <i class="bi bi-download"></i> Export Chart Data
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chart Display Area -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0">
+                                    <i class="bi bi-bar-chart"></i> {{ ucfirst(str_replace('_', ' ', $chartType)) }}
+                                </h6>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" wire:click="exportWithCharts">
+                                        <i class="bi bi-file-pdf"></i> Export PDF
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="{{modelNameLowerCase}}Chart" style="height: 400px;">
+                                    <!-- Chart will be rendered here via JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Summary -->
+                    <div class="col-12">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="card bg-gradient text-white" style="background: linear-gradient(45deg, #007bff, #0056b3);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-collection fs-1 mb-2"></i>
+                                        <h4>{{ $total{{modelPluralTitle}} }}</h4>
+                                        <p class="mb-0">Total Records</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-gradient text-white" style="background: linear-gradient(45deg, #28a745, #1e7e34);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-check-circle fs-1 mb-2"></i>
+                                        <h4>{{ $active{{modelPluralTitle}} }}</h4>
+                                        <p class="mb-0">Active Records</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-gradient text-white" style="background: linear-gradient(45deg, #ffc107, #d39e00);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-pause-circle fs-1 mb-2"></i>
+                                        <h4>{{ $inactive{{modelPluralTitle}} }}</h4>
+                                        <p class="mb-0">Inactive Records</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-gradient text-white" style="background: linear-gradient(45deg, #17a2b8, #138496);">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-calendar-month fs-1 mb-2"></i>
+                                        <h4>{{ $thisMonth{{modelPluralTitle}} }}</h4>
+                                        <p class="mb-0">This Month</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+                <button type="button" class="btn btn-primary" wire:click="exportWithCharts">
+                    <i class="bi bi-file-pdf"></i> Export Analytics Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="modal fade" id="calendar{{modelPluralTitle}}Modal" tabindex="-1" wire:ignore.self>
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-calendar3"></i> {{modelPluralTitle}} Calendar
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- Calendar Controls -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        <h6 class="card-title mb-0"><i class="bi bi-gear"></i> Calendar Settings</h6>
+                                    </div>
+                                    <div class="col-auto">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#createCalendarEventModal">
+                                            <i class="bi bi-plus-circle"></i> Add Event
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <label class="form-label">View</label>
+                                        <select class="form-select" wire:model.live="calendarView" wire:change="changeCalendarView">
+                                            <option value="month">Month View</option>
+                                            <option value="week">Week View</option>
+                                            <option value="day">Day View</option>
+                                            <option value="list">List View</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label">Date</label>
+                                        <input type="date" class="form-control" wire:model="calendarDate">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-outline-primary mt-4" wire:click="loadCalendarEvents">
+                                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                                        </button>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <button type="button" class="btn btn-outline-success mt-4" wire:click="exportCalendar('ical')">
+                                            <i class="bi bi-download"></i> Export Calendar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Display -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="{{modelNameLowerCase}}Calendar" style="height: 500px;">
+                                    <!-- FullCalendar will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+                <button type="button" class="btn btn-success" wire:click="exportCalendar('pdf')">
+                    <i class="bi bi-file-pdf"></i> Export Calendar PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notifications Modal -->
+<div class="modal fade" id="notifications{{modelPluralTitle}}Modal" tabindex="-1" wire:ignore.self>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-bell"></i> Notification Center
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <!-- Notification Controls -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0"><i class="bi bi-gear"></i> Send Notification</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Notification Type</label>
+                                        <select class="form-select" wire:model="notificationTemplate">
+                                            <option value="general">General Announcement</option>
+                                            <option value="reminder">Reminder</option>
+                                            <option value="update">System Update</option>
+                                            <option value="alert">Alert</option>
+                                            <option value="custom">Custom Message</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Priority</label>
+                                        <select class="form-select" wire:model="notificationPriority">
+                                            <option value="low">Low</option>
+                                            <option value="normal">Normal</option>
+                                            <option value="high">High</option>
+                                            <option value="urgent">Urgent</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label">Channels</label>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="database" wire:model="notificationChannels" id="channelDatabase">
+                                                    <label class="form-check-label" for="channelDatabase">
+                                                        <i class="bi bi-database"></i> Database
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="mail" wire:model="notificationChannels" id="channelMail">
+                                                    <label class="form-check-label" for="channelMail">
+                                                        <i class="bi bi-envelope"></i> Email
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="broadcast" wire:model="notificationChannels" id="channelBroadcast">
+                                                    <label class="form-check-label" for="channelBroadcast">
+                                                        <i class="bi bi-broadcast"></i> Real-time
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="btn-group w-100">
+                                            <button type="button" class="btn btn-outline-primary" wire:click="sendNotification('general')">
+                                                <i class="bi bi-send"></i> Send Now
+                                            </button>
+                                            <button type="button" class="btn btn-outline-warning" wire:click="testNotification">
+                                                <i class="bi bi-broadcast"></i> Test Notification
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification History -->
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="card-title mb-0"><i class="bi bi-clock-history"></i> Recent Notifications</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group list-group-flush">
+                                    @forelse($this->getNotificationHistory(10) as $notification)
+                                    <div class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold">{{ $notification->data['title'] ?? 'Notification' }}</div>
+                                            <small class="text-muted">{{ $notification->created_at }}</small>
+                                        </div>
+                                        <span class="badge bg-{{ $notification->read_at ? 'secondary' : 'primary' }} rounded-pill">
+                                            {{ $notification->read_at ? 'Read' : 'Unread' }}
+                                        </span>
+                                    </div>
+                                    @empty
+                                    <div class="text-center py-3 text-muted">
+                                        <i class="bi bi-bell-slash fs-3"></i>
+                                        <p class="mb-0">No notifications found</p>
+                                    </div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+                <button type="button" class="btn btn-warning" wire:click="sendBulkNotification($selectedItems, 'bulk_update')">
+                    <i class="bi bi-bell"></i> Send Bulk Notification
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+<script>
+    // Global variables for charts and calendar
+    let {{modelNameLowerCase}}Chart = null;
+    let {{modelNameLowerCase}}Calendar = null;
+
+    // Listen for notification events
+    window.addEventListener('notify', event => {
+        const { type, message } = event.detail;
+
+        // Using SweetAlert2 (if available)
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: type,
+                title: type.charAt(0).toUpperCase() + type.slice(1),
+                text: message,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        } else {
+            // Fallback to alert
+            alert(message);
+        }
+    });
+
+    // Print functionality
+    window.addEventListener('print-report', event => {
+        window.print();
+    });
+
+    // Enhanced print functionality
+    window.addEventListener('print-report-generated', event => {
+        const { url } = event.detail;
+        window.open(url, '_blank');
+    });
+
+    window.addEventListener('print-record-generated', event => {
+        const { url } = event.detail;
+        window.open(url, '_blank');
+    });
+
+    window.addEventListener('print-preview-ready', event => {
+        const { html } = event.detail;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(html);
+        printWindow.document.close();
+    });
+
+    // Email modal handling
+    window.addEventListener('show-email-modal', event => {
+        const { recordId } = event.detail;
+        if (recordId) {
+            const modal = new bootstrap.Modal(document.getElementById('emailRecord{{modelName}}Modal'));
+            modal.show();
+        } else {
+            const modal = new bootstrap.Modal(document.getElementById('email{{modelPluralTitle}}Modal'));
+            modal.show();
+        }
+    });
+
+    // Close email modals on success
+    window.addEventListener('email-sent', event => {
+        // Close any open email modals
+        const modals = ['#email{{modelPluralTitle}}Modal', '#emailRecord{{modelName}}Modal'];
+        modals.forEach(modalId => {
+            const modalElement = document.querySelector(modalId);
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
+        });
+        
+        // Show success notification
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Email Sent!',
+                text: 'Your email has been sent successfully.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        }
+    });
+
+    // Chart functionality
+    window.addEventListener('chart-data-updated', event => {
+        const chartData = event.detail;
+        renderChart(chartData);
+    });
+
+    window.addEventListener('custom-chart-created', event => {
+        const chartData = event.detail;
+        renderChart(chartData);
+    });
+
+    function renderChart(data) {
+        if ({{modelNameLowerCase}}Chart) {
+            {{modelNameLowerCase}}Chart.destroy();
+        }
+
+        const chartElement = document.getElementById('{{modelNameLowerCase}}Chart');
+        if (!chartElement) return;
+
+        const options = {
+            series: data.series || [],
+            chart: {
+                type: data.type || 'line',
+                height: 400,
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 800
+                },
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: true,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
+                    }
+                }
+            },
+            colors: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6f42c1'],
+            dataLabels: {
+                enabled: data.type === 'pie' || data.type === 'donut'
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            xaxis: {
+                categories: data.categories || [],
+                labels: {
+                    style: {
+                        colors: '#666'
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: '#666'
+                    }
+                }
+            },
+            legend: {
+                position: 'bottom'
+            },
+            tooltip: {
+                theme: 'light'
+            }
+        };
+
+        // Add specific options for different chart types
+        if (data.type === 'pie' || data.type === 'donut') {
+            options.labels = data.categories || [];
+        }
+
+        {{modelNameLowerCase}}Chart = new ApexCharts(chartElement, options);
+        {{modelNameLowerCase}}Chart.render();
+    }
+
+    // Calendar functionality
+    window.addEventListener('calendar-events-loaded', event => {
+        const events = event.detail;
+        initializeCalendar(events);
+    });
+
+    window.addEventListener('calendar-view-changed', event => {
+        const view = event.detail;
+        if ({{modelNameLowerCase}}Calendar) {
+            {{modelNameLowerCase}}Calendar.changeView(view);
+        }
+    });
+
+    function initializeCalendar(events = []) {
+        const calendarElement = document.getElementById('{{modelNameLowerCase}}Calendar');
+        if (!calendarElement) return;
+
+        if ({{modelNameLowerCase}}Calendar) {
+            {{modelNameLowerCase}}Calendar.destroy();
+        }
+
+        {{modelNameLowerCase}}Calendar = new FullCalendar.Calendar(calendarElement, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+            },
+            events: events,
+            editable: true,
+            droppable: true,
+            eventClick: function(info) {
+                // Handle event click
+                console.log('Event clicked:', info.event);
+            },
+            eventDrop: function(info) {
+                // Handle event drag and drop
+                @this.call('moveCalendarEvent', info.event.id, info.event.start, info.event.end);
+            },
+            eventResize: function(info) {
+                // Handle event resize
+                @this.call('moveCalendarEvent', info.event.id, info.event.start, info.event.end);
+            },
+            dateClick: function(info) {
+                // Handle date click to create new event
+                @this.set('eventStart', info.dateStr);
+                const modal = new bootstrap.Modal(document.getElementById('createCalendarEventModal'));
+                modal.show();
+            }
+        });
+
+        {{modelNameLowerCase}}Calendar.render();
+    }
+
+    // Export preview functionality
+    window.addEventListener('show-export-preview', event => {
+        const { content, type } = event.detail;
+        
+        if (type === 'pdf') {
+            // Show PDF preview in modal
+            const previewModal = document.createElement('div');
+            previewModal.innerHTML = `
+                <div class="modal fade" id="exportPreviewModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Export Preview</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <iframe src="data:application/pdf;base64,${content}" width="100%" height="600px"></iframe>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="@this.call('export')">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(previewModal);
+            const modal = new bootstrap.Modal(document.getElementById('exportPreviewModal'));
+            modal.show();
+        } else {
+            // Show text preview
+            const previewModal = document.createElement('div');
+            previewModal.innerHTML = `
+                <div class="modal fade" id="exportPreviewModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Export Preview</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">${content}</pre>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="@this.call('export')">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(previewModal);
+            const modal = new bootstrap.Modal(document.getElementById('exportPreviewModal'));
+            modal.show();
+        }
+    });
+
+    // Notification functionality
+    window.addEventListener('notification-channels-updated', event => {
+        const channels = event.detail;
+        console.log('Notification channels updated:', channels);
+    });
+
+    window.addEventListener('notification-recipient-added', event => {
+        const recipient = event.detail;
+        console.log('Notification recipient added:', recipient);
+    });
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        @auth
+            const userEmail = '{{ auth()->user()->email }}';
+            // Auto-populate email fields if needed
+        @endauth
+
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Load chart data when analytics modal is opened
+        const analyticsModal = document.getElementById('analytics{{modelPluralTitle}}Modal');
+        if (analyticsModal) {
+            analyticsModal.addEventListener('shown.bs.modal', function() {
+                @this.call('loadChartData');
+            });
+        }
+
+        // Load calendar events when calendar modal is opened
+        const calendarModal = document.getElementById('calendar{{modelPluralTitle}}Modal');
+        if (calendarModal) {
+            calendarModal.addEventListener('shown.bs.modal', function() {
+                @this.call('loadCalendarEvents');
+            });
+        }
+    });
+
+    // Export format selection highlighting
+    document.addEventListener('DOMContentLoaded', function() {
+        const formatCards = document.querySelectorAll('.export-format-card');
+        formatCards.forEach(card => {
+            card.addEventListener('click', function() {
+                formatCards.forEach(c => c.classList.remove('border-primary'));
+                this.classList.add('border-primary');
+            });
+        });
+    });
+
+    // Real-time updates (if using broadcasting)
+    @if(config('broadcasting.default') !== 'null')
+    window.Echo.channel('{{modelNamePluralLowerCase}}')
+        .listen('{{modelName}}Created', (e) => {
+            @this.call('refreshTheComponent');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'New {{modelName}}',
+                    text: `A new {{modelNameLowerCase}} has been created.`,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        })
+        .listen('{{modelName}}Updated', (e) => {
+            @this.call('refreshTheComponent');
+        })
+        .listen('{{modelName}}Deleted', (e) => {
+            @this.call('refreshTheComponent');
+        });
+    @endif
+</script>
+@endpush

@@ -1,0 +1,181 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class {{modelName}} extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    public $timestamps = true;
+    protected $searchableFields = ['*'];
+    protected $table = '{{modelNamePluralLowerCase}}';
+
+    protected $fillable = [{{fillable}}];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+    protected $dates = [
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    {{relations}}
+
+    // Scopes
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function scopeRecent($query)
+    {
+        return $query->orderBy('created_at', 'desc');
+    }
+
+    public function scopeOldest($query)
+    {
+        return $query->orderBy('created_at', 'asc');
+    }
+
+    // Accessors
+    public function getStatusBadgeAttribute()
+    {
+        return match($this->status) {
+            'active' => '<span class="badge bg-success">Active</span>',
+            'inactive' => '<span class="badge bg-danger">Inactive</span>',
+            'draft' => '<span class="badge bg-secondary">Draft</span>',
+            'pending' => '<span class="badge bg-warning">Pending</span>',
+            'approved' => '<span class="badge bg-primary">Approved</span>',
+            'rejected' => '<span class="badge bg-danger">Rejected</span>',
+            default => '<span class="badge bg-secondary">' . ucfirst($this->status ?? 'Unknown') . '</span>',
+        };
+    }
+
+    public function getStatusClassAttribute()
+    {
+        return match($this->status) {
+            'active' => 'success',
+            'inactive' => 'danger',
+            'draft' => 'secondary',
+            'pending' => 'warning',
+            'approved' => 'primary',
+            'rejected' => 'danger',
+            default => 'secondary',
+        };
+    }
+
+    // Helper Methods
+    public function isActive()
+    {
+        return $this->status === 'active';
+    }
+
+    public function isInactive()
+    {
+        return $this->status === 'inactive';
+    }
+
+    public function isDraft()
+    {
+        return $this->status === 'draft';
+    }
+
+    public function activate()
+    {
+        return $this->update(['status' => 'active']);
+    }
+
+    public function deactivate()
+    {
+        return $this->update(['status' => 'inactive']);
+    }
+
+
+    /**
+     * Search paginated items ordering by ID descending
+     *
+     * @param string $search
+     * @param integer $paginationQuantity
+     * @return void
+     */
+    public function scopeSearchLatestPaginated(
+        $query,
+        string $search,
+        $paginationQuantity = 10
+    ) {
+        return $query
+            ->search($search)
+            ->orderBy('updated_at', 'desc')
+            ->paginate($paginationQuantity);
+    }
+
+    /**
+     * Adds a scope to search the table based on the
+     * $searchableFields array inside the model
+     *
+     * @param [type] $query
+     * @param [type] $search
+     * @return void
+     */
+    public function scopeSearch($query, $search)
+    {
+        $query->where(function ($query) use ($search) {
+            foreach ($this->getSearchableFields() as $field) {
+                $query->orWhere($field, 'like', "%{$search}%");
+            }
+        });
+
+        return $query;
+    }
+
+    /**
+     * Returns the searchable fields. If $searchableFields is undefined,
+     * or is an empty array, or its first element is '*', it will search
+     * in all table fields
+     *
+     * @return array
+     */
+    protected function getSearchableFields()
+    {
+        if (isset($this->searchableFields) && count($this->searchableFields)) {
+            return $this->searchableFields[0] === '*'
+                ? $this->getAllModelTableFields()
+                : $this->searchableFields;
+        }
+
+        return $this->getAllModelTableFields();
+    }
+
+    /**
+     * Gets all fields from Model's table
+     *
+     * @return array
+     */
+    protected function getAllModelTableFields()
+    {
+        $tableName = $this->getTable();
+
+        return $this->getConnection()
+            ->getSchemaBuilder()
+            ->getColumnListing($tableName);
+    }
+}

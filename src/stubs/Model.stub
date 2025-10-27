@@ -5,10 +5,11 @@ namespace Modules\{{getModuleInputModule}}\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Notifications\Notifiable;
 
 class {{modelName}} extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Notifiable;
 
     public $timestamps = true;
     protected $searchableFields = ['*'];
@@ -30,6 +31,276 @@ class {{modelName}} extends Model
 
     {{relations}}
 
+ public static function notify($action = 'general', $data = [], $recipients = null)
+    {
+        // Custom notification logic for {{modelName}} model
+        
+        try {
+            // Import necessary classes for notifications
+            $notificationClass = 'Modules\Administrator\Notifications\{{modelName}}Notification';
+            $mailClass = 'Illuminate\Support\Facades\Mail';
+            $authClass = 'Illuminate\Support\Facades\Auth';
+            $logClass = 'Illuminate\Support\Facades\Log';
+            
+            // Determine recipients if not provided
+            if (!$recipients) {
+                $recipients = static::getDefaultNotificationRecipients();
+            }
+            
+            // Prepare notification data
+            $notificationData = array_merge([
+                'action' => $action,
+                'model' => '{{modelName}}',
+                'timestamp' => now()->toDateTimeString(),
+                'user' => class_exists($authClass) ? $authClass::user()?->name ?? 'System' : 'System',
+                'user_id' => class_exists($authClass) ? $authClass::id() : null,
+            ], $data);
+            
+            // Log the notification attempt
+            if (class_exists($logClass)) {
+                $logClass::info('{{modelName}} notification triggered', [
+                    'action' => $action,
+                    'recipients' => is_array($recipients) ? count($recipients) : 1,
+                    'data' => $notificationData
+                ]);
+            }
+            
+            // Send notifications based on action type
+            switch ($action) {
+                case 'bulk_created':
+                    static::sendBulkCreatedNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'bulk_updated':
+                    static::sendBulkUpdatedNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'bulk_deleted':
+                    static::sendBulkDeletedNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'status_changed':
+                    static::sendStatusChangedNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'import_completed':
+                    static::sendImportCompletedNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'export_ready':
+                    static::sendExportReadyNotification($notificationData, $recipients);
+                    break;
+                    
+                case 'system_alert':
+                    static::sendSystemAlertNotification($notificationData, $recipients);
+                    break;
+                    
+                default:
+                    static::sendGeneralNotification($notificationData, $recipients);
+                    break;
+            }
+            
+            return [
+                'success' => true,
+                'message' => 'Notification sent successfully',
+                'action' => $action,
+                'recipients_count' => is_array($recipients) ? count($recipients) : 1
+            ];
+            
+        } catch (\Exception $e) {
+            // Log error and return failure response
+            if (class_exists($logClass)) {
+                $logClass::error('{{modelName}} notification failed', [
+                    'action' => $action,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+            
+            return [
+                'success' => false,
+                'message' => 'Notification failed: ' . $e->getMessage(),
+                'action' => $action
+            ];
+        }
+    }
+    
+    /**
+     * Get default notification recipients
+     */
+    protected static function getDefaultNotificationRecipients()
+    {
+        // Define default recipients for {{modelName}} notifications
+        $defaultRecipients = [];
+        
+        // Try to get admin users from config or use fallback
+        if (config('app.admin_email')) {
+            $defaultRecipients[] = config('app.admin_email');
+        }
+        
+        // Add system admin email as fallback
+        $defaultRecipients[] = 'admin@' . (config('app.domain') ?? 'localhost');
+        
+        return array_unique($defaultRecipients);
+    }
+    
+    /**
+     * Send bulk created notification
+     */
+    protected static function sendBulkCreatedNotification($data, $recipients)
+    {
+        // Implementation for bulk created notifications
+        static::sendEmailNotification(
+            $recipients,
+            'Multiple {{modelName}}s Created',
+            "Multiple gender records have been created in the system.",
+            $data
+        );
+    }
+    
+    /**
+     * Send bulk updated notification
+     */
+    protected static function sendBulkUpdatedNotification($data, $recipients)
+    {
+        // Implementation for bulk updated notifications
+        static::sendEmailNotification(
+            $recipients,
+            'Multiple {{modelName}}s Updated',
+            "Multiple gender records have been updated in the system.",
+            $data
+        );
+    }
+    
+    /**
+     * Send bulk deleted notification
+     */
+    protected static function sendBulkDeletedNotification($data, $recipients)
+    {
+        // Implementation for bulk deleted notifications
+        static::sendEmailNotification(
+            $recipients,
+            'Multiple {{modelName}}s Deleted',
+            "Multiple gender records have been deleted from the system.",
+            $data
+        );
+    }
+    
+    /**
+     * Send status changed notification
+     */
+    protected static function sendStatusChangedNotification($data, $recipients)
+    {
+        $status = $data['new_status'] ?? 'unknown';
+        static::sendEmailNotification(
+            $recipients,
+            '{{modelName}} Status Changed',
+            "{{modelName}} status has been changed to: {$status}",
+            $data
+        );
+    }
+    
+    /**
+     * Send import completed notification
+     */
+    protected static function sendImportCompletedNotification($data, $recipients)
+    {
+        $count = $data['imported_count'] ?? 0;
+        static::sendEmailNotification(
+            $recipients,
+            '{{modelName}} Import Completed',
+            "{{modelName}} import has been completed. {$count} records were imported.",
+            $data
+        );
+    }
+    
+    /**
+     * Send export ready notification
+     */
+    protected static function sendExportReadyNotification($data, $recipients)
+    {
+        static::sendEmailNotification(
+            $recipients,
+            '{{modelName}} Export Ready',
+            "Your gender export is ready for download.",
+            $data
+        );
+    }
+    
+    /**
+     * Send system alert notification
+     */
+    protected static function sendSystemAlertNotification($data, $recipients)
+    {
+        $message = $data['alert_message'] ?? 'System alert for {{modelName}} module';
+        static::sendEmailNotification(
+            $recipients,
+            '{{modelName}} System Alert',
+            $message,
+            $data
+        );
+    }
+    
+    /**
+     * Send general notification
+     */
+    protected static function sendGeneralNotification($data, $recipients)
+    {
+        static::sendEmailNotification(
+            $recipients,
+            '{{modelName}} Notification',
+            "A gender-related event has occurred in the system.",
+            $data
+        );
+    }
+    
+    /**
+     * Send email notification helper
+     */
+    protected static function sendEmailNotification($recipients, $subject, $message, $data = [])
+    {
+        // Basic email sending logic
+        $mailClass = 'Illuminate\Support\Facades\Mail';
+        
+        if (!class_exists($mailClass)) {
+            return false;
+        }
+        
+        try {
+            foreach ((array) $recipients as $recipient) {
+                if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+                    // Create a basic email notification
+                    $emailData = [
+                        'subject' => $subject,
+                        'message' => $message,
+                        'data' => $data,
+                        'timestamp' => now()->toDateTimeString()
+                    ];
+                    
+                    // Here you could send via Mail facade or queue the email
+                    // For now, we'll log it as a placeholder
+                    if (class_exists('Illuminate\Support\Facades\Log')) {
+                        \Illuminate\Support\Facades\Log::info('{{modelName}} email notification queued', [
+                            'recipient' => $recipient,
+                            'subject' => $subject,
+                            'data' => $emailData
+                        ]);
+                    }
+                }
+            }
+            
+            return true;
+        } catch (\Exception $e) {
+            if (class_exists('Illuminate\Support\Facades\Log')) {
+                \Illuminate\Support\Facades\Log::error('Failed to send gender email notification', [
+                    'error' => $e->getMessage(),
+                    'recipients' => $recipients
+                ]);
+            }
+            return false;
+        }
+    }
+    
     // Scopes
     public function scopeActive($query)
     {

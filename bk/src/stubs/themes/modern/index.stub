@@ -1,0 +1,16 @@
+@extends('administrator::layouts.'.My_Theme())
+@section('page_title',  __('{{modelPluralTitle}}'))
+@section('content')
+@include('administrator::layouts.topbar.'.My_Theme())
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+    <!-- start: page body area -->
+        @livewire('{{getModuleInput}}::{{modelNamePluralLowerCase}}')
+        </div>
+    </div>
+</div>
+@include('administrator::layouts.footer.'.My_Theme())
+@endsection
+
+

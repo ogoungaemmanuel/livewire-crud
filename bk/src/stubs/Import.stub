@@ -1,0 +1,279 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Imports;
+
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\SkipsOnFailure;
+use Maatwebsite\Excel\Validators\Failure;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
+
+class {{modelPluralName}}Import implements
+    ToModel,
+    WithHeadingRow,
+    WithValidation,
+    WithBatchInserts,
+    WithChunkReading,
+    SkipsOnError,
+    SkipsOnFailure
+{
+    protected $errors = [];
+    protected $failures = [];
+    protected $importedCount = 0;
+    protected $skippedCount = 0;
+
+    /**
+     * Transform each row into a model
+     *
+     * @param array $row
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function model(array $row)
+    {
+        // Skip empty rows
+        if ($this->isEmptyRow($row)) {
+            $this->skippedCount++;
+            return null;
+        }
+
+        try {
+            // Map Excel column headings to database columns
+            $data = $this->mapRowToData($row);
+
+            // Create or update the record
+            $model = {{modelName}}::create($data);
+
+            $this->importedCount++;
+
+            return $model;
+
+        } catch (\Exception $e) {
+            $this->errors[] = [
+                'row' => $row,
+                'error' => $e->getMessage(),
+            ];
+            $this->skippedCount++;
+            return null;
+        }
+    }
+
+    /**
+     * Map row data to model attributes
+     *
+     * @param array $row
+     * @return array
+     */
+    protected function mapRowToData(array $row)
+    {
+        $data = [];
+
+        // Map each column (adjust these mappings based on your Excel template)
+        foreach ($row as $key => $value) {
+            // Convert heading to snake_case for database column
+            $columnName = Str::snake($key);
+
+            // Skip if column is not fillable
+            if (!in_array($columnName, (new {{modelName}}())->getFillable())) {
+                continue;
+            }
+
+            // Handle different data types
+            if (in_array($columnName, ['created_at', 'updated_at'])) {
+                // Handle date fields
+                $data[$columnName] = $this->parseDate($value);
+            } elseif (in_array($columnName, ['status'])) {
+                // Handle status field
+                $data[$columnName] = strtolower(trim($value));
+            } elseif (is_numeric($value)) {
+                // Handle numeric fields
+                $data[$columnName] = $value;
+            } else {
+                // Handle text fields
+                $data[$columnName] = trim($value);
+            }
+        }
+
+        // Add default values
+        $data['created_by'] = auth()->id() ?? null;
+        $data['status'] = $data['status'] ?? 'active';
+
+        return $data;
+    }
+
+    /**
+     * Parse date from various formats
+     *
+     * @param mixed $value
+     * @return \Carbon\Carbon|null
+     */
+    protected function parseDate($value)
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            // Handle Excel serial date
+            if (is_numeric($value)) {
+                return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+            }
+
+            // Handle string dates
+            return Carbon::parse($value);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /**
+     * Check if row is empty
+     *
+     * @param array $row
+     * @return bool
+     */
+    protected function isEmptyRow(array $row)
+    {
+        return empty(array_filter($row, function($value) {
+            return !empty($value);
+        }));
+    }
+
+    /**
+     * Validation rules for each row
+     *
+     * @return array
+     */
+    public function rules(): array
+    {
+        return [
+            // Add validation rules based on your model
+            // Example:
+            // 'name' => 'required|string|max:255',
+            // 'email' => 'required|email|unique:users,email',
+            // 'status' => 'required|in:active,inactive',
+        ];
+    }
+
+    /**
+     * Custom validation messages
+     *
+     * @return array
+     */
+    public function customValidationMessages()
+    {
+        return [
+            // 'name.required' => 'The name field is required.',
+            // 'email.required' => 'The email field is required.',
+            // 'email.email' => 'The email must be a valid email address.',
+        ];
+    }
+
+    /**
+     * Handle validation errors
+     *
+     * @param Failure[] $failures
+     */
+    public function onFailure(Failure ...$failures)
+    {
+        foreach ($failures as $failure) {
+            $this->failures[] = [
+                'row' => $failure->row(),
+                'attribute' => $failure->attribute(),
+                'errors' => $failure->errors(),
+                'values' => $failure->values(),
+            ];
+            $this->skippedCount++;
+        }
+    }
+
+    /**
+     * Handle import errors
+     *
+     * @param \Throwable $e
+     */
+    public function onError(\Throwable $e)
+    {
+        $this->errors[] = [
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ];
+    }
+
+    /**
+     * Batch size for inserts
+     *
+     * @return int
+     */
+    public function batchSize(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Chunk size for reading
+     *
+     * @return int
+     */
+    public function chunkSize(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Get import statistics
+     *
+     * @return array
+     */
+    public function getStatistics()
+    {
+        return [
+            'imported' => $this->importedCount,
+            'skipped' => $this->skippedCount,
+            'errors' => count($this->errors),
+            'failures' => count($this->failures),
+            'total' => $this->importedCount + $this->skippedCount,
+        ];
+    }
+
+    /**
+     * Get errors
+     *
+     * @return array
+     */
+    public function getErrors()
+    {
+        return $this->errors;
+    }
+
+    /**
+     * Get validation failures
+     *
+     * @return array
+     */
+    public function getFailures()
+    {
+        return $this->failures;
+    }
+
+    /**
+     * Get all issues (errors + failures)
+     *
+     * @return array
+     */
+    public function getAllIssues()
+    {
+        return [
+            'errors' => $this->errors,
+            'failures' => $this->failures,
+        ];
+    }
+}
+

@@ -244,7 +244,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->write($pdfexportPath, $pdfexportTemplate);
         $this->warn('Creating: <info>Upload, Please edit before using ...</info>');
         $this->write($uploadPath, $uploadTemplate);
-    
+
 
         return $this;
     }

@@ -345,7 +345,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getNotificationPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst($this->name);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Notifications/{$name}Notification.php");
@@ -890,6 +890,20 @@ abstract class LivewireGeneratorCommand extends Command
             return implode('', $filterColumns);
         };
 
+        $fieldsList = function () {
+
+            /** @var array $filterColumns Exclude the unwanted columns */
+            $filterColumns = $this->getFilteredColumns();
+
+            // Add quotes to the unwanted columns for fillable
+            array_walk($filterColumns, function (&$value) {
+                $value = $value;
+            });
+
+            // CSV format
+            return implode(', ', $filterColumns);
+        };
+
         $editfields = function () {
 
             /** @var array $filterColumns Exclude the unwanted columns */
@@ -926,6 +940,7 @@ abstract class LivewireGeneratorCommand extends Command
             '{{resetfields}}' => $resetfields(),
             '{{showfields}}' => $showfields(),
             '{{editfields}}' => $editfields(),
+            '{{fieldsList}}' => $fieldsList(),
             '{{addfields}}' => $addfields(),
             '{{factory}}' => $factoryfields(),
             '{{rules}}' => $rules(),
@@ -967,6 +982,28 @@ abstract class LivewireGeneratorCommand extends Command
     {
         return trim($this->argument('theme'), '{}');
     }
+
+    /**
+     * Get the desired class name from the input.
+     *
+     * @return string
+     */
+    protected function getTemplateInput()
+    {
+        return trim($this->argument('template'), '{}');
+    }
+
+    protected function getRouteInput()
+    {
+        return trim($this->argument('route'), '{}');
+    }
+
+    protected function getLayoutInput()
+    {
+        return trim($this->argument('layout'), '{}');
+    }
+
+
 
     protected function getMenuInput()
     {

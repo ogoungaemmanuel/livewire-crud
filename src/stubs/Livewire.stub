@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Modules\{{getModuleInputModule}}\Exports\{{modelPluralName}}Export;
 use Modules\{{getModuleInputModule}}\Exports\{{modelName}}PdfExport;
+use Modules\{{getModuleInputModule}}\Exports\{{modelName}}Print;
 use Modules\{{getModuleInputModule}}\Imports\{{modelPluralName}}Import;
 use Modules\{{getModuleInputModule}}\Notifications\{{modelName}}Notification;
 use Illuminate\Support\Facades\Mail;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\{{getModuleInputModule}}\Livewire;
+namespace Modules\{{getModuleInputModule}}\Exports;
 
 use Livewire\Component;
 use Modules\{{getModuleInputModule}}\Models\{{modelName}};
@@ -8,7 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Support\Facades\View;
 use Livewire\Attributes\On;
 
-class {{modelName}}Print extends Component
+class {{modelName}}Print
 {
     public $record;
     public $recordId;

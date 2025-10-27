@@ -1,0 +1,52 @@
+<?php
+
+namespace Modules\{{getModuleInputModuleNew}}\Livewire\{{modelPluralName}};
+
+use Livewire\Component;
+use Livewire\WithPagination;
+use Modules\{{getModuleInputModuleNew}}\Models\{{modelName}};
+use Carbon\Carbon;
+use Livewire\Attributes\On;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Facades\Image;
+use Livewire\Features\SupportFileUploads\WithFileUploads;
+
+class Delete extends Component
+{
+    use WithPagination;
+    use WithFileUploads;
+	protected $paginationTheme = 'bootstrap';
+    public $selected_id, $newimage, {{updatefield}};
+    public $indexSearch = '';
+    public $selecteditem = [];
+    protected $queryString = ['indexSearch'];
+    public $updateMode = false;
+    #[On('closeModal')]
+
+    public function mount($id)
+    {
+        $record = {{modelName}}::findOrFail($id);
+        $this->selected_id = $id; {{editfields}}
+        $this->updateMode = true;
+    }
+
+    public function render()
+    {
+        return view('{{getModuleInput}}::livewire.' . My_Theme() . '.{{modelNamePluralLowerCase}}.delete');
+    }
+
+
+    public function destroy($selected_id)
+    {
+        if ($selected_id) {
+            $record = {{modelName}}::where('id', $selected_id);
+            $record->delete();
+            $this->dispatch('refresh-the-component');
+            $this->dispatch('hideModal');
+            flash()->addSuccess('{{modelName}} Successfully deleted.');
+        }
+    }
+
+}
