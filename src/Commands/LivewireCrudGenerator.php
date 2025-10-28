@@ -60,7 +60,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
             // $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', Modules\\{$this->getNameInput()}\\App\\Http\\Controllers\\{$module}Controller::class, 'uploadPhoto')->name('{$modulelower}.upload-photo');";
         }else {
-            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
+            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+            // $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
         }
 		$routeItemHook = '//Route Hooks - Do not delete//';
 

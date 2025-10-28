@@ -1,6 +1,0 @@
-        <div class="row">
-            <div class="form-group">
-                <label for="{{column}}">{{title}}</label>
-                <input wire:model="{{column}}" type="{{type}}" class="form-control" id="{{column}}" placeholder="{{title}}">@error('{{column}}') <span class="error text-danger">{{ $message }}</span> @enderror
-            </div>
-        </div>

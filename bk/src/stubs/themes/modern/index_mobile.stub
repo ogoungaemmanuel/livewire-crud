@@ -1,7 +1,0 @@
-@extends('mobile::layouts.master')
-@section('page_title', 'Class Routine')
-@section('content')
-<div class="section full mt-3 mb-3">
-    @livewire('mobile::widget.counter')
-            @livewire('{{getModuleInput}}::{{modelNamePluralLowerCase}}')      
-@endsection

@@ -466,7 +466,8 @@ abstract class LivewireGeneratorCommand extends Command
         if ($theme == 'none') {
             return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}/{$view}.blade.php"));
         } else {
-            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$theme}/{$name}/{$view}.blade.php"));
+            return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}/{$view}.blade.php"));
+            // return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$theme}/{$name}/{$view}.blade.php"));
         }
 
     }
