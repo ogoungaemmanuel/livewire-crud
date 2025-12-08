@@ -68,6 +68,34 @@ class TraditionalCrudGenerator extends LivewireGeneratorCommand
     }
 
     /**
+     * Build the Model (uses parent implementation).
+     *
+     * @return $this
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
+    protected function buildModel()
+    {
+        $moduleLower = Str::lower($this->getModuleInput());
+        $module = $this->getModuleInput();
+        $modelPath = $this->_getCreateModelPath($this->name);
+
+        // Make Replacements
+        $replace = array_merge($this->buildReplacements(), $this->modelReplacements());
+
+        $modelTemplate = str_replace(
+            array_keys($replace), 
+            array_values($replace), 
+            $this->getStub('Model')
+        );
+
+        $this->info('Creating Model...');
+        $this->write($modelPath, $modelTemplate);
+        $this->info('Model created: ' . $modelPath);
+
+        return $this;
+    }
+
+    /**
      * Build the Controller.
      *
      * @return $this
