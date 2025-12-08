@@ -1,0 +1,146 @@
+@extends('{{getTemplate}}::layouts.app')
+
+@section('page_title', __('Edit {{modelName}}'))
+
+@section('content')
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Edit {{modelName}}</h1>
+                <div>
+                    <a href="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.show', ${{modelNameLowerCase}}->id) }}" class="btn btn-info">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <a href="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Edit {{modelName}} Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.update', ${{modelNameLowerCase}}->id) }}" enctype="multipart/form-data">
+                        @csrf
+                        @method('PUT')
+
+                        @if($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show">
+                                <strong>Validation Errors:</strong>
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        @endif
+
+                        <div class="row g-3">
+                            {{editFormFields}}
+
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" 
+                                            class="btn btn-danger" 
+                                            onclick="deleteItem({{ ${{modelNameLowerCase}}->id }})">
+                                        <i class="bi bi-trash"></i> Delete {{modelName}}
+                                    </button>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index') }}" class="btn btn-secondary">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-save"></i> Update {{modelName}}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change History / Audit Log -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Change History</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th width="150">Created At:</th>
+                                    <td>{{ ${{modelNameLowerCase}}->created_at->format('M d, Y H:i:s') }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Updated:</th>
+                                    <td>{{ ${{modelNameLowerCase}}->updated_at->format('M d, Y H:i:s') }}</td>
+                                </tr>
+                                @if(${{modelNameLowerCase}}->deleted_at)
+                                <tr>
+                                    <th>Deleted At:</th>
+                                    <td class="text-danger">{{ ${{modelNameLowerCase}}->deleted_at->format('M d, Y H:i:s') }}</td>
+                                </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Form (Hidden) -->
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
+@endsection
+
+@push('scripts')
+<script>
+    // Image preview functionality
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Delete item
+    function deleteItem(id) {
+        if (confirm('Are you sure you want to delete this {{modelNameLowerCase}}? This action cannot be undone.')) {
+            const form = document.getElementById('deleteForm');
+            form.action = '{{ route("{{getModuleInput}}.{{modelNamePluralLowerCase}}.destroy", ":id") }}'.replace(':id', id);
+            form.submit();
+        }
+    }
+
+    // Form validation enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form[method="POST"]');
+        
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+        });
+    });
+</script>
+@endpush

@@ -1,0 +1,278 @@
+@extends('{{getTemplate}}::layouts.app')
+
+@section('page_title', __('Create {{modelName}}'))
+
+@section('content')
+<div class="container-fluid" x-data="formManager()">
+    <div class="row">
+        <div class="col-12">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Create New {{modelName}}</h1>
+                <a href="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index') }}" 
+                   class="btn btn-secondary"
+                   @click.prevent="confirmLeave($event)">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <!-- Progress Indicator -->
+            <div class="progress mb-3" style="height: 3px;" x-show="isSubmitting" x-cloak>
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     style="width: 100%"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">{{modelName}} Information</h5>
+                    <span class="badge bg-info" x-show="hasChanges" x-cloak>Unsaved Changes</span>
+                </div>
+                <div class="card-body">
+                    <form method="POST" 
+                          action="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.store') }}" 
+                          enctype="multipart/form-data"
+                          @submit="handleSubmit($event)"
+                          @input="markAsChanged()">
+                        @csrf
+
+                        @if($errors->any())
+                            <div class="alert alert-danger alert-dismissible fade show" 
+                                 x-data="{ show: true }" 
+                                 x-show="show" 
+                                 x-transition>
+                                <strong><i class="bi bi-exclamation-triangle"></i> Validation Errors:</strong>
+                                <ul class="mb-0">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                                <button type="button" class="btn-close" @click="show = false"></button>
+                            </div>
+                        @endif
+
+                        <div class="row g-3">
+                            {{formFields}}
+
+                            <div class="col-12">
+                                <hr class="my-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="text-muted small" x-show="hasChanges" x-cloak>
+                                        <i class="bi bi-info-circle"></i> You have unsaved changes
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index') }}" 
+                                           class="btn btn-secondary"
+                                           @click.prevent="confirmLeave($event)">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </a>
+                                        <button type="reset" 
+                                                class="btn btn-warning"
+                                                @click="resetForm()"
+                                                :disabled="isSubmitting">
+                                            <i class="bi bi-arrow-clockwise"></i> Reset
+                                        </button>
+                                        <button type="submit" 
+                                                class="btn btn-primary"
+                                                :disabled="isSubmitting">
+                                            <span x-show="!isSubmitting">
+                                                <i class="bi bi-save"></i> Create {{modelName}}
+                                            </span>
+                                            <span x-show="isSubmitting" x-cloak>
+                                                <span class="spinner-border spinner-border-sm me-2"></span>
+                                                Creating...
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Quick Tips Card -->
+            <div class="card mt-3" x-data="{ showTips: false }">
+                <div class="card-header d-flex justify-content-between align-items-center" 
+                     style="cursor: pointer;" 
+                     @click="showTips = !showTips">
+                    <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Quick Tips</h6>
+                    <i class="bi" :class="showTips ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                </div>
+                <div class="card-body" x-show="showTips" x-transition x-cloak>
+                    <ul class="mb-0">
+                        <li>Fields marked with <span class="text-danger">*</span> are required</li>
+                        <li>Use Tab key to navigate between fields quickly</li>
+                        <li>Your progress is automatically saved as draft</li>
+                        <li>Press Ctrl+S to save (or Cmd+S on Mac)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+    // Alpine.js Form Manager Component
+    function formManager() {
+        return {
+            hasChanges: false,
+            isSubmitting: false,
+            originalFormData: null,
+            
+            init() {
+                // Capture original form data
+                this.$nextTick(() => {
+                    const form = this.$el.querySelector('form');
+                    this.originalFormData = new FormData(form);
+                });
+                
+                // Handle keyboard shortcuts
+                window.addEventListener('keydown', (e) => {
+                    // Ctrl+S or Cmd+S to save
+                    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                        e.preventDefault();
+                        const form = this.$el.querySelector('form');
+                        form.requestSubmit();
+                    }
+                });
+                
+                // Warn before leaving if there are unsaved changes
+                window.addEventListener('beforeunload', (e) => {
+                    if (this.hasChanges && !this.isSubmitting) {
+                        e.preventDefault();
+                        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                        return e.returnValue;
+                    }
+                });
+            },
+            
+            markAsChanged() {
+                this.hasChanges = true;
+            },
+            
+            handleSubmit(event) {
+                this.isSubmitting = true;
+                this.hasChanges = false;
+                // Form will submit naturally
+            },
+            
+            resetForm() {
+                if (this.hasChanges) {
+                    if (!confirm('Are you sure you want to reset the form? All changes will be lost.')) {
+                        return;
+                    }
+                }
+                this.hasChanges = false;
+            },
+            
+            confirmLeave(event) {
+                if (this.hasChanges) {
+                    if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                        event.preventDefault();
+                        return false;
+                    }
+                }
+                window.location.href = event.target.href;
+            }
+        }
+    }
+
+    // Image preview functionality
+    function previewImage(input, previewId) {
+        const file = input.files[0];
+        if (file) {
+            // Validate file size (max 2MB)
+            if (file.size > 2 * 1024 * 1024) {
+                alert('File size must be less than 2MB');
+                input.value = '';
+                return;
+            }
+            
+            // Validate file type
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file');
+                input.value = '';
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // Auto-save draft (optional feature)
+    let draftTimeout;
+    function saveDraft() {
+        clearTimeout(draftTimeout);
+        draftTimeout = setTimeout(() => {
+            const form = document.querySelector('form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            localStorage.setItem('{{modelNameLowerCase}}_draft', JSON.stringify(data));
+            console.log('Draft saved');
+        }, 2000);
+    }
+
+    // Load draft on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const draft = localStorage.getItem('{{modelNameLowerCase}}_draft');
+        if (draft && confirm('Would you like to restore your previous draft?')) {
+            const data = JSON.parse(draft);
+            Object.keys(data).forEach(key => {
+                const field = document.querySelector(`[name="${key}"]`);
+                if (field && field.type !== 'file') {
+                    field.value = data[key];
+                }
+            });
+        }
+    });
+
+    // Client-side validation enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        
+        // Add real-time validation
+        form.querySelectorAll('input, select, textarea').forEach(field => {
+            field.addEventListener('blur', function() {
+                if (this.hasAttribute('required') && !this.value) {
+                    this.classList.add('is-invalid');
+                } else {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+    });
+</script>
+@endpush
+
+@push('styles')
+<style>
+    [x-cloak] { 
+        display: none !important; 
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .is-invalid {
+        border-color: #dc3545;
+    }
+    
+    .is-invalid:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+</style>
+@endpush

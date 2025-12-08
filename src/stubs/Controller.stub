@@ -1,0 +1,487 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use Modules\{{getModuleInputModule}}\Http\Requests\{{modelName}}Request;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Intervention\Image\Facades\Image;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use Modules\{{getModuleInputModule}}\Exports\{{modelPluralName}}Export;
+use Modules\{{getModuleInputModule}}\Exports\{{modelName}}PdfExport;
+use Modules\{{getModuleInputModule}}\Imports\{{modelPluralName}}Import;
+use Modules\{{getModuleInputModule}}\Notifications\{{modelName}}Notification;
+use Illuminate\Support\Facades\Mail;
+use Modules\{{getModuleInputModule}}\Emails\{{modelName}}Email;
+
+class {{modelName}}Controller extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function index(Request $request)
+    {
+        $query = {{modelName}}::query();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->where(function ($q) use ($searchTerm) {
+                {{searchFields}}
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by date range
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sorting
+        $sortField = $request->get('sort_field', 'created_at');
+        $sortDirection = $request->get('sort_direction', 'desc');
+        $query->orderBy($sortField, $sortDirection);
+
+        // Pagination
+        $perPage = $request->get('per_page', 10);
+        ${{modelNamePluralLowerCase}} = $query->paginate($perPage)->withQueryString();
+
+        return view('{{getModuleInput}}::{{modelNamePluralLowerCase}}.index', compact('{{modelNamePluralLowerCase}}'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return view('{{getModuleInput}}::{{modelNamePluralLowerCase}}.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Modules\{{getModuleInputModule}}\Http\Requests\{{modelName}}Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store({{modelName}}Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $data = $request->validated();
+
+            // Handle image upload if present
+            if ($request->hasFile('photo')) {
+                $data['photo'] = $this->handleImageUpload($request->file('photo'));
+            }
+
+            ${{modelNameLowerCase}} = {{modelName}}::create($data);
+
+            // Send notification
+            ${{modelNameLowerCase}}->notify(new {{modelName}}Notification(
+                ${{modelNameLowerCase}}, 
+                {{modelName}}Notification::TYPE_CREATED, 
+                auth()->user()
+            ));
+
+            // Send email notification if configured
+            $this->sendNotificationEmail(${{modelNameLowerCase}}->id, 'created');
+
+            DB::commit();
+
+            return redirect()
+                ->route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index')
+                ->with('success', '{{modelName}} created successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error creating {{modelNameLowerCase}}: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to create {{modelNameLowerCase}}. Please try again.');
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function show($id)
+    {
+        ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+        
+        return view('{{getModuleInput}}::{{modelNamePluralLowerCase}}.show', compact('{{modelNameLowerCase}}'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\View\View
+     */
+    public function edit($id)
+    {
+        ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+        
+        return view('{{getModuleInput}}::{{modelNamePluralLowerCase}}.edit', compact('{{modelNameLowerCase}}'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Modules\{{getModuleInputModule}}\Http\Requests\{{modelName}}Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update({{modelName}}Request $request, $id)
+    {
+        try {
+            DB::beginTransaction();
+
+            ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+            $data = $request->validated();
+
+            // Handle image upload if present
+            if ($request->hasFile('photo')) {
+                // Delete old image
+                if (${{modelNameLowerCase}}->photo) {
+                    $this->deleteImage(${{modelNameLowerCase}}->photo);
+                }
+                $data['photo'] = $this->handleImageUpload($request->file('photo'));
+            }
+
+            ${{modelNameLowerCase}}->update($data);
+
+            // Send notification
+            ${{modelNameLowerCase}}->notify(new {{modelName}}Notification(
+                ${{modelNameLowerCase}}, 
+                {{modelName}}Notification::TYPE_UPDATED, 
+                auth()->user()
+            ));
+
+            // Send email notification if configured
+            $this->sendNotificationEmail(${{modelNameLowerCase}}->id, 'updated');
+
+            DB::commit();
+
+            return redirect()
+                ->route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index')
+                ->with('success', '{{modelName}} updated successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating {{modelNameLowerCase}}: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->withInput()
+                ->with('error', 'Failed to update {{modelNameLowerCase}}. Please try again.');
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy($id)
+    {
+        try {
+            ${{modelNameLowerCase}} = {{modelName}}::findOrFail($id);
+
+            // Send notification before deletion
+            ${{modelNameLowerCase}}->notify(new {{modelName}}Notification(
+                ${{modelNameLowerCase}}, 
+                {{modelName}}Notification::TYPE_DELETED, 
+                auth()->user()
+            ));
+
+            // Send email notification if configured
+            $this->sendNotificationEmail(${{modelNameLowerCase}}->id, 'deleted');
+
+            // Delete associated image
+            if (${{modelNameLowerCase}}->photo) {
+                $this->deleteImage(${{modelNameLowerCase}}->photo);
+            }
+
+            ${{modelNameLowerCase}}->delete();
+
+            return redirect()
+                ->route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index')
+                ->with('success', '{{modelName}} deleted successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting {{modelNameLowerCase}}: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete {{modelNameLowerCase}}. Please try again.');
+        }
+    }
+
+    /**
+     * Bulk delete multiple resources.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:{{modelNamePluralLowerCase}},id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $records = {{modelName}}::whereIn('id', $request->ids)->get();
+            
+            foreach ($records as $record) {
+                // Delete associated images
+                if ($record->photo) {
+                    $this->deleteImage($record->photo);
+                }
+                
+                $record->delete();
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index')
+                ->with('success', count($request->ids) . ' {{modelNamePluralLowerCase}} deleted successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error bulk deleting {{modelNamePluralLowerCase}}: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to delete selected {{modelNamePluralLowerCase}}. Please try again.');
+        }
+    }
+
+    /**
+     * Export data to Excel.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function exportExcel(Request $request)
+    {
+        try {
+            $filters = $request->only(['search', 'status', 'date_from', 'date_to']);
+            $fileName = '{{modelNamePluralLowerCase}}_' . date('Y-m-d_His') . '.xlsx';
+            
+            return Excel::download(
+                new {{modelPluralName}}Export($filters), 
+                $fileName
+            );
+        } catch (\Exception $e) {
+            Log::error('Error exporting {{modelNamePluralLowerCase}} to Excel: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to export data. Please try again.');
+        }
+    }
+
+    /**
+     * Export data to PDF.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exportPdf(Request $request)
+    {
+        try {
+            $query = {{modelName}}::query();
+
+            // Apply filters
+            if ($request->filled('search')) {
+                $searchTerm = $request->search;
+                $query->where(function ($q) use ($searchTerm) {
+                    {{searchFields}}
+                });
+            }
+
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+
+            ${{modelNamePluralLowerCase}} = $query->get();
+
+            $pdf = PDF::loadView('{{getModuleInput}}::{{modelNamePluralLowerCase}}.pdf', compact('{{modelNamePluralLowerCase}}'));
+            
+            $fileName = '{{modelNamePluralLowerCase}}_' . date('Y-m-d_His') . '.pdf';
+            
+            return $pdf->download($fileName);
+        } catch (\Exception $e) {
+            Log::error('Error exporting {{modelNamePluralLowerCase}} to PDF: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to export PDF. Please try again.');
+        }
+    }
+
+    /**
+     * Import data from Excel/CSV.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'import_file' => 'required|file|mimes:xlsx,xls,csv|max:10240'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $importInstance = new {{modelPluralName}}Import;
+            Excel::import($importInstance, $request->file('import_file'));
+
+            $importedCount = $importInstance->getRowCount() ?? 0;
+
+            // Send import completion email
+            if (auth()->user()) {
+                Mail::to(auth()->user())->send(
+                    new {{modelName}}Email(
+                        null,
+                        null,
+                        {{modelName}}Email::TYPE_IMPORT_RESULTS,
+                        "{{modelPluralTitle}} Import Completed",
+                        "Your import has been completed successfully.",
+                        false,
+                        true,
+                        auth()->user(),
+                        [
+                            'imported_count' => $importedCount,
+                            'import_file' => $request->file('import_file')->getClientOriginalName()
+                        ]
+                    )
+                );
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('{{getModuleInput}}.{{modelNamePluralLowerCase}}.index')
+                ->with('success', "{$importedCount} {{modelNamePluralLowerCase}} imported successfully!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error importing {{modelNamePluralLowerCase}}: ' . $e->getMessage());
+            
+            return redirect()
+                ->back()
+                ->with('error', 'Failed to import data: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Send notification email.
+     *
+     * @param  int  $recordId
+     * @param  string  $action
+     * @return void
+     */
+    protected function sendNotificationEmail($recordId, $action)
+    {
+        try {
+            ${{modelNameLowerCase}} = {{modelName}}::find($recordId);
+            
+            if (!${{modelNameLowerCase}} || !auth()->user()) {
+                return;
+            }
+
+            $emailType = match($action) {
+                'created' => {{modelName}}Email::TYPE_CREATED,
+                'updated' => {{modelName}}Email::TYPE_UPDATED,
+                'deleted' => {{modelName}}Email::TYPE_DELETED,
+                default => {{modelName}}Email::TYPE_GENERAL
+            };
+
+            Mail::to(auth()->user())->send(
+                new {{modelName}}Email(
+                    ${{modelNameLowerCase}},
+                    ${{modelNameLowerCase}},
+                    $emailType,
+                    "{{modelName}} " . ucfirst($action),
+                    "The {{modelNameLowerCase}} has been {$action} successfully.",
+                    false,
+                    false,
+                    auth()->user()
+                )
+            );
+        } catch (\Exception $e) {
+            Log::error('Error sending notification email: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Handle image upload.
+     *
+     * @param  \Illuminate\Http\UploadedFile  $image
+     * @return string
+     */
+    protected function handleImageUpload($image)
+    {
+        $path = public_path('uploads/images/{{modelName}}/');
+        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+        
+        if (!File::exists($path)) {
+            File::makeDirectory($path, 0777, true, true);
+        }
+
+        Image::make($image)
+            ->resize(1024, 625, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            })
+            ->save($path . $imageName);
+
+        return $imageName;
+    }
+
+    /**
+     * Delete image file.
+     *
+     * @param  string  $imageName
+     * @return void
+     */
+    protected function deleteImage($imageName)
+    {
+        $imagePath = public_path('uploads/images/{{modelName}}/' . $imageName);
+        
+        if (File::exists($imagePath)) {
+            File::delete($imagePath);
+        }
+    }
+}

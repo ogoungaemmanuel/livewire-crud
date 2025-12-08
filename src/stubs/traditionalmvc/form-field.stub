@@ -1,0 +1,112 @@
+<div class="col-md-{{width}}">
+    <label for="{{fieldName}}" class="form-label">
+        {{fieldLabel}}
+        @if({{required}})
+            <span class="text-danger">*</span>
+        @endif
+    </label>
+    
+    @if('{{fieldType}}' == 'text' || '{{fieldType}}' == 'email' || '{{fieldType}}' == 'url' || '{{fieldType}}' == 'tel')
+        <input type="{{fieldType}}" 
+               class="form-control @error('{{fieldName}}') is-invalid @enderror" 
+               id="{{fieldName}}" 
+               name="{{fieldName}}" 
+               value="{{ old('{{fieldName}}') }}"
+               placeholder="Enter {{fieldLabel}}"
+               {{required}}>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    
+    @elseif('{{fieldType}}' == 'textarea')
+        <textarea class="form-control @error('{{fieldName}}') is-invalid @enderror" 
+                  id="{{fieldName}}" 
+                  name="{{fieldName}}" 
+                  rows="{{rows}}"
+                  placeholder="Enter {{fieldLabel}}"
+                  {{required}}>{{ old('{{fieldName}}') }}</textarea>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    
+    @elseif('{{fieldType}}' == 'select')
+        <select class="form-select @error('{{fieldName}}') is-invalid @enderror" 
+                id="{{fieldName}}" 
+                name="{{fieldName}}"
+                {{required}}>
+            <option value="">Select {{fieldLabel}}</option>
+            {{selectOptions}}
+        </select>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    
+    @elseif('{{fieldType}}' == 'file' || '{{fieldType}}' == 'image')
+        <input type="file" 
+               class="form-control @error('{{fieldName}}') is-invalid @enderror" 
+               id="{{fieldName}}" 
+               name="{{fieldName}}"
+               accept="{{accept}}"
+               onchange="previewImage(this, '{{fieldName}}Preview')"
+               {{required}}>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+        <img id="{{fieldName}}Preview" 
+             src="#" 
+             alt="Preview" 
+             class="mt-2 img-thumbnail" 
+             style="display: none; max-height: 200px;">
+    
+    @elseif('{{fieldType}}' == 'date')
+        <input type="date" 
+               class="form-control @error('{{fieldName}}') is-invalid @enderror" 
+               id="{{fieldName}}" 
+               name="{{fieldName}}" 
+               value="{{ old('{{fieldName}}') }}"
+               {{required}}>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    
+    @elseif('{{fieldType}}' == 'datetime')
+        <input type="datetime-local" 
+               class="form-control @error('{{fieldName}}') is-invalid @enderror" 
+               id="{{fieldName}}" 
+               name="{{fieldName}}" 
+               value="{{ old('{{fieldName}}') }}"
+               {{required}}>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    
+    @elseif('{{fieldType}}' == 'checkbox')
+        <div class="form-check">
+            <input type="checkbox" 
+                   class="form-check-input @error('{{fieldName}}') is-invalid @enderror" 
+                   id="{{fieldName}}" 
+                   name="{{fieldName}}" 
+                   value="1"
+                   {{ old('{{fieldName}}') ? 'checked' : '' }}>
+            <label class="form-check-label" for="{{fieldName}}">
+                {{checkboxLabel}}
+            </label>
+            @error('{{fieldName}}')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    
+    @elseif('{{fieldType}}' == 'radio')
+        <div>
+            {{radioOptions}}
+        </div>
+        @error('{{fieldName}}')
+            <div class="invalid-feedback d-block">{{ $message }}</div>
+        @enderror
+    
+    @endif
+    
+    @if('{{helpText}}')
+        <small class="form-text text-muted">{{helpText}}</small>
+    @endif
+</div>

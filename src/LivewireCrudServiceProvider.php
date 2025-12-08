@@ -3,6 +3,7 @@
 namespace Xslainadmin\LivewireCrud;;
 
 use Xslainadmin\LivewireCrud\Commands\LivewireCrudGenerator;
+use Xslainadmin\LivewireCrud\Commands\TraditionalCrudGenerator;
 use Xslainadmin\LivewireCrud\Commands\LivewireInstall;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,6 +23,7 @@ class LivewireCrudServiceProvider extends ServiceProvider
             // Registering package commands.
             $this->commands([
 				LivewireCrudGenerator::class,
+				TraditionalCrudGenerator::class,
 				LivewireInstall::class,
 			]);
         }

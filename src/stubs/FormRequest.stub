@@ -1,0 +1,111 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class {{modelName}}Request extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        // Implement your authorization logic here
+        // You can check user permissions, roles, etc.
+        return true; // Change to false if authorization is required
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, mixed>
+     */
+    public function rules()
+    {
+        $rules = [
+            {{validationRules}}
+        ];
+
+        // Apply different rules for update operations (e.g., unique field exceptions)
+        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
+            // Modify rules for update if necessary
+            // Example: Make unique fields ignore current record
+            // $rules['email'] = ['required', 'email', Rule::unique('{{modelNamePluralLowerCase}}')->ignore($this->{{modelNameLowerCase}})];
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Get custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes()
+    {
+        return [
+            {{attributeNames}}
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages()
+    {
+        return [
+            {{customMessages}}
+        ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     *
+     * @return void
+     */
+    protected function prepareForValidation()
+    {
+        // You can transform/sanitize data before validation
+        // Example: Convert checkbox values, format dates, etc.
+        
+        // if ($this->has('status')) {
+        //     $this->merge([
+        //         'status' => $this->status ? 'active' : 'inactive',
+        //     ]);
+        // }
+    }
+
+    /**
+     * Handle a passed validation attempt.
+     *
+     * @return void
+     */
+    protected function passedValidation()
+    {
+        // This method is called after validation passes
+        // You can perform additional operations here
+    }
+
+    /**
+     * Configure the validator instance.
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator($validator)
+    {
+        // Add custom validation logic after the standard validation
+        $validator->after(function ($validator) {
+            // Example: Add conditional validation
+            // if ($this->somethingElseIsInvalid()) {
+            //     $validator->errors()->add('field', 'Something is wrong with this field!');
+            // }
+        });
+    }
+}
