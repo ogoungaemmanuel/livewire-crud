@@ -48,6 +48,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 		//Updating Routes
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
+        $modulename = $this->getNameInput();
         $menu = Str::lower($this->getMenuInput());
         $theme = $this->getThemeInput();
         $this->filesystem = new Filesystem;
@@ -56,12 +57,13 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $routeContents = $this->filesystem->get($routeFile);
         if ($this->getThemeInput() == 'none') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+            $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', [Modules\\{$module}\\App\\Http\\Controllers\\" . Str::studly(Str::plural($this->getNameInput())) . "Controller::class, 'uploadPhoto'])->name('{$modulename}.upload-photo')->middleware('auth');";
         }elseif ($this->getThemeInput() == 'nonedefault') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-            // $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', Modules\\{$this->getNameInput()}\\App\\Http\\Controllers\\{$module}Controller::class, 'uploadPhoto')->name('{$modulelower}.upload-photo');";
+            $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', [Modules\\{$module}\\App\\Http\\Controllers\\" . Str::studly(Str::plural($this->getNameInput())) . "Controller::class, 'uploadPhoto'])->name('{$modulename}.upload-photo')->middleware('auth');";
         }else {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-            // $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
+            $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', [Modules\\{$module}\\App\\Http\\Controllers\\" . Str::studly(Str::plural($this->getNameInput())) . "Controller::class, 'uploadPhoto'])->name('{$modulename}.upload-photo')->middleware('auth');";
         }
 		$routeItemHook = '//Route Hooks - Do not delete//';
 
@@ -69,6 +71,14 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             $newContents = str_replace($routeItemHook, $routeItemHook . PHP_EOL . $routeItemStub, $routeContents);
             $this->filesystem->put($routeFile, $newContents);
             $this->warn('Route inserted: <info>' . $routeFile . '</info>');
+            $routeContents = $newContents; // Update routeContents for next check
+        }
+
+        // Add upload-photo route if it doesn't exist
+        if (!Str::contains($routeContents, $routeUploadStub)) {
+            $newContents = str_replace($routeItemHook, $routeItemHook . PHP_EOL . $routeUploadStub, $routeContents);
+            $this->filesystem->put($routeFile, $newContents);
+            $this->warn('Upload photo route inserted: <info>' . $routeFile . '</info>');
         }
 
 		//Updating Nav Bar
