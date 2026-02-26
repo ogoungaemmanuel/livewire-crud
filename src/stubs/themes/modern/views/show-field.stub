@@ -1,6 +1,19 @@
 <div class="col-md-6 mb-3">
-    <div class="border-bottom pb-2">
-        <label class="text-muted small mb-1">{{title}}</label>
-        <p class="mb-0 fw-semibold">{{ ${{modelNameLowerCase}}->{{column}} ?? 'N/A' }}</p>
+    <div class="d-flex flex-column border-start border-2 border-primary-subtle ps-3 py-1">
+        <span class="text-muted text-uppercase fw-semibold" style="font-size:.68rem;letter-spacing:.06em;">{{title}}</span>
+        <span class="fw-semibold mt-1">
+            @if(is_null(${{modelNameLowerCase}}->{{column}} ?? null))
+                <span class="text-muted fst-italic">&#8212; not set</span>
+            @elseif(is_bool(${{modelNameLowerCase}}->{{column}}))
+                <span class="badge {{ ${{modelNameLowerCase}}->{{column}} ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }}">
+                    <i class="bi {{ ${{modelNameLowerCase}}->{{column}} ? 'bi-check-circle-fill' : 'bi-x-circle-fill' }}"></i>
+                    {{ ${{modelNameLowerCase}}->{{column}} ? 'Yes' : 'No' }}
+                </span>
+            @elseif(${{modelNameLowerCase}}->{{column}} instanceof \Carbon\Carbon)
+                <i class="bi bi-calendar3 me-1 text-muted small"></i>{{ ${{modelNameLowerCase}}->{{column}}->format('M d, Y') }}
+            @else
+                {{ ${{modelNameLowerCase}}->{{column}} }}
+            @endif
+        </span>
     </div>
 </div>

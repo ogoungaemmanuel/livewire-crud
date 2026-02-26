@@ -1,17 +1,14 @@
 <?php
 
-namespace Database\Factories;
+namespace Modules\{{getModuleInputModule}}\Database\Factories;
 
-use App\Models\{{modelName}};
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
 
 /**
- * {{modelName}} Factory
- * 
- * Generates realistic test data for {{modelName}} model
- * Supports various data types and relationships
+ * @extends Factory<{{modelName}}>
  */
 class {{modelName}}Factory extends Factory
 {

@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Xslainadmin\LivewireCrud\Commands;
 
+use Xslainadmin\LivewireCrud\Contracts\CrudGeneratorInterface;
 use Xslainadmin\LivewireCrud\ModelGenerator;
+use Xslainadmin\LivewireCrud\Support\StubTokens;
+use Xslainadmin\LivewireCrud\Support\TypeMapper;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Arr;
@@ -15,19 +20,17 @@ use Symfony\Component\Console\Input\InputArgument;
 /**
  * Class GeneratorCommand.
  */
-abstract class LivewireGeneratorCommand extends Command
+abstract class LivewireGeneratorCommand extends Command implements CrudGeneratorInterface
 {
-    /**
-     * The filesystem instance.
-     * @var \Illuminate\Filesystem\Filesystem
-     */
-    protected $files;
+    /** The filesystem instance. */
+    protected Filesystem $files;
 
     /**
-     * Do not make these columns fillable in Model or views.
-     * @var array
+     * Columns excluded from $fillable and view scaffolding.
+     *
+     * @var array<string>
      */
-    protected $unwantedColumns = [
+    protected array $unwantedColumns = [
         'id',
         'password',
         'email_verified_at',
@@ -37,60 +40,41 @@ abstract class LivewireGeneratorCommand extends Command
         'deleted_at',
     ];
 
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $table = null;
+    protected ?string $table = null;
+    protected ?string $modelName = null;
+    protected ?string $module = null;
+    protected ?string $theme  = null;
+    protected string  $themeNamespace = 'Yes';
+    protected ?string $menu   = null;
+    protected ?string $moduleconvert = null;
+
+    /** @var array<object>|null Cached column metadata; may be pre-loaded via setColumns(). */
+    protected ?array $tableColumns = null;
 
     /**
-     * Formatted Class name from Table.
-     * @var string
+     * Pre-load column metadata so that getColumns() does not query the DB.
+     * Useful for commands that generate CRUD for tables that do not yet exist.
+     *
+     * Each element must expose Field, Type, Null, Default, Extra properties.
+     *
+     * @param  array<object>  $columns
      */
-    protected $name = null;
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $module = null;
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $theme = null;
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $themeNamespace = 'Yes';
+    protected function setColumns(array $columns): void
+    {
+        $this->tableColumns = $columns;
+    }
 
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $menu = null;
-    /**
-     * Table name from argument.
-     * @var string
-     */
-    protected $moduleconvert = null;
-    /**
-     * Store the DB table columns.
-     * @var array
-     */
-    private $tableColumns = null;
+    protected string $modelNamespace = 'App\\Models';
 
-    /**
-     * Model Namespace.
-     * @var string
-     */
-    protected $modelNamespace = 'App\Models';
+    protected string $templateName = 'backend';
 
-    /**
-     * Model Namespace.
-     * @var string
-     */
-    protected $templateName = 'backend';
+    /** Cached TypeMapper instance. */
+    private TypeMapper $typeMapper;
+
+    protected function typeMapper(): TypeMapper
+    {
+        return $this->typeMapper ??= new TypeMapper();
+    }
 
     /**
      * Model Namespace.
@@ -106,28 +90,12 @@ abstract class LivewireGeneratorCommand extends Command
 
     // protected $moduleNamespace = 'Modules\Backend\Livewire';
 
-    /**
-     * Controller Namespace.
-     * @var string
-     */
-    protected $controllerNamespace = 'App\Http\Controllers';
-    /**
-     * Controller Namespace.
-     * @var string
-     */
-    protected $livewireNamespace = 'App\Http\Livewire';
+    protected string $controllerNamespace = 'App\\Http\\Controllers';
+    protected string $livewireNamespace   = 'App\\Http\\Livewire';
+    protected string $layout              = 'layouts.app';
 
-    /**
-     * Application Layout
-     * @var string
-     */
-    protected $layout = 'layouts.app';
-
-    /**
-     * Custom Options name
-     * @var array
-     */
-    protected $options = [];
+    /** @var array<string, mixed> */
+    protected array $options = [];
 
     /**
      * Create a new controller creator command instance.
@@ -151,7 +119,7 @@ abstract class LivewireGeneratorCommand extends Command
      * Generate the Model.
      * @return $this
      */
-    abstract protected function buildModel();
+    abstract public function buildModel(): static;
 
     /**
      * Generate the Model.
@@ -173,14 +141,12 @@ abstract class LivewireGeneratorCommand extends Command
      * Generate the views.
      * @return $this
      */
-    abstract protected function buildViews();
+    abstract public function buildViews(): static;
 
     /**
-     * Build the directory if necessary.
-     * @param string $path
-     * @return string
+     * Build the directory for the given path if it does not exist.
      */
-    protected function makeDirectory($path)
+    protected function makeDirectory(string $path): string
     {
         if (!$this->files->isDirectory(dirname($path))) {
             $this->files->makeDirectory(dirname($path), 0755, true, true);
@@ -190,25 +156,20 @@ abstract class LivewireGeneratorCommand extends Command
     }
 
     /**
-     * Write the file/Class.
-     * @param $path
-     * @param $content
+     * Write (overwrite) a file at the given path, creating dirs as needed.
      */
-    protected function write($path, $content)
+    protected function write(string $path, string $content): void
     {
         $this->files->makeDirectory(dirname($path), 0755, true, true);
         $this->files->put($path, $content);
     }
 
     /**
-     * Get the stub file.
-     * @param string $type
-     * @param boolean $content
-     * @return string
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     * Get the contents (or path) of a named stub file.
      *
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    protected function getStub($type, $content = true)
+    protected function getStub(string $type, bool $content = true): string
     {
         $stub_path = config('livewire-crud.stub_path', 'default');
         if ($stub_path == 'default') {
@@ -244,7 +205,7 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getMigrationPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst($this->modelName);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Database/Migrations/" . date('Y-m-d_His') . "_create_" . Str::lower(Str::plural($name)) . "_table.php");
@@ -256,7 +217,7 @@ abstract class LivewireGeneratorCommand extends Command
     }
     protected function _getFactoryPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst($this->modelName);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Database/factories/{$name}Factory.php");
@@ -272,20 +233,20 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getLivewirePath($name)
     {
-		$name = Str::plural($this->name);
+		$name = Str::plural($this->modelName);
         return app_path($this->_getNamespacePath($this->livewireNamespace) . "{$name}.php");
     }
 
     protected function _getModulePath($name)
     {
-		$name = Str::plural($this->name);
+		$name = Str::plural($this->modelName);
         return base_path($this->_getModuleNamespacePath($this->moduleNamespace()) . "{$name}.php");
         // return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}.php");
     }
 
     // protected function _getModulePath($name)
     // {
-	//		$name = Str::plural($this->name);
+	//		$name = Str::plural($this->modelName);
     //     return base_path($this->_getModuleNamespacePath($this->moduleNamespace) . "{$name}.php");
     // }
 
@@ -300,7 +261,7 @@ abstract class LivewireGeneratorCommand extends Command
 
 	protected function _getCreateModelPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst($this->modelName);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Models/{$name}.php");
@@ -309,7 +270,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getImportPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Imports/{$name}Import.php");
@@ -321,7 +282,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getExportPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Exports/{$name}Export.php");
@@ -333,7 +294,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getPrintPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Exports/{$name}Print.php");
@@ -345,7 +306,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getNotificationPath($name)
     {
-        $name = Str::ucfirst($this->name);
+        $name = Str::ucfirst($this->modelName);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Notifications/{$name}Notification.php");
@@ -357,7 +318,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getEmailPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst($this->modelName);
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Emails/{$name}Email.php");
@@ -369,7 +330,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getChartPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Charts/{$name}Chart.php");
@@ -381,10 +342,10 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getUploadPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
-        $path = base_path("/Modules/{$module}/App/Http/Controllers/{$name}Controller.php");
+        $path = base_path("/Modules/{$module}/Http/Controllers/{$name}Controller.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -393,7 +354,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getFullcalendarPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Fullcalendar/{$name}Fullcalendar.php");
@@ -405,10 +366,110 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getPdfExportPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         // $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/Exports/{$name}PdfExport.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    // ── Enterprise path helpers ───────────────────────────────────────────
+
+    /**
+     * Modules/{Module}/Policies/{Model}Policy.php
+     */
+    protected function _getPolicyPath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Policies/{$name}Policy.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Observers/{Model}Observer.php
+     */
+    protected function _getObserverPath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Observers/{$name}Observer.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Services/{Model}Service.php
+     */
+    protected function _getServicePath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Services/{$name}Service.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Http/Controllers/Api/{Model}Controller.php
+     */
+    protected function _getApiControllerPath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Http/Controllers/Api/{$name}Controller.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Http/Resources/{Model}Resource.php
+     */
+    protected function _getApiResourcePath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Http/Resources/{$name}Resource.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Database/Seeders/{Model}Seeder.php
+     */
+    protected function _getSeederPath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Database/Seeders/{$name}Seeder.php");
+        if (File::exists($path)) {
+            File::delete($path);
+        }
+        return $this->makeDirectory($path);
+    }
+
+    /**
+     * Modules/{Module}/Tests/Feature/{Model}FeatureTest.php
+     */
+    protected function _getFeatureTestPath(string $name): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Tests/Feature/{$name}FeatureTest.php");
         if (File::exists($path)) {
             File::delete($path);
         }
@@ -459,7 +520,7 @@ abstract class LivewireGeneratorCommand extends Command
      */
     protected function _getViewPath($view)
     {
-        $name = Str::kebab(Str::plural($this->name));
+        $name = Str::kebab(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         $theme = $this->getThemeInput();
         $modulelocation = $this->modelNamespace;
@@ -474,7 +535,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getCreatePath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/livewire/{$name}/create.php");
@@ -486,7 +547,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getEditPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
         $path = base_path("Modules/{$module}/livewire/{$name}/edit.php");
@@ -498,7 +559,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getShowPath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/livewire/{$name}/show.php");
@@ -510,7 +571,7 @@ abstract class LivewireGeneratorCommand extends Command
 
     protected function _getDeletePath($name)
     {
-        $name = Str::ucfirst(Str::plural($this->name));
+        $name = Str::ucfirst(Str::plural($this->modelName));
         $module = $this->getModuleInput();
         $modulelocation = $this->modelNamespace;
         $path = base_path("/Modules/{$module}/livewire/{$name}/delete.php");
@@ -520,32 +581,218 @@ abstract class LivewireGeneratorCommand extends Command
         return $this->makeDirectory($path);
     }
 
+    protected function _getResourcePath(): string
+    {
+        $name   = Str::ucfirst($this->modelName);
+        $module = $this->getModuleInput();
+        $path   = base_path("/Modules/{$module}/Resources/{$name}Resource.php");
+        return $this->makeDirectory($path);
+    }
+
+    // -----------------------------------------------------------------------
+    // Migration generation
+    // -----------------------------------------------------------------------
+
     /**
-     * Build the replacement.
-     * @return array
+     * Build the Blueprint column definitions for the migration stub.
+     *
+     * Skips: id, created_at, updated_at, remember_token.
+     * Appends $table->softDeletes() automatically when deleted_at is present.
+     *
+     * @return string  Multi-line string, each line indented with 12 spaces.
      */
-    protected function buildReplacements()
+    protected function buildMigrationColumns(): string
+    {
+        $lines      = [];
+        $hasSoftDel = false;
+        $pad        = '            ';   // 12 spaces (aligns inside Schema::create closure)
+        $mapper     = $this->typeMapper();
+
+        $skip = ['id', 'created_at', 'updated_at', 'remember_token'];
+
+        foreach ($this->getColumns() as $col) {
+            $field   = $col->Field   ?? '';
+            $type    = $col->Type    ?? 'varchar(255)';
+            $null    = ($col->Null   ?? 'YES') === 'YES';
+            $default = $col->Default ?? null;
+            $extra   = strtolower($col->Extra ?? '');
+
+            // Skip auto-managed columns
+            if (in_array($field, $skip, true) || str_contains($extra, 'auto_increment')) {
+                continue;
+            }
+
+            // Soft-deletes: capture and append at the end
+            if ($field === 'deleted_at') {
+                $hasSoftDel = true;
+                continue;
+            }
+
+            $def     = $mapper->migrationColumnDefinition($field, $type, $null, $default);
+            $lines[] = $pad . $def . ';';
+        }
+
+        if ($hasSoftDel) {
+            $lines[] = $pad . "\$table->softDeletes();";
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Generate a Laravel migration file for the current table.
+     *
+     * The file is written to Modules/{module}/Database/Migrations/.
+     * If a migration for this table already exists it is deleted first
+     * (handled by _getMigrationPath).
+     *
+     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
+     */
+    public function buildMigration(): static
+    {
+        $migrationPath = $this->_getMigrationPath($this->modelName);
+
+        $replace = array_merge($this->buildReplacements(), [
+            StubTokens::MIGRATION_COLUMNS => $this->buildMigrationColumns(),
+        ]);
+
+        $migrationTemplate = str_replace(
+            array_keys($replace),
+            array_values($replace),
+            $this->getStub('Migration')
+        );
+
+        $this->warn('Creating: <info>Migration...</info>');
+        $this->write($migrationPath, $migrationTemplate);
+
+        return $this;
+    }
+
+    // -----------------------------------------------------------------------
+    // Resource token builders (used by modelReplacements)
+    // -----------------------------------------------------------------------
+
+    /**
+     * Generate the {{resourceColumns}} token: one TextColumn / DateColumn / etc.
+     * line per DB column, indented for the Resource stub.
+     */
+    protected function buildResourceColumns(): string
+    {
+        $lines  = [];
+        $pad    = '                ';   // 16 spaces
+        $mapper = $this->typeMapper();
+
+        foreach ($this->getColumns() as $col) {
+            $field = $col->Field;
+            if (in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token'])) {
+                continue;
+            }
+            $type   = $col->Type ?? '';
+            $title  = Str::title(str_replace('_', ' ', $field));
+            $class  = $mapper->columnClass($field, $type);
+            $chain  = $mapper->columnChain($field, $type);
+            $lines[] = $pad . "{$class}::make('{$field}')->label('{$title}'){$chain},";
+        }
+
+        // Always append created_at
+        $lines[] = $pad . "DateColumn::make('created_at')->label('Created')->dateTime()->sortable(),";
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Generate the {{resourceFormFields}} token.
+     */
+    protected function buildResourceFormFields(): string
+    {
+        $lines  = [];
+        $pad    = '            ';  // 12 spaces
+        $mapper = $this->typeMapper();
+
+        foreach ($this->getColumns() as $col) {
+            $field   = $col->Field;
+            if (in_array($field, ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token'])) {
+                continue;
+            }
+            $type    = $col->Type ?? '';
+            $title   = Str::title(str_replace('_', ' ', $field));
+            $req     = ($col->Null === 'NO');
+            $class   = $mapper->fieldClass($field, $type);
+            $chain   = $mapper->fieldChain($field, $type, $req);
+            $lines[] = $pad . "{$class}::make('{$field}')->label('{$title}'){$chain},";
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Generate the {{resourceFilters}} token.
+     */
+    protected function buildResourceFilters(): string
+    {
+        $lines  = [];
+        $pad    = '                ';   // 16 spaces
+        $mapper = $this->typeMapper();
+
+        foreach ($this->getColumns() as $col) {
+            $field = $col->Field;
+            $type  = $col->Type ?? '';
+            $title = Str::title(str_replace('_', ' ', $field));
+
+            // Ternary filter for boolean-like columns
+            if (in_array($mapper->fieldClass($field, $type), ['Toggle'])) {
+                $lines[] = $pad . "TernaryFilter::make('{$field}')->label('{$title}'),";
+                continue;
+            }
+
+            // Select filter for status/type enum-like columns
+            if (str_contains($field, 'status') || str_contains($field, 'type') || str_contains(strtolower($type), 'enum')) {
+                $lines[] = $pad . "SelectFilter::make('{$field}')->label('{$title}'),";
+            }
+        }
+
+        // Always add a date filter on created_at
+        $lines[] = $pad . "DateFilter::make('created_at')->label('Date Range'),";
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Build the common stub token → value replacement map.
+     *
+     * @return array<string, string>
+     */
+    protected function buildReplacements(): array
     {
         return [
-            '{{getTemplate}}' => $this->templateName,
-            '{{getNameInput}}' => $this->getNameInput(),
-            '{{getTheme}}' => $this->getThemeInput(),
-            '{{getModuleInputModule}}' => $this->getModuleInput(),
-            '{{getModuleInputModuleNew}}' => ucfirst($this->getModuleInput()),
-            '{{getModuleInput}}' => Str::lower($this->getModuleInput()),
-            '{{layout}}' => $this->layout,
-            '{{modelName}}' => $this->name,
-            '{{modelNameSingularLowerCase}}' => Str::lower($this->name),
-			'{{modelPluralName}}' => Str::plural($this->name),
-            '{{modelTitle}}' => Str::title(Str::snake($this->name, ' ')),
-			'{{modelPluralTitle}}' => Str::title(Str::snake(Str::plural($this->name), ' ')),
-            '{{modelNamespace}}' => $this->modelNamespace,
-            '{{controllerNamespace}}' => $this->controllerNamespace,
-            '{{modelNamePluralLowerCase}}' => Str::camel(Str::plural($this->name)),
-            '{{modelNamePluralUpperCase}}' => ucfirst(Str::plural($this->name)),
-            '{{modelNameLowerCase}}' => Str::camel($this->name),
-            '{{modelRoute}}' => $this->options['route'] ?? Str::kebab(Str::plural($this->name)),
-            '{{modelView}}' => Str::kebab($this->name),
+            StubTokens::GET_TEMPLATE                       => $this->templateName,
+            StubTokens::GET_NAME_INPUT                     => $this->getNameInput(),
+            StubTokens::GET_NAME_INPUT_LOWER               => Str::lower($this->getNameInput()),
+            StubTokens::GET_NAME_INPUT_PLURAL_LOWER        => Str::lower(Str::plural($this->getNameInput())),
+            StubTokens::GET_THEME                          => $this->getThemeInput(),
+            StubTokens::GET_THEME_INPUT                    => $this->getThemeInput(),
+            StubTokens::GET_THEME_INPUT_LOWER              => Str::lower($this->getThemeInput()),
+            StubTokens::THEME_LOWER                        => Str::lower($this->getThemeInput()),
+            StubTokens::GET_MODULE_INPUT_MODULE            => $this->getModuleInput(),
+            StubTokens::GET_MODULE_INPUT_MODULE_NEW        => ucfirst($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT                   => Str::lower($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT_LOWER             => Str::lower($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT_MODULE_LOWER_CASE => Str::lower($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT_CLASS             => Str::studly($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT_TITLE             => Str::title($this->getModuleInput()),
+            StubTokens::LAYOUT                             => $this->layout,
+            StubTokens::MODEL_NAME                         => $this->modelName,
+            StubTokens::MODEL_NAME_SINGULAR_LOWER          => Str::lower($this->modelName),
+            StubTokens::MODEL_PLURAL_NAME                  => Str::plural($this->modelName),
+            StubTokens::MODEL_TITLE                        => Str::title(Str::snake($this->modelName, ' ')),
+            StubTokens::MODEL_PLURAL_TITLE                 => Str::title(Str::snake(Str::plural($this->modelName), ' ')),
+            StubTokens::MODEL_NAMESPACE                    => $this->modelNamespace,
+            StubTokens::CONTROLLER_NAMESPACE               => $this->controllerNamespace,
+            StubTokens::MODEL_NAME_PLURAL_LOWER            => Str::camel(Str::plural($this->modelName)),
+            StubTokens::MODEL_NAME_PLURAL_UPPER            => ucfirst(Str::plural($this->modelName)),
+            StubTokens::MODEL_NAME_LOWER                   => Str::camel($this->modelName),
+            StubTokens::MODEL_ROUTE                        => $this->options['route'] ?? Str::kebab(Str::plural($this->modelName)),
+            StubTokens::MODEL_VIEW                         => Str::kebab($this->modelName),
         ];
     }
 
@@ -561,8 +808,8 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getField($title, $column, $type = 'form-field')
     {
         $replace = array_merge($this->buildReplacements(), [
-            '{{title}}' => $title,
-            '{{column}}' => $column,
+            StubTokens::TITLE  => $title,
+            StubTokens::COLUMN => $column,
         ]);
 
         return str_replace(
@@ -575,9 +822,9 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getDataField($title, $column, $datatype)
     {
         $replace = array_merge($this->buildReplacements(), [
-            '{{title}}' => $title,
-            '{{column}}' => $column,
-            '{{datatype}}' => $datatype,
+            StubTokens::TITLE    => $title,
+            StubTokens::COLUMN   => $column,
+            StubTokens::DATATYPE => $datatype,
         ]);
 
         return str_replace(
@@ -598,8 +845,8 @@ abstract class LivewireGeneratorCommand extends Command
     protected function showField($title, $column, $type = 'show-field')
     {
         $replace = array_merge($this->buildReplacements(), [
-            '{{title}}' => $title,
-            '{{column}}' => $column,
+            StubTokens::TITLE  => $title,
+            StubTokens::COLUMN => $column,
         ]);
 
         return str_replace(
@@ -616,13 +863,13 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getHead($title)
     {
         $replace = array_merge($this->buildReplacements(), [
-            '{{title}}' => $title,
+            StubTokens::TITLE => $title,
         ]);
 
         return str_replace(
             array_keys($replace),
             array_values($replace),
-            $this->_getSpace(4) . '<th>{{title}}</th>' . "\n"
+            $this->_getSpace(4) . '<th>' . StubTokens::TITLE . '</th>' . "\n"
         );
     }
 
@@ -633,13 +880,13 @@ abstract class LivewireGeneratorCommand extends Command
     protected function getBody($column)
     {
         $replace = array_merge($this->buildReplacements(), [
-            '{{column}}' => $column,
+            StubTokens::COLUMN => $column,
         ]);
 
         return str_replace(
             array_keys($replace),
             array_values($replace),
-            $this->_getSpace(4) . '<td>{{ $row->{{column}} }}</td>' . "\n"
+            $this->_getSpace(4) . '<td>{{ $row->' . StubTokens::COLUMN . ' }}</td>' . "\n"
         );
     }
 
@@ -662,11 +909,14 @@ abstract class LivewireGeneratorCommand extends Command
     }
 
     /**
-     * Get the DB Table columns.
-     * Supports multiple database drivers (MySQL, PostgreSQL, SQLite, SQL Server)
-     * @return array
+     * Get the DB table columns.
+     * Supports MySQL, PostgreSQL, SQLite, and SQL Server.
+     *
+     * @return array<object>
+     *
+     * @throws \Exception
      */
-    protected function getColumns()
+    protected function getColumns(): array
     {
         if (empty($this->tableColumns)) {
             $driver = DB::getDriverName();
@@ -741,9 +991,11 @@ abstract class LivewireGeneratorCommand extends Command
     }
 
     /**
-     * @return array
+     * Return column names after stripping unwanted system columns.
+     *
+     * @return array<string>
      */
-    protected function getFilteredColumns()
+    protected function getFilteredColumns(): array
     {
         $unwanted = $this->unwantedColumns;
         $columns = [];
@@ -758,10 +1010,11 @@ abstract class LivewireGeneratorCommand extends Command
     }
 
     /**
-     * Make model attributes/replacements.
-     * @return array
+     * Build model-specific stub replacements.
+     *
+     * @return array<string, string>
      */
-    protected function modelReplacements()
+    protected function modelReplacements(): array
     {
         $properties = '';
         $rulesArray = [];
@@ -936,21 +1189,26 @@ abstract class LivewireGeneratorCommand extends Command
         list($relations, $properties) = (new ModelGenerator($this->table, $properties, $this->modelNamespace))->getEloquentRelations();
 
         return [
-            '{{fillable}}' => $fillable(),
-            '{{updatefield}}' => $updatefield(),
-            '{{resetfields}}' => $resetfields(),
-            '{{showfields}}' => $showfields(),
-            '{{editfields}}' => $editfields(),
-            '{{fieldsList}}' => $fieldsList(),
-            '{{addfields}}' => $addfields(),
-            '{{factory}}' => $factoryfields(),
-            '{{rules}}' => $rules(),
-            '{{search}}' => $keyWord(),
-            '{{templateHeaders}}' => $templateHeaders(),
-            '{{relations}}' => $relations,
-            '{{properties}}' => $properties,
-            '{{softDeletesNamespace}}' => $softDeletesNamespace,
-            '{{softDeletes}}' => $softDeletes,
+            StubTokens::FILLABLE               => $fillable(),
+            StubTokens::UPDATE_FIELD            => $updatefield(),
+            StubTokens::RESET_FIELDS            => $resetfields(),
+            StubTokens::SHOW_FIELDS             => $showfields(),
+            StubTokens::EDIT_FIELDS             => $editfields(),
+            StubTokens::FIELDS_LIST             => $fieldsList(),
+            StubTokens::ADD_FIELDS              => $addfields(),
+            StubTokens::FACTORY                 => $factoryfields(),
+            StubTokens::RULES                   => $rules(),
+            StubTokens::SEARCH                  => $keyWord(),
+            StubTokens::TEMPLATE_HEADERS        => $templateHeaders(),
+            StubTokens::RELATIONS               => $relations,
+            StubTokens::PROPERTIES              => $properties,
+            StubTokens::SOFT_DELETES_NAMESPACE  => $softDeletesNamespace,
+            StubTokens::SOFT_DELETES            => $softDeletes,
+            StubTokens::RESOURCE_COLUMNS        => $this->buildResourceColumns(),
+            StubTokens::RESOURCE_FORM_FIELDS    => $this->buildResourceFormFields(),
+            StubTokens::RESOURCE_FILTERS        => $this->buildResourceFilters(),
+            StubTokens::NAVIGATION_ICON         => 'bi-table',
+            StubTokens::MODEL_NAME_PLURAL_TITLE => Str::title(Str::snake(Str::plural($this->modelName), ' ')),
         ];
     }
 
@@ -1022,10 +1280,9 @@ abstract class LivewireGeneratorCommand extends Command
     }
 
     /**
-     * Is Table exist in DB.
-     * @return mixed
+     * Return true when the given table exists in the connected database.
      */
-    protected function tableExists()
+    protected function tableExists(): bool
     {
         return Schema::hasTable($this->table);
     }

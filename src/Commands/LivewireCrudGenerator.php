@@ -1,19 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Xslainadmin\LivewireCrud\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Str;
 use Illuminate\Filesystem\Filesystem;
-use File;
+use Illuminate\Support\Str;
+use Xslainadmin\LivewireCrud\Support\StubTokens;
 
 class LivewireCrudGenerator extends LivewireGeneratorCommand
 {
 
-	protected $filesystem;
-    protected $stubDir;
-    protected $argument;
-    private $replaces = [];
+    protected Filesystem $filesystem;
+    protected string $stubDir;
+    protected string $argument;
+
+    /** @var array<string, string> */
+    private array $replaces = [];
 
     protected $signature = 'crud:generate {name : Table name} {theme} {menu} {module}';
 
@@ -21,10 +24,10 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 
     /**
      * Execute the console command.
-     * @return bool|null
+     *
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    public function handle()
+    public function handle(): int
     {
         $this->table = $this->getNameInput();
         $this->module = $this->getModuleInput();
@@ -35,11 +38,11 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         if (!$this->tableExists()) {
             $this->error("`{$this->table}` table not exist");
 
-            return false;
+            return self::FAILURE;
         }
 
         // Build the class name from table name
-        $this->name = $this->_buildClassName();
+        $this->modelName = $this->_buildClassName();
 
         // Generate the crud
            $this->buildModel()
@@ -88,37 +91,45 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->info('');
         $this->info('Livewire Component & CRUD Generated Successfully.');
 
-        return true;
+        return self::SUCCESS;
     }
 
     /**
-     * @return $this
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      */
-    protected function buildModel()
+    public function buildModel(): static
     {
         $modulelower = Str::lower($this->getModuleInput());
         $module = $this->getModuleInput();
         $theme = $this->getThemeInput();
-        $modelPath = $this->_getCreateModelPath($this->name);
-        $importPath = $this->_getImportPath($this->name);
-        $exportPath = $this->_getExportPath($this->name);
-        $notificationPath = $this->_getNotificationPath($this->name);
-        $emailPath = $this->_getEmailPath($this->name);
-        $chartPath = $this->_getChartPath($this->name);
-        $uploadPath = $this->_getUploadPath($this->name);
-        $fullcalendarPath = $this->_getFullcalendarPath($this->name);
-        // $factoryPath = $this->_getFactoryPath($this->name);
-        $printPath = $this->_getPrintPath($this->name);
-        $pdfexportPath = $this->_getPdfExportPath($this->name);
-        // $modelPath = $this->_getModelPath($this->name);
-        // $createlPath = $this->_getCreatePath($this->name);
-        // $deletePath = $this->_getDeletePath($this->name);
-        // $editPath = $this->_getEditPath($this->name);
-        // $showPath = $this->_getShowPath($this->name);
-		$livewirePath = $this->_getLivewirePath($this->name);
-        $modulePath = trim($this->_getModulePath($this->name), '{}');
-        $factoryPath = $this->_getFactoryPath($this->name);
+        $modelPath = $this->_getCreateModelPath($this->modelName);
+        $importPath = $this->_getImportPath($this->modelName);
+        $exportPath = $this->_getExportPath($this->modelName);
+        $notificationPath = $this->_getNotificationPath($this->modelName);
+        $emailPath = $this->_getEmailPath($this->modelName);
+        $chartPath = $this->_getChartPath($this->modelName);
+        $uploadPath = $this->_getUploadPath($this->modelName);
+        $fullcalendarPath = $this->_getFullcalendarPath($this->modelName);
+        // $factoryPath = $this->_getFactoryPath($this->modelName);
+        $printPath = $this->_getPrintPath($this->modelName);
+        $pdfexportPath = $this->_getPdfExportPath($this->modelName);
+        // $modelPath = $this->_getModelPath($this->modelName);
+        // $createlPath = $this->_getCreatePath($this->modelName);
+        // $deletePath = $this->_getDeletePath($this->modelName);
+        // $editPath = $this->_getEditPath($this->modelName);
+        // $showPath = $this->_getShowPath($this->modelName);
+		$livewirePath = $this->_getLivewirePath($this->modelName);
+        $modulePath = trim($this->_getModulePath($this->modelName), '{}');
+        $factoryPath = $this->_getFactoryPath($this->modelName);
+
+        // ── Enterprise paths ──────────────────────────────────────────────
+        $policyPath        = $this->_getPolicyPath($this->modelName);
+        $observerPath      = $this->_getObserverPath($this->modelName);
+        $servicePath       = $this->_getServicePath($this->modelName);
+        $apiControllerPath = $this->_getApiControllerPath($this->modelName);
+        $apiResourcePath   = $this->_getApiResourcePath($this->modelName);
+        $seederPath        = $this->_getSeederPath($this->modelName);
+        $featureTestPath   = $this->_getFeatureTestPath($this->modelName);
 
         if ($this->files->exists($modulePath) && $this->ask("Livewire Component ". Str::studly(Str::singular($this->table)) ."Component Already exist. Do you want overwrite (y/n)?", 'y') == 'n') {
             return $this;
@@ -159,6 +170,29 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         );
         $uploadTemplate = str_replace(
             array_keys($replace), array_values($replace), $this->getStub('Upload')
+        );
+
+        // ── Enterprise templates ──────────────────────────────────────────
+        $policyTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Policy')
+        );
+        $observerTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Observer')
+        );
+        $serviceTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Service')
+        );
+        $apiControllerTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('ApiController')
+        );
+        $apiResourceTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('ApiResource')
+        );
+        $seederTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Seeder')
+        );
+        $featureTestTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('FeatureTest')
         );
 
         if ($theme == 'none') {
@@ -246,16 +280,47 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->warn('Creating: <info>Upload, Please edit before using ...</info>');
         $this->write($uploadPath, $uploadTemplate);
 
+        // ── Enterprise files ──────────────────────────────────────────────
+        $this->warn('Creating: <info>Policy (Authorization)...</info>');
+        $this->write($policyPath, $policyTemplate);
+
+        $this->warn('Creating: <info>Observer (Model lifecycle hooks)...</info>');
+        $this->write($observerPath, $observerTemplate);
+
+        $this->warn('Creating: <info>Service (Business logic layer)...</info>');
+        $this->write($servicePath, $serviceTemplate);
+
+        $this->warn('Creating: <info>API Controller (REST endpoints)...</info>');
+        $this->write($apiControllerPath, $apiControllerTemplate);
+
+        $this->warn('Creating: <info>API Resource (JSON transformer)...</info>');
+        $this->write($apiResourcePath, $apiResourceTemplate);
+
+        $this->warn('Creating: <info>Database Seeder...</info>');
+        $this->write($seederPath, $seederTemplate);
+
+        $this->warn('Creating: <info>Feature Test...</info>');
+        $this->write($featureTestPath, $featureTestTemplate);
+
+        // ── Migration ─────────────────────────────────────────────────────
+        $this->buildMigration();
+
+        // ── Resource ──────────────────────────────────────────────────────
+        $resourcePath = $this->_getResourcePath();
+        $resourceTemplate = str_replace(
+            array_keys($replace), array_values($replace), $this->getStub('Resource')
+        );
+        $this->warn('Creating: <info>Resource class...</info>');
+        $this->write($resourcePath, $resourceTemplate);
 
         return $this;
     }
 
     /**
-     * @return $this
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      * @throws \Exception
      */
-    protected function buildViews()
+    public function buildViews(): static
     {
         $theme = $this->getThemeInput();
         $this->warn('Creating:<info> Views ...</info>');
@@ -303,7 +368,7 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
 
             // Get datatype from column object
             $datatype = $columnObject ? $columnObject->Type : 'text';
-            $columnDatatype = $this->determineFieldType($datatype);
+            $columnDatatype = $this->typeMapper()->htmlInputType($columnName, $datatype);
             $tableHead .= "\t\t\t\t" . $this->getHead($title);
             $tableBody .= "\t\t\t\t" . $this->getBody($columnName);
 
@@ -328,27 +393,26 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         // $type = $columnType;
 
         $replace = array_merge($this->buildReplacements(), [
-            '{{tableHeader}}' => $tableHead,
-            '{{tableBody}}' => $tableBody,
-            '{{viewRows}}' => $viewRows,
-            // '{{form}}' => $form,
-            '{{form}}' => $formdata,
-            '{{show}}' => $show,
-            '{{type}}' => $type,
-            '{{showfields}}' => $showfields,
-            '{{themelower}}' => Str::lower($this->getThemeInput()),
-            '{{getModuleInputClass}}' => Str::studly($this->getModuleInput()),
-            '{{getModuleInput}}' => $this->getModuleInput(),
-            '{{getModuleInputLower}}' => Str::lower($this->getModuleInput()),
-            '{{getThemeInput}}' => $this->getThemeInput(),
-            '{{getThemeInputLower}}' => Str::lower($this->getThemeInput()),
-            '{{getNameInput}}' => $this->getNameInput(),
-            '{{getNameInputLower}}' => Str::lower($this->getNameInput()),
-            '{{getNameInputPluralLower}}' => Str::lower(Str::plural($this->getNameInput())),
+            StubTokens::TABLE_HEADER              => $tableHead,
+            StubTokens::TABLE_BODY                => $tableBody,
+            StubTokens::VIEW_ROWS                 => $viewRows,
+            StubTokens::FORM                      => $formdata,
+            StubTokens::SHOW                      => $show,
+            StubTokens::TYPE                      => $type,
+            StubTokens::SHOW_FIELDS               => $showfields,
+            StubTokens::THEME_LOWER               => Str::lower($this->getThemeInput()),
+            StubTokens::GET_MODULE_INPUT_CLASS    => Str::studly($this->getModuleInput()),
+            StubTokens::GET_MODULE_INPUT_MODULE   => $this->getModuleInput(),
+            StubTokens::GET_MODULE_INPUT_LOWER    => Str::lower($this->getModuleInput()),
+            StubTokens::GET_THEME_INPUT           => $this->getThemeInput(),
+            StubTokens::GET_THEME_INPUT_LOWER     => Str::lower($this->getThemeInput()),
+            StubTokens::GET_NAME_INPUT            => $this->getNameInput(),
+            StubTokens::GET_NAME_INPUT_LOWER      => Str::lower($this->getNameInput()),
+            StubTokens::GET_NAME_INPUT_PLURAL_LOWER => Str::lower(Str::plural($this->getNameInput())),
         ]);
 
         $this->buildLayout();
-        foreach (['view', 'index', 'create', 'delete', 'show', 'import', 'update', 'pdf-export', 'print','mobile_index','mobile_index'] as $view) {
+        foreach (['view', 'index', 'create', 'delete', 'show', 'import', 'update', 'pdf-export', 'print', 'mobile_index'] as $view) {
             if ($this->getThemeInput() == 'none') {
                 $viewTemplate = str_replace(
                     array_keys($replace),
@@ -379,65 +443,39 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
      *
      * @return string
      */
-    private function _buildClassName()
+    private function _buildClassName(): string
     {
         return Str::studly(Str::singular($this->table));
     }
 
     /**
-     * Determine the input field type based on database column type
+     * Determine the input field type based on database column type.
+     * Delegates to the shared TypeMapper for consistent mapping.
      *
      * @param string $dbColumnType The database column type (e.g., 'varchar(255)', 'int', 'timestamp')
      * @return string The HTML input type or field type
      */
-    private function determineFieldType($dbColumnType)
+    private function determineFieldType(string $dbColumnType): string
     {
-        $columnType = strtolower($dbColumnType);
-
-        // Determine input type based on column type
-        if (Str::contains($columnType, ['timestamp', 'date', 'datetime'])) {
-            return 'date';
-        } elseif (Str::contains($columnType, ['int', 'integer', 'bigint', 'smallint', 'tinyint'])) {
-            return 'number';
-        } elseif (Str::contains($columnType, 'time')) {
-            return 'time';
-        } elseif (Str::contains($columnType, ['text', 'longtext', 'mediumtext'])) {
-            return 'textarea';
-        } elseif (Str::contains($columnType, ['decimal', 'float', 'double', 'numeric'])) {
-            return 'number';
-        } elseif (Str::contains($columnType, ['bool', 'boolean', 'tinyint(1)'])) {
-            return 'checkbox';
-        } elseif (Str::contains($columnType, 'enum')) {
-            return 'select';
-        } elseif (Str::contains($columnType, 'json')) {
-            return 'textarea';
-        } elseif (Str::contains($columnType, ['char', 'varchar', 'string'])) {
-            return 'text';
-        }
-
-        return 'text'; // Default
+        // Use a temporary field name; TypeMapper::htmlInputType also accepts field name hints
+        return $this->typeMapper()->htmlInputType('', $dbColumnType);
     }
 
     /**
-     * Get the column type for a specific column name
-     *
-     * @param string $columnName
-     * @return string
+     * Get the column type for a specific column name.
      */
-    private function getColumnType($columnName)
+    private function getColumnType(string $columnName): string
     {
-        $columns = $this->getColumns();
-
-        foreach ($columns as $column) {
+        foreach ($this->getColumns() as $column) {
             if ($column->Field === $columnName) {
-                return $this->determineFieldType($column->Type);
+                return $this->typeMapper()->htmlInputType($columnName, $column->Type);
             }
         }
 
-        return 'text'; // Default fallback
+        return 'text';
     }
 
-	private function replace($content)
+    private function replace(string $content): string
     {
         foreach ($this->replaces as $search => $replace) {
             $content = str_replace($search, $replace, $content);

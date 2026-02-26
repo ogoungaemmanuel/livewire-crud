@@ -1,25 +1,51 @@
-{{-- Table Cell for {{title}} --}}
-<td>
-    @if(isset($item->{{column}}))
-        @if(is_bool($item->{{column}}))
-            {{-- Boolean field --}}
-            <span class="badge {{ $item->{{column}} ? 'bg-success' : 'bg-secondary' }}">
-                <i class="bi {{ $item->{{column}} ? 'bi-check-circle' : 'bi-x-circle' }}"></i>
-                {{ $item->{{column}} ? 'Yes' : 'No' }}
-            </span>
-        @elseif($item->{{column}} instanceof \Carbon\Carbon)
-            {{-- Date field --}}
-            <span class="text-muted small">
-                <i class="bi bi-calendar3"></i>
-                {{ $item->{{column}}->format('M d, Y') }}
-            </span>
+{{-- Table Cell: {{title}} --}}
+<td class="align-middle">
+    @php $__val = $item->{{column}} ?? null; @endphp
+    @if(is_null($__val))
+        <span class="text-muted fst-italic small">&#8212;</span>
+    @elseif(is_bool($__val) || $__val === 0 || $__val === 1 || $__val === '0' || $__val === '1')
+        {{-- Boolean --}}
+        <span class="badge rounded-pill {{ $__val ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border' }} px-2">
+            <i class="bi {{ $__val ? 'bi-check-circle-fill' : 'bi-x-circle' }} me-1" style="font-size:.7rem;"></i>{{ $__val ? 'Yes' : 'No' }}
+        </span>
+    @elseif($__val instanceof \Carbon\Carbon)
+        {{-- Date / Datetime --}}
+        <span class="text-nowrap small" title="{{ $__val->format('Y-m-d H:i:s') }}">
+            <i class="bi bi-calendar3 text-muted me-1"></i>{{ $__val->format('M d, Y') }}
+        </span>
+    @elseif(is_numeric($__val) && !is_string($__val))
+        {{-- Number --}}
+        <span class="font-monospace">{{ number_format($__val, 2) }}</span>
+    @elseif(filter_var($__val, FILTER_VALIDATE_URL))
+        {{-- URL --}}
+        <a href="{{ $__val }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none small">
+            <i class="bi bi-box-arrow-up-right me-1"></i>{{ Str::limit($__val, 30) }}
+        </a>
+    @elseif(filter_var($__val, FILTER_VALIDATE_EMAIL))
+        {{-- Email --}}
+        <a href="mailto:{{ $__val }}" class="text-decoration-none small">
+            <i class="bi bi-envelope me-1 text-muted"></i>{{ $__val }}
+        </a>
+    @elseif(in_array('{{column}}', ['image','photo','avatar','thumbnail','logo','picture']))
+        {{-- Image --}}
+        @if($__val)
+            <img src="{{ asset('uploads/images/' . $__val) }}" alt="{{title}}"
+                 class="rounded border" style="width:36px;height:36px;object-fit:cover;"
+                 onerror="this.src='https://via.placeholder.com/36'">
         @else
-            {{-- Regular text field --}}
-            <div class="text-truncate" style="max-width: 200px;" title="{{ $item->{{column}} }}">
-                {{ $item->{{column}} }}
-            </div>
+            <span class="text-muted fst-italic small">&#8212;</span>
         @endif
     @else
-        <span class="text-muted fst-italic">N/A</span>
+        {{-- Text (truncated with tooltip) --}}
+        @php $__short = Str::limit((string)$__val, 50); @endphp
+        @if(strlen((string)$__val) > 50)
+            <span class="text-truncate d-inline-block" style="max-width:180px;"
+                  data-bs-toggle="tooltip" data-bs-placement="top" title="{{ e($__val) }}">
+                {{ $__short }}
+            </span>
+        @else
+            {{ $__val }}
+        @endif
     @endif
 </td>
+

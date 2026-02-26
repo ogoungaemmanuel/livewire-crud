@@ -1,0 +1,71 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+/**
+ * {{modelName}}Resource — JSON:API-style transformer for the {{modelName}} model.
+ *
+ * Consumed by:
+ *  - {{modelName}}Controller::index()  → collection
+ *  - {{modelName}}Controller::show()   → single resource
+ *  - {{modelName}}Controller::store()  → newly created resource
+ *  - {{modelName}}Controller::update() → updated resource
+ *
+ * Usage:
+ *   return new {{modelName}}Resource(${{modelNameLowerCase}});
+ *   return {{modelName}}Resource::collection($paginated);
+ */
+class {{modelName}}Resource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id'         => $this->id,
+            {{fillable}}
+            'status'     => $this->when(isset($this->status), $this->status),
+            'status_label' => $this->when(
+                isset($this->status),
+                fn () => ucfirst($this->status)
+            ),
+            'created_at' => $this->created_at?->toISOString(),
+            'updated_at' => $this->updated_at?->toISOString(),
+            'deleted_at' => $this->when(
+                $this->trashed(),
+                $this->deleted_at?->toISOString()
+            ),
+
+            // ── Relationships (uncomment as needed) ──────────────────────
+            // 'creator' => new UserResource($this->whenLoaded('creator')),
+        ];
+    }
+
+    /**
+     * Wrap the resource in a top-level "data" key.
+     */
+    public static $wrap = 'data';
+
+    /**
+     * Add extra meta to the resource response.
+     *
+     * @return array<string, mixed>
+     */
+    public function with(Request $request): array
+    {
+        return [
+            'meta' => [
+                'resource' => '{{modelName}}',
+                'module'   => '{{getModuleInputModule}}',
+            ],
+        ];
+    }
+}

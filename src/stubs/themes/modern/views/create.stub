@@ -1,7 +1,15 @@
-<div class="row g-3">
+{{-- Create {{modelTitle}} — Enterprise Form --}}
+
+<div x-data="{ hasChanges: false }" class="row g-3">
+
+    {{-- Header --}}
     <div class="col-12">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Fill in the form below to create a new {{modelNameLowerCase}}.
+        <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-primary-subtle border border-primary-subtle">
+            <div class="text-primary" style="font-size:1.5rem;"><i class="bi bi-plus-circle-fill"></i></div>
+            <div>
+                <h6 class="mb-0 fw-semibold text-primary-emphasis">New {{modelTitle}}</h6>
+                <small class="text-muted">Fields marked <span class="text-danger fw-bold">*</span> are required.</small>
+            </div>
         </div>
     </div>
 {{-- <div class="mb-3 col-md-6">
@@ -109,30 +117,30 @@ function uploadPhoto(event) {
         alert('Upload failed. Please try again.');
     });
 
-    xhr.open('POST', '{{ route("Administrator.grades.upload-photo") }}', true);
-    xhr.send(formData);
-}
-
-function removePhoto() {
-    document.getElementById('photo').value = '';
-    document.getElementById('photoPreview').style.display = 'none';
-    document.getElementById('photoFileInput').value = '';
-    @this.set('photo', '');
-}
-</script> --}}
 
     {{form}}
 
+    {{-- Validation summary --}}
     @if ($errors->any())
         <div class="col-12">
-            <div class="alert alert-danger">
-                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> Please fix the following errors:</h6>
-                <ul class="mb-0">
+            <div class="alert alert-danger alert-dismissible py-2 mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>{{ $errors->count() }} error(s). Please fix before saving.</strong>
+                <ul class="mb-0 mt-1 ps-3 small">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
             </div>
         </div>
     @endif
+
+    {{-- Footer --}}
+    <div class="col-12">
+        <p class="text-muted small mb-0">
+            <i class="bi bi-shield-lock me-1"></i>Data is encrypted in transit and stored securely.
+        </p>
+    </div>
+
 </div>

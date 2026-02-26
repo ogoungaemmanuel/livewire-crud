@@ -8,6 +8,8 @@ use Livewire\WithPagination;
 use Modules\{{getModuleInputModule}}\Models\{{modelName}};
 use Carbon\Carbon;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -19,33 +21,40 @@ use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Modules\{{getModuleInputModule}}\Exports\{{modelPluralName}}Export;
 use Modules\{{getModuleInputModule}}\Exports\{{modelName}}PdfExport;
+use Modules\{{getModuleInputModule}}\Exports\{{modelName}}Print;
 use Modules\{{getModuleInputModule}}\Imports\{{modelPluralName}}Import;
 use Modules\{{getModuleInputModule}}\Notifications\{{modelName}}Notification;
 use Illuminate\Support\Facades\Mail;
 use Modules\{{getModuleInputModule}}\Emails\{{modelName}}Email;
 use Modules\{{getModuleInputModule}}\Charts\{{modelName}}Chart;
 use Modules\{{getModuleInputModule}}\Fullcalendar\{{modelName}}Calendar;
+use Modules\{{getModuleInputModule}}\Resources\{{modelName}}Resource;
+use Xslainadmin\LivewireCrud\Concerns\InteractsWithResource;
 
 class {{modelPluralName}} extends Component
 {
     use WithPagination;
     use WithFileUploads;
+    use InteractsWithResource;
+
+    /** Binds this component to its Resource definition. */
+    protected static string $resource = {{modelName}}Resource::class;
 	protected $paginationTheme = 'bootstrap';
 
     // Form fields
     public $selected_id, $newimage, {{updatefield}};
     public ${{modelNameLowerCase}};
 
-    // Search and filters
-    public $indexSearch = '';
-    public $search = '';
+    // Search and filters (URL-querystring-synced via #[Url])
+    #[Url] public $indexSearch = '';
+    #[Url] public $search = '';
     public $filterStatus = '';
     public $filterDateRange = '';
     public $perPage = 10;
 
     // Sorting
-    public $sortField = 'created_at';
-    public $sortDirection = 'desc';
+    #[Url] public $sortField = 'created_at';
+    #[Url] public $sortDirection = 'desc';
 
     // Bulk operations
     public $selecteditem = [];
@@ -59,7 +68,7 @@ class {{modelPluralName}} extends Component
     public $chartData = [];
     public $analyticsFilters = [];
     public $customChartConfig = [];
-
+    
     // Calendar properties
     public $calendarView = 'month';
     public $calendarDate;
@@ -73,7 +82,7 @@ class {{modelPluralName}} extends Component
     public $eventAllDay = false;
     public $eventRecurring = false;
     public $eventFrequency = 'weekly';
-
+    
     // Print properties
     public $printFormat = 'pdf';
     public $printOrientation = 'portrait';
@@ -84,7 +93,7 @@ class {{modelPluralName}} extends Component
     public $printIncludeHeader = true;
     public $printIncludeFooter = true;
     public $printIncludeLogo = true;
-
+    
     // Notification properties
     public $notificationChannels = ['database', 'mail'];
     public $notificationTemplate = 'default';
@@ -120,7 +129,7 @@ class {{modelPluralName}} extends Component
     public $pdfPaperSize = 'a4';
     public $includeStatistics = true;
     public $exportFileName = '';
-
+    
     // Advanced PDF Export properties
     public $pdfTemplate = 'default';
     public $pdfWatermark = null;
@@ -137,16 +146,7 @@ class {{modelPluralName}} extends Component
     public $importFile;
     public $importResults = [];
 
-    protected $queryString = ['indexSearch', 'search', 'sortField', 'sortDirection'];
     public $updateMode = false;
-
-    #[On('refresh-the-component')]
-
-     // public function mount()
-    // {
-    //     $this->posted_by = User_Detail()->name;
-    //     $this->status = 'active';
-    // }
 
     public function mount()
     {
@@ -154,16 +154,16 @@ class {{modelPluralName}} extends Component
         $model = new {{modelName}}();
         $this->availableColumns = $model->getFillable();
         $this->exportColumns = $this->availableColumns;
-
+        
         // Initialize calendar date
         $this->calendarDate = now()->format('Y-m-d');
-
+        
         // Initialize print columns
         $this->printColumns = $this->availableColumns;
-
+        
         // Initialize notification recipients
         $this->notificationRecipients = [auth()->user()->email ?? 'admin@example.com'];
-
+        
         // Initialize export filters
         $this->exportFilters = [
             'show_headers' => true,
@@ -337,7 +337,8 @@ class {{modelPluralName}} extends Component
     {		{{resetfields}}
     }
 
-    public function refreshTheComponent()
+    #[On('refresh-the-component')]
+    public function refreshTheComponent(): void
     {
         $this->dispatch('$refresh');
     }
@@ -359,7 +360,7 @@ class {{modelPluralName}} extends Component
 
         // Send notification
         $record->notify(new {{modelName}}Notification($record, {{modelName}}Notification::TYPE_CREATED, auth()->user()));
-
+        
         // Send email notification if configured
         $this->sendNotificationEmail($record->id, 'created');
 
@@ -423,7 +424,7 @@ class {{modelPluralName}} extends Component
 
             // Send notification
             $record->notify(new {{modelName}}Notification($record, {{modelName}}Notification::TYPE_UPDATED, auth()->user()));
-
+            
             // Send email notification if configured
             $this->sendNotificationEmail($record->id, 'updated');
 
@@ -440,17 +441,17 @@ class {{modelPluralName}} extends Component
     {
         if ($id) {
             $record = {{modelName}}::find($id);
-
+            
             if ($record) {
                 // Send notification before deletion
                 $record->notify(new {{modelName}}Notification($record, {{modelName}}Notification::TYPE_DELETED, auth()->user()));
-
+                
                 // Send email notification if configured
                 $this->sendNotificationEmail($record->id, 'deleted');
-
+                
                 $record->delete();
             }
-
+            
             $this->dispatch('closeModal');
             flash()->addSuccess('{{modelName}} Successfully Deleted.');
         }
@@ -580,9 +581,9 @@ class {{modelPluralName}} extends Component
         try {
             $query = $query ?: $this->getExportQuery();
             $data = $query->get();
-
+            
             $filters = array_merge($this->getAppliedFilters(), $this->exportFilters);
-
+            
             $options = [
                 'title' => $this->exportFileName ?: '{{modelPluralTitle}} Export Report',
                 'orientation' => $this->pdfOrientation,
@@ -596,25 +597,25 @@ class {{modelPluralName}} extends Component
                 'watermark' => $this->pdfWatermark,
                 'custom_css' => $this->pdfCustomCss,
             ];
-
+            
             $export = new {{modelName}}PdfExport($data, $filters, 'pdf', $this->pdfTemplate, $options);
-
+            
             return $export->export();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Advanced PDF export failed: ' . $e->getMessage());
             Log::error('Advanced PDF export error: ' . $e->getMessage());
         }
     }
-
+    
     public function exportToStorage($disk = 'local', $path = 'exports')
     {
         try {
             $query = $this->getExportQuery();
             $data = $query->get();
-
+            
             $filters = array_merge($this->getAppliedFilters(), $this->exportFilters);
-
+            
             $options = [
                 'title' => $this->exportFileName ?: '{{modelPluralTitle}} Export Report',
                 'orientation' => $this->pdfOrientation,
@@ -622,44 +623,44 @@ class {{modelPluralName}} extends Component
                 'show_summary' => $this->exportSummary,
                 'include_charts' => $this->exportCharts,
             ];
-
+            
             $export = new {{modelName}}PdfExport($data, $filters, $this->exportFormat, $this->pdfTemplate, $options);
-
+            
             $filePath = $export->saveToStorage($disk, $path);
-
+            
             flash()->addSuccess("Export saved to storage: {$filePath}");
-
+            
             return $filePath;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to save export to storage: ' . $e->getMessage());
             Log::error('Export to storage error: ' . $e->getMessage());
         }
     }
-
+    
     public function exportBatch($batchSize = null)
     {
         try {
             $batchSize = $batchSize ?: $this->batchSize;
             $query = $this->getExportQuery();
             $totalRecords = $query->count();
-
+            
             if ($totalRecords <= $batchSize) {
                 // Small dataset, export normally
                 return $this->exportAdvancedPdf($query);
             }
-
+            
             // Large dataset, process in batches
             $batches = ceil($totalRecords / $batchSize);
             $exportedFiles = [];
-
+            
             for ($i = 0; $i < $batches; $i++) {
                 $offset = $i * $batchSize;
                 $batchQuery = clone $query;
                 $batchData = $batchQuery->skip($offset)->take($batchSize)->get();
-
+                
                 $filters = array_merge($this->getAppliedFilters(), $this->exportFilters);
-
+                
                 $options = [
                     'title' => $this->exportFileName ?: "{{modelPluralTitle}} Export Batch " . ($i + 1),
                     'orientation' => $this->pdfOrientation,
@@ -667,31 +668,31 @@ class {{modelPluralName}} extends Component
                     'show_summary' => $i === 0 ? $this->exportSummary : false, // Only show summary in first batch
                     'include_charts' => $i === 0 ? $this->exportCharts : false,
                 ];
-
+                
                 $export = new {{modelName}}PdfExport($batchData, $filters, $this->exportFormat, $this->pdfTemplate, $options);
                 $filePath = $export->saveToStorage('local', 'exports/batches');
-
+                
                 $exportedFiles[] = $filePath;
             }
-
+            
             flash()->addSuccess("Large dataset exported in {$batches} batches. Files saved to storage.");
-
+            
             return $exportedFiles;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Batch export failed: ' . $e->getMessage());
             Log::error('Batch export error: ' . $e->getMessage());
         }
     }
-
+    
     public function exportCustomTemplate($templateName, $customOptions = [])
     {
         try {
             $query = $this->getExportQuery();
             $data = $query->get();
-
+            
             $filters = array_merge($this->getAppliedFilters(), $this->exportFilters);
-
+            
             $options = array_merge([
                 'title' => $this->exportFileName ?: '{{modelPluralTitle}} Custom Export',
                 'orientation' => $this->pdfOrientation,
@@ -699,34 +700,34 @@ class {{modelPluralName}} extends Component
                 'show_summary' => $this->exportSummary,
                 'include_charts' => $this->exportCharts,
             ], $customOptions);
-
+            
             $export = new {{modelName}}PdfExport($data, $filters, $this->exportFormat, $templateName, $options);
-
+            
             return $export->export();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Custom template export failed: ' . $e->getMessage());
             Log::error('Custom template export error: ' . $e->getMessage());
         }
     }
-
+    
     public function previewExport($format = 'pdf')
     {
         try {
             $query = $this->getExportQuery();
             $previewData = $query->take(10)->get(); // Only preview first 10 records
-
+            
             $filters = array_merge($this->getAppliedFilters(), $this->exportFilters);
-
+            
             $options = array_merge($this->exportFilters, [
                 'title' => 'Preview: ' . ($this->exportFileName ?: '{{modelPluralTitle}} Export'),
                 'orientation' => $this->pdfOrientation,
                 'paper_size' => $this->pdfPaperSize,
                 'preview' => true,
             ]);
-
+            
             $export = new {{modelName}}PdfExport($previewData, $filters, $format, $this->pdfTemplate, $options);
-
+            
             if ($format === 'pdf') {
                 $content = $export->getExportContent();
                 $this->dispatch('show-export-preview', ['content' => base64_encode($content), 'type' => 'pdf']);
@@ -734,20 +735,20 @@ class {{modelPluralName}} extends Component
                 $content = $export->getExportContent();
                 $this->dispatch('show-export-preview', ['content' => $content, 'type' => $format]);
             }
-
+            
         } catch (\Exception $e) {
             flash()->addError('Export preview failed: ' . $e->getMessage());
             Log::error('Export preview error: ' . $e->getMessage());
         }
     }
-
+    
     public function exportWithCharts()
     {
         try {
             $this->exportCharts = true;
             $query = $this->getExportQuery();
             $data = $query->get();
-
+            
             // Load chart data for export
             $chartService = new {{modelName}}Chart();
             $chartData = [
@@ -755,11 +756,11 @@ class {{modelPluralName}} extends Component
                 'monthly_trends' => $chartService->getCreatedOverTimeData('month'),
                 'analytics_summary' => $chartService->getRealTimeStats(),
             ];
-
+            
             $filters = array_merge($this->getAppliedFilters(), $this->exportFilters, [
                 'chart_data' => $chartData
             ]);
-
+            
             $options = [
                 'title' => $this->exportFileName ?: '{{modelPluralTitle}} Analytics Report',
                 'orientation' => 'landscape', // Better for charts
@@ -767,51 +768,51 @@ class {{modelPluralName}} extends Component
                 'show_summary' => true,
                 'include_charts' => true,
             ];
-
+            
             $export = new {{modelName}}PdfExport($data, $filters, 'pdf', 'detailed', $options);
-
+            
             return $export->export();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Chart export failed: ' . $e->getMessage());
             Log::error('Chart export error: ' . $e->getMessage());
         }
     }
-
+    
     public function exportSelectedRecords($ids = null)
     {
         try {
             $selectedIds = $ids ?: $this->selectedItems;
-
+            
             if (empty($selectedIds)) {
                 flash()->addWarning('No records selected for export.');
                 return;
             }
-
+            
             $data = {{modelName}}::whereIn('id', $selectedIds)->get();
-
+            
             $filters = [
                 'selection_type' => 'selected',
                 'selected_count' => count($selectedIds),
             ];
-
+            
             $options = [
                 'title' => $this->exportFileName ?: '{{modelPluralTitle}} Selected Records Export',
                 'orientation' => $this->pdfOrientation,
                 'paper_size' => $this->pdfPaperSize,
                 'show_summary' => true,
             ];
-
+            
             $export = new {{modelName}}PdfExport($data, $filters, $this->exportFormat, $this->pdfTemplate, $options);
-
+            
             return $export->export();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Selected records export failed: ' . $e->getMessage());
             Log::error('Selected records export error: ' . $e->getMessage());
         }
     }
-
+    
     public function setPdfOptions($options)
     {
         $this->pdfTemplate = $options['template'] ?? $this->pdfTemplate;
@@ -821,10 +822,10 @@ class {{modelPluralName}} extends Component
         $this->pdfPassword = $options['password'] ?? $this->pdfPassword;
         $this->pdfCompress = $options['compress'] ?? $this->pdfCompress;
         $this->pdfCustomCss = $options['custom_css'] ?? $this->pdfCustomCss;
-
+        
         $this->dispatch('pdf-options-updated', $options);
     }
-
+    
     public function resetExportSettings()
     {
         $this->exportFormat = 'excel';
@@ -844,7 +845,7 @@ class {{modelPluralName}} extends Component
         $this->pdfCompress = false;
         $this->exportSummary = true;
         $this->exportCharts = false;
-
+        
         $this->dispatch('export-settings-reset');
     }
 
@@ -973,100 +974,100 @@ class {{modelPluralName}} extends Component
     {
         try {
             $chartService = new {{modelName}}Chart();
-
+            
             switch ($chartType) {
                 case 'status_distribution':
                     $this->chartData = $chartService->getStatusDistributionData();
                     break;
-
+                    
                 case 'monthly_comparison':
                     $this->chartData = $chartService->getMonthlyComparisonData();
                     break;
-
+                    
                 case 'trend_analysis':
                     $this->chartData = $chartService->getTrendAnalysisData();
                     break;
-
+                    
                 case 'heatmap':
                     $this->chartData = $chartService->getHeatmapData();
                     break;
-
+                    
                 case 'gauge':
                     $this->chartData = $chartService->getGaugeChartData();
                     break;
-
+                    
                 default:
                     $this->chartData = $chartService->getCreatedOverTimeData($period);
             }
-
+            
             $this->dispatch('chart-data-updated', $this->chartData);
             return $this->chartData;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to load chart data: ' . $e->getMessage());
             return [];
         }
     }
-
+    
     public function updateChartPeriod($period)
     {
         $this->chartPeriod = $period;
         $this->loadChartData($this->chartType, $period);
     }
-
+    
     public function changeChartType($type)
     {
         $this->chartType = $type;
         $this->loadChartData($type, $this->chartPeriod);
     }
-
+    
     public function exportChartData($format = 'json')
     {
         try {
             $chartService = new {{modelName}}Chart();
             $exportData = $chartService->exportChartData($this->chartData, $format);
-
+            
             $filename = '{{modelNamePluralLowerCase}}_chart_' . $this->chartType . '_' . now()->format('Y-m-d_His');
-
+            
             return response()->streamDownload(function() use ($exportData) {
                 echo $exportData;
             }, $filename . '.' . $format);
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to export chart data: ' . $e->getMessage());
         }
     }
-
+    
     public function createCustomChart($config)
     {
         try {
             $this->customChartConfig = $config;
             $chartService = new {{modelName}}Chart();
-
+            
             $chartData = $chartService->getCustomAggregationData(
                 $config['groupBy'],
                 $config['aggregation'],
                 $config['aggregateField'] ?? '*',
                 $config['filters'] ?? []
             );
-
+            
             $this->dispatch('custom-chart-created', $chartData);
             flash()->addSuccess('Custom chart created successfully!');
-
+            
             return $chartData;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to create custom chart: ' . $e->getMessage());
             return [];
         }
     }
-
+    
     public function getAnalyticsStats()
     {
         try {
             $chartService = new {{modelName}}Chart();
             return $chartService->getRealTimeStats();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to load analytics stats: ' . $e->getMessage());
             return [];
@@ -1079,26 +1080,26 @@ class {{modelPluralName}} extends Component
         try {
             $calendar = new {{modelName}}Calendar();
             $this->calendarEvents = $calendar->getEvents(request());
-
+            
             $this->dispatch('calendar-events-loaded', $this->calendarEvents);
             return $this->calendarEvents;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to load calendar events: ' . $e->getMessage());
             return [];
         }
     }
-
+    
     public function createCalendarEvent()
     {
         $this->validate([
             'eventTitle' => 'required|string|max:255',
             'eventStart' => 'required|date',
         ]);
-
+        
         try {
             $calendar = new {{modelName}}Calendar();
-
+            
             $eventData = [
                 'title' => $this->eventTitle,
                 'start' => $this->eventStart,
@@ -1109,38 +1110,38 @@ class {{modelPluralName}} extends Component
                 'recurring' => $this->eventRecurring,
                 'recurring_frequency' => $this->eventFrequency,
             ];
-
+            
             $event = $calendar->createEvent($eventData);
-
+            
             // Send notification
             $event->notify(new {{modelName}}Notification(
-                $event,
-                {{modelName}}Notification::TYPE_CALENDAR_EVENT_CREATED,
+                $event, 
+                {{modelName}}Notification::TYPE_CALENDAR_EVENT_CREATED, 
                 auth()->user(),
                 ['event_title' => $this->eventTitle]
             ));
-
+            
             $this->resetCalendarForm();
             $this->loadCalendarEvents();
-
+            
             flash()->addSuccess('Calendar event created successfully!');
             $this->dispatch('closeModal');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to create calendar event: ' . $e->getMessage());
         }
     }
-
+    
     public function updateCalendarEvent($eventId)
     {
         $this->validate([
             'eventTitle' => 'required|string|max:255',
             'eventStart' => 'required|date',
         ]);
-
+        
         try {
             $calendar = new {{modelName}}Calendar();
-
+            
             $eventData = [
                 'title' => $this->eventTitle,
                 'start' => $this->eventStart,
@@ -1151,131 +1152,131 @@ class {{modelPluralName}} extends Component
                 'recurring' => $this->eventRecurring,
                 'recurring_frequency' => $this->eventFrequency,
             ];
-
+            
             $event = $calendar->updateEvent($eventId, $eventData);
-
+            
             // Send notification
             $event->notify(new {{modelName}}Notification(
-                $event,
-                {{modelName}}Notification::TYPE_CALENDAR_EVENT_UPDATED,
+                $event, 
+                {{modelName}}Notification::TYPE_CALENDAR_EVENT_UPDATED, 
                 auth()->user(),
                 ['event_title' => $this->eventTitle]
             ));
-
+            
             $this->resetCalendarForm();
             $this->loadCalendarEvents();
-
+            
             flash()->addSuccess('Calendar event updated successfully!');
             $this->dispatch('closeModal');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to update calendar event: ' . $e->getMessage());
         }
     }
-
+    
     public function deleteCalendarEvent($eventId)
     {
         try {
             $calendar = new {{modelName}}Calendar();
             $event = {{modelName}}::findOrFail($eventId);
-
+            
             // Send notification before deletion
             $event->notify(new {{modelName}}Notification(
-                $event,
-                {{modelName}}Notification::TYPE_CALENDAR_EVENT_DELETED,
+                $event, 
+                {{modelName}}Notification::TYPE_CALENDAR_EVENT_DELETED, 
                 auth()->user(),
                 ['event_title' => $event->title ?? "Event #{$eventId}"]
             ));
-
+            
             $calendar->deleteEvent($eventId);
             $this->loadCalendarEvents();
-
+            
             flash()->addSuccess('Calendar event deleted successfully!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to delete calendar event: ' . $e->getMessage());
         }
     }
-
+    
     public function moveCalendarEvent($eventId, $newStart, $newEnd = null)
     {
         try {
             $calendar = new {{modelName}}Calendar();
-
+            
             $eventData = [
                 'start' => $newStart,
                 'end' => $newEnd,
             ];
-
+            
             $event = $calendar->updateEvent($eventId, $eventData);
             $this->loadCalendarEvents();
-
+            
             flash()->addSuccess('Calendar event moved successfully!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to move calendar event: ' . $e->getMessage());
         }
     }
-
+    
     public function changeCalendarView($view)
     {
         $this->calendarView = $view;
         $this->dispatch('calendar-view-changed', $view);
     }
-
+    
     public function exportCalendar($format = 'ical', $startDate = null, $endDate = null)
     {
         try {
             $calendar = new {{modelName}}Calendar();
-
+            
             $start = $startDate ? Carbon::parse($startDate) : Carbon::now()->startOfMonth();
             $end = $endDate ? Carbon::parse($endDate) : Carbon::now()->endOfMonth();
-
+            
             $exportData = $calendar->exportEvents($format, $start, $end);
-
+            
             $filename = '{{modelNamePluralLowerCase}}_calendar_' . now()->format('Y-m-d_His');
             $extension = $format === 'ical' ? 'ics' : $format;
-
+            
             return response()->streamDownload(function() use ($exportData) {
                 echo $exportData;
             }, $filename . '.' . $extension);
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to export calendar: ' . $e->getMessage());
         }
     }
-
+    
     public function getCalendarStatistics()
     {
         try {
             $calendar = new {{modelName}}Calendar();
             return $calendar->getEventStatistics();
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to load calendar statistics: ' . $e->getMessage());
             return [];
         }
     }
-
+    
     public function searchCalendarEvents($query, $startDate = null, $endDate = null)
     {
         try {
             $calendar = new {{modelName}}Calendar();
-
+            
             $start = $startDate ? Carbon::parse($startDate) : null;
             $end = $endDate ? Carbon::parse($endDate) : null;
-
+            
             $events = $calendar->searchEvents($query, $start, $end);
-
+            
             $this->dispatch('calendar-search-results', $events->toArray());
             return $events;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to search calendar events: ' . $e->getMessage());
             return collect();
         }
     }
-
+    
     public function resetCalendarForm()
     {
         $this->eventTitle = '';
@@ -1294,11 +1295,11 @@ class {{modelPluralName}} extends Component
     {
         try {
             $print = new {{modelName}}Print();
-
+            
             $this->printFormat = $type;
             $this->printOrientation = $orientation;
             $this->printPaperSize = $paperSize;
-
+            
             $data = [
                 'type' => $type,
                 'orientation' => $orientation,
@@ -1310,25 +1311,25 @@ class {{modelPluralName}} extends Component
                 'sort_field' => $this->sortField,
                 'sort_direction' => $this->sortDirection,
             ];
-
+            
             $result = $print->generateReport($data);
-
+            
             $this->dispatch('print-report-generated', ['url' => $result['url']]);
-
+            
             flash()->addSuccess('Report generated successfully!');
             return $result;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to generate report: ' . $e->getMessage());
         }
     }
-
+    
     public function printRow($id, $template = null)
     {
         try {
             ${{modelNameSingularLowerCase}} = {{modelName}}::findOrFail($id);
             $print = new {{modelName}}Print();
-
+            
             $data = [
                 'type' => $this->printFormat,
                 'orientation' => $this->printOrientation,
@@ -1337,32 +1338,32 @@ class {{modelPluralName}} extends Component
                 'options' => $this->printOptions,
                 'record' => ${{modelNameSingularLowerCase}},
             ];
-
+            
             $result = $print->generateSingleRecord($data);
-
+            
             $this->dispatch('print-record-generated', ['url' => $result['url']]);
-
+            
             flash()->addSuccess('{{modelTitle}} record printed successfully!');
             return $result;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to print {{modelNameSingularLowerCase}}: ' . $e->getMessage());
         }
     }
-
+    
     public function printSelected($ids = null, $template = null)
     {
         try {
             $selectedIds = $ids ?: $this->selected;
-
+            
             if (empty($selectedIds)) {
                 flash()->addWarning('Please select records to print.');
                 return;
             }
-
+            
             ${{modelNamePluralLowerCase}} = {{modelName}}::whereIn('id', $selectedIds)->get();
             $print = new {{modelName}}Print();
-
+            
             $data = [
                 'type' => $this->printFormat,
                 'orientation' => $this->printOrientation,
@@ -1371,27 +1372,27 @@ class {{modelPluralName}} extends Component
                 'options' => $this->printOptions,
                 'records' => ${{modelNamePluralLowerCase}},
             ];
-
+            
             $result = $print->generateMultipleRecords($data);
-
+            
             $this->dispatch('print-selected-generated', ['url' => $result['url']]);
-
+            
             flash()->addSuccess(count($selectedIds) . ' records printed successfully!');
             return $result;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to print selected records: ' . $e->getMessage());
         }
     }
-
+    
     public function printCustom($query = null, $template = null, $options = [])
     {
         try {
             $print = new {{modelName}}Print();
-
+            
             $customQuery = $query ?: {{modelName}}::query();
             $records = $customQuery->get();
-
+            
             $data = array_merge([
                 'type' => $this->printFormat,
                 'orientation' => $this->printOrientation,
@@ -1400,36 +1401,36 @@ class {{modelPluralName}} extends Component
                 'options' => array_merge($this->printOptions, $options),
                 'records' => $records,
             ], $options);
-
+            
             $result = $print->generateCustomReport($data);
-
+            
             $this->dispatch('print-custom-generated', ['url' => $result['url']]);
-
+            
             flash()->addSuccess('Custom report generated successfully!');
             return $result;
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to generate custom report: ' . $e->getMessage());
         }
     }
-
+    
     public function setPrintTemplate($template)
     {
         $this->printTemplate = $template;
         $this->dispatch('print-template-changed', $template);
     }
-
+    
     public function setPrintOptions($options)
     {
         $this->printOptions = array_merge($this->printOptions, $options);
         $this->dispatch('print-options-updated', $this->printOptions);
     }
-
+    
     public function previewPrint($type = 'report', $id = null)
     {
         try {
             $print = new {{modelName}}Print();
-
+            
             $data = [
                 'type' => $this->printFormat,
                 'orientation' => $this->printOrientation,
@@ -1437,7 +1438,7 @@ class {{modelPluralName}} extends Component
                 'template' => $this->printTemplate,
                 'options' => array_merge($this->printOptions, ['preview' => true]),
             ];
-
+            
             if ($type === 'record' && $id) {
                 $data['record'] = {{modelName}}::findOrFail($id);
                 $result = $print->generateSingleRecord($data);
@@ -1445,9 +1446,9 @@ class {{modelPluralName}} extends Component
                 $data['data'] = $this->{{modelNamePluralLowerCase}};
                 $result = $print->generateReport($data);
             }
-
+            
             $this->dispatch('print-preview-ready', ['html' => $result['preview']]);
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to generate print preview: ' . $e->getMessage());
         }
@@ -1598,7 +1599,7 @@ class {{modelPluralName}} extends Component
     {
         $this->resetEmailForm();
         $this->emailRecordId = $recordId;
-
+        
         if ($recordId) {
             $record = {{modelName}}::findOrFail($recordId);
             $this->emailSubject = "{{modelName}} Details - ID #{$record->id}";
@@ -1626,19 +1627,19 @@ class {{modelPluralName}} extends Component
     protected function getAppliedFilters(): array
     {
         $filters = [];
-
+        
         if ($this->search || $this->indexSearch) {
             $filters['search'] = $this->search ?: $this->indexSearch;
         }
-
+        
         if ($this->filterStatus) {
             $filters['status'] = $this->filterStatus;
         }
-
+        
         if ($this->filterDateRange) {
             $filters['date_range'] = $this->filterDateRange;
         }
-
+        
         return $filters;
     }
 
@@ -1646,10 +1647,10 @@ class {{modelPluralName}} extends Component
     {
         try {
             $record = {{modelName}}::findOrFail($recordId);
-
+            
             // Get notification recipients (you may want to customize this)
             $recipients = $this->getNotificationRecipients($action);
-
+            
             foreach ($recipients as $recipient) {
                 Mail::to($recipient)->send(
                     new {{modelName}}Email(
@@ -1668,7 +1669,7 @@ class {{modelPluralName}} extends Component
                     )
                 );
             }
-
+            
         } catch (\Exception $e) {
             \Log::error("Failed to send notification email for {{modelNameLowerCase}} {$recordId}: " . $e->getMessage());
         }
@@ -1679,19 +1680,19 @@ class {{modelPluralName}} extends Component
     {
         try {
             $recipients = $recipients ?: $this->notificationRecipients;
-
+            
             if (empty($recipients)) {
                 flash()->addWarning('No recipients selected for notification.');
                 return;
             }
-
+            
             $notification = new {{modelName}}Notification(
                 null, // record can be null for general notifications
                 $type,
                 auth()->user(),
                 $data
             );
-
+            
             foreach ($recipients as $recipient) {
                 if (is_string($recipient)) {
                     // Email address
@@ -1701,25 +1702,25 @@ class {{modelPluralName}} extends Component
                     $recipient->notify($notification);
                 }
             }
-
+            
             flash()->addSuccess('Notification sent successfully to ' . count($recipients) . ' recipients!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to send notification: ' . $e->getMessage());
         }
     }
-
+    
     public function sendBulkNotification($recordIds, $type, $additionalData = [])
     {
         try {
             $records = {{modelName}}::whereIn('id', $recordIds)->get();
             $recipients = $this->notificationRecipients;
-
+            
             if (empty($recipients)) {
                 flash()->addWarning('No recipients configured for notifications.');
                 return;
             }
-
+            
             foreach ($records as $record) {
                 $notification = new {{modelName}}Notification(
                     $record,
@@ -1730,7 +1731,7 @@ class {{modelPluralName}} extends Component
                         'total_records' => count($records)
                     ])
                 );
-
+                
                 foreach ($recipients as $recipient) {
                     if (is_string($recipient)) {
                         Notification::route('mail', $recipient)->notify($notification);
@@ -1739,19 +1740,19 @@ class {{modelPluralName}} extends Component
                     }
                 }
             }
-
+            
             flash()->addSuccess('Bulk notifications sent successfully!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to send bulk notifications: ' . $e->getMessage());
         }
     }
-
+    
     public function sendScheduledNotification($type, $scheduleTime, $recipients = null, $data = [])
     {
         try {
             $recipients = $recipients ?: $this->notificationRecipients;
-
+            
             $notification = new {{modelName}}Notification(
                 null,
                 $type,
@@ -1761,7 +1762,7 @@ class {{modelPluralName}} extends Component
                     'schedule_time' => $scheduleTime
                 ])
             );
-
+            
             // Queue notification for later
             foreach ($recipients as $recipient) {
                 if (is_string($recipient)) {
@@ -1771,20 +1772,20 @@ class {{modelPluralName}} extends Component
                     $recipient->notify($notification->delay($scheduleTime));
                 }
             }
-
+            
             flash()->addSuccess('Notification scheduled successfully for ' . $scheduleTime->format('Y-m-d H:i'));
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to schedule notification: ' . $e->getMessage());
         }
     }
-
+    
     public function sendTemplateNotification($templateType, $recipients = null, $data = [])
     {
         try {
             $this->notificationTemplate = $templateType;
             $recipients = $recipients ?: $this->notificationRecipients;
-
+            
             $notification = new {{modelName}}Notification(
                 null,
                 {{modelName}}Notification::TYPE_TEMPLATE,
@@ -1794,7 +1795,7 @@ class {{modelPluralName}} extends Component
                     'custom_template' => true
                 ])
             );
-
+            
             foreach ($recipients as $recipient) {
                 if (is_string($recipient)) {
                     Notification::route('mail', $recipient)->notify($notification);
@@ -1802,14 +1803,14 @@ class {{modelPluralName}} extends Component
                     $recipient->notify($notification);
                 }
             }
-
+            
             flash()->addSuccess('Template notification sent successfully!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to send template notification: ' . $e->getMessage());
         }
     }
-
+    
     public function getNotificationHistory($limit = 50)
     {
         try {
@@ -1818,33 +1819,33 @@ class {{modelPluralName}} extends Component
                 ->orderBy('created_at', 'desc')
                 ->limit($limit)
                 ->get();
-
+                
         } catch (\Exception $e) {
             flash()->addError('Failed to load notification history: ' . $e->getMessage());
             return collect();
         }
     }
-
+    
     public function markNotificationAsRead($notificationId)
     {
         try {
             DB::table('notifications')
                 ->where('id', $notificationId)
                 ->update(['read_at' => now()]);
-
+                
             flash()->addSuccess('Notification marked as read.');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to mark notification as read: ' . $e->getMessage());
         }
     }
-
+    
     public function setNotificationChannels($channels)
     {
         $this->notificationChannels = $channels;
         $this->dispatch('notification-channels-updated', $channels);
     }
-
+    
     public function addNotificationRecipient($recipient)
     {
         if (!in_array($recipient, $this->notificationRecipients)) {
@@ -1852,7 +1853,7 @@ class {{modelPluralName}} extends Component
             $this->dispatch('notification-recipient-added', $recipient);
         }
     }
-
+    
     public function removeNotificationRecipient($recipient)
     {
         $this->notificationRecipients = array_filter(
@@ -1861,7 +1862,7 @@ class {{modelPluralName}} extends Component
         );
         $this->dispatch('notification-recipient-removed', $recipient);
     }
-
+    
     public function testNotification($type = {{modelName}}Notification::TYPE_TEST)
     {
         try {
@@ -1874,11 +1875,11 @@ class {{modelPluralName}} extends Component
                     'sent_at' => now()->format('Y-m-d H:i:s')
                 ]
             );
-
+            
             auth()->user()->notify($notification);
-
+            
             flash()->addSuccess('Test notification sent successfully!');
-
+            
         } catch (\Exception $e) {
             flash()->addError('Failed to send test notification: ' . $e->getMessage());
         }
@@ -1888,7 +1889,7 @@ class {{modelPluralName}} extends Component
     {
         // Customize this method to return appropriate recipients based on action
         // For example, get admin users, managers, or specific role-based recipients
-
+        
         return [
             // You can customize this based on your needs
             // auth()->user()->email, // Current user
@@ -1901,23 +1902,23 @@ class {{modelPluralName}} extends Component
     {
         if (count($this->selectedItems) > 0) {
             $affectedCount = count($this->selectedItems);
-
+            
             // Get records before deletion for notifications
             $records = {{modelName}}::whereIn('id', $this->selectedItems)->get();
-
+            
             // Send notifications for each record
             foreach ($records as $record) {
                 $record->notify(new {{modelName}}Notification(
-                    $record,
-                    {{modelName}}Notification::TYPE_BULK_ACTION,
+                    $record, 
+                    {{modelName}}Notification::TYPE_BULK_ACTION, 
                     auth()->user(),
                     ['bulk_action' => 'deleted', 'affected_count' => $affectedCount]
                 ));
             }
-
+            
             {{modelName}}::whereIn('id', $this->selectedItems)->delete();
             $this->selectedItems = [];
-
+            
             flash()->addSuccess('Selected {{modelNamePluralLowerCase}} deleted successfully!');
             return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
         }
@@ -1927,22 +1928,22 @@ class {{modelPluralName}} extends Component
     {
         if (count($this->selectedItems) > 0) {
             $affectedCount = count($this->selectedItems);
-
+            
             // Get records for notifications
             $records = {{modelName}}::whereIn('id', $this->selectedItems)->get();
-
+            
             {{modelName}}::whereIn('id', $this->selectedItems)->update(['status' => 'active']);
-
+            
             // Send notifications
             foreach ($records as $record) {
                 $record->notify(new {{modelName}}Notification(
-                    $record,
-                    {{modelName}}Notification::TYPE_BULK_ACTION,
+                    $record, 
+                    {{modelName}}Notification::TYPE_BULK_ACTION, 
                     auth()->user(),
                     ['bulk_action' => 'activated', 'affected_count' => $affectedCount]
                 ));
             }
-
+            
             $this->selectedItems = [];
             flash()->addSuccess('Selected {{modelNamePluralLowerCase}} activated successfully!');
             return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
@@ -1953,22 +1954,22 @@ class {{modelPluralName}} extends Component
     {
         if (count($this->selectedItems) > 0) {
             $affectedCount = count($this->selectedItems);
-
+            
             // Get records for notifications
             $records = {{modelName}}::whereIn('id', $this->selectedItems)->get();
-
+            
             {{modelName}}::whereIn('id', $this->selectedItems)->update(['status' => 'inactive']);
-
+            
             // Send notifications
             foreach ($records as $record) {
                 $record->notify(new {{modelName}}Notification(
-                    $record,
-                    {{modelName}}Notification::TYPE_BULK_ACTION,
+                    $record, 
+                    {{modelName}}Notification::TYPE_BULK_ACTION, 
                     auth()->user(),
                     ['bulk_action' => 'deactivated', 'affected_count' => $affectedCount]
                 ));
             }
-
+            
             $this->selectedItems = [];
             flash()->addSuccess('Selected {{modelNamePluralLowerCase}} deactivated successfully!');
             return $this->redirect('/{{getModuleInput}}/{{getNameInput}}', navigate: true);
@@ -2009,21 +2010,21 @@ class {{modelPluralName}} extends Component
             $record = {{modelName}}::find($id);
             if ($record) {
                 $record->update(['status' => 'inactive']);
-
+                
                 // Send notification
                 $record->notify(new {{modelName}}Notification(
-                    $record,
-                    {{modelName}}Notification::TYPE_STATUS_CHANGED,
+                    $record, 
+                    {{modelName}}Notification::TYPE_STATUS_CHANGED, 
                     auth()->user(),
                     ['new_status' => 'inactive', 'old_status' => 'active']
                 ));
-
+                
                 // Send email notification if configured
                 $this->sendNotificationEmail($record->id, 'deactivated', [
                     'new_status' => 'inactive'
                 ]);
             }
-
+            
             $this->dispatch('closeModal');
             flash()->addSuccess('{{modelName}} Successfully Deactivated.');
         }
@@ -2035,21 +2036,21 @@ class {{modelPluralName}} extends Component
             $record = {{modelName}}::find($id);
             if ($record) {
                 $record->update(['status' => 'active']);
-
+                
                 // Send notification
                 $record->notify(new {{modelName}}Notification(
-                    $record,
-                    {{modelName}}Notification::TYPE_STATUS_CHANGED,
+                    $record, 
+                    {{modelName}}Notification::TYPE_STATUS_CHANGED, 
                     auth()->user(),
                     ['new_status' => 'active', 'old_status' => 'inactive']
                 ));
-
+                
                 // Send email notification if configured
                 $this->sendNotificationEmail($record->id, 'activated', [
                     'new_status' => 'active'
                 ]);
             }
-
+            
             $this->dispatch('closeModal');
             flash()->addSuccess('{{modelName}} Successfully Activated.');
         }

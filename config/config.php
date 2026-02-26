@@ -639,10 +639,350 @@ return [
         'import_functionality' => true,
         'bulk_operations' => true,
         'real_time_updates' => false,
-        'audit_logging' => false,
+        'audit_logging' => true,
         'multi_language' => false,
         'api_endpoints' => true,
         'webhook_support' => false,
+        'query_builder' => true,
+        'scout_search' => false,
+        'horizon_monitoring' => false,
+        'pulse_monitoring' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Audit / Activity-Log Configuration
+    |--------------------------------------------------------------------------
+    | Configures Spatie laravel-activitylog integration.
+    */
+    'audit' => [
+        /*
+         * Events that automatically trigger an activity log entry.
+         */
+        'log_events' => [
+            'created' => true,
+            'updated' => true,
+            'deleted' => true,
+            'restored' => true,
+        ],
+
+        /*
+         * Causer resolution strategy: 'auth' (default) or 'system'.
+         */
+        'causer' => 'auth',
+
+        /*
+         * Whether to log the before/after model attribute changes.
+         */
+        'log_dirty_attributes' => true,
+
+        /*
+         * Retention period in days (0 = keep forever).
+         */
+        'retention_days' => 90,
+
+        /*
+         * Log name to group CRUD activity logs under.
+         */
+        'log_name' => 'crud',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Horizon Configuration
+    |--------------------------------------------------------------------------
+    | Settings used when Laravel Horizon is installed and queue monitoring
+    | is enabled via the 'horizon_monitoring' feature flag.
+    */
+    'horizon' => [
+        /*
+         * Queue connection name that async CRUD jobs are dispatched on.
+         */
+        'connection' => env('QUEUE_CONNECTION', 'redis'),
+
+        /*
+         * Queue name for heavy export / import jobs.
+         */
+        'export_queue' => env('CRUD_EXPORT_QUEUE', 'exports'),
+
+        /*
+         * Queue name for notification and email dispatches.
+         */
+        'notification_queue' => env('CRUD_NOTIFICATION_QUEUE', 'notifications'),
+
+        /*
+         * Maximum number of retries for failed CRUD jobs.
+         */
+        'max_tries' => 3,
+
+        /*
+         * Backoff strategy in seconds between retries.
+         */
+        'backoff' => [30, 60, 120],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pulse Configuration
+    |--------------------------------------------------------------------------
+    | Settings for Laravel Pulse integration (real-time performance dashboard).
+    | Only active when the 'pulse_monitoring' feature flag is enabled.
+    */
+    'pulse' => [
+        /*
+         * Record slow CRUD queries to Pulse slow-queries recorder.
+         */
+        'record_slow_queries' => true,
+
+        /*
+         * Threshold in milliseconds above which a query is classified as slow.
+         */
+        'slow_query_threshold_ms' => 500,
+
+        /*
+         * Record CRUD-related exceptions to Pulse exceptions recorder.
+         */
+        'record_exceptions' => true,
+
+        /*
+         * Pulse queue for background ingestion.
+         */
+        'queue' => env('PULSE_QUEUE', 'default'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Scout / Search Configuration
+    |--------------------------------------------------------------------------
+    | Configures Laravel Scout integration for full-text search within
+    | generated Livewire components.
+    */
+    'scout' => [
+        /*
+         * Whether generated models should use the Searchable trait.
+         */
+        'enabled' => env('CRUD_SCOUT_ENABLED', false),
+
+        /*
+         * Scout driver: 'algolia', 'meilisearch', 'typesense', 'database', 'collection'.
+         */
+        'driver' => env('SCOUT_DRIVER', 'meilisearch'),
+
+        /*
+         * Fields to index for every generated model (empty = all fillable fields).
+         */
+        'index_fields' => [],
+
+        /*
+         * Minimum character count before a live search fires.
+         */
+        'min_search_length' => 2,
+
+        /*
+         * Debounce delay in milliseconds for Livewire wire:model.live search.
+         */
+        'debounce_ms' => 300,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Permissions / RBAC Configuration
+    |--------------------------------------------------------------------------
+    | Configures Spatie laravel-permission integration for CRUD operations.
+    */
+    'permissions' => [
+        /*
+         * Whether to scaffold permission gates around generated Livewire methods.
+         */
+        'enabled' => true,
+
+        /*
+         * Guard to use for permission checks.
+         */
+        'guard' => 'web',
+
+        /*
+         * Auto-seeded permission names for each CRUD operation.
+         * Use {{modelName}} as a placeholder; it is replaced at generation time.
+         */
+        'auto_create' => [
+            'view-{{modelName}}',
+            'create-{{modelName}}',
+            'edit-{{modelName}}',
+            'delete-{{modelName}}',
+            'export-{{modelName}}',
+            'import-{{modelName}}',
+        ],
+
+        /*
+         * Whether to throw AuthorizationException or silently fail.
+         */
+        'strict_mode' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Query Builder Configuration
+    |--------------------------------------------------------------------------
+    | Configures Spatie laravel-query-builder integration for filterable,
+    | sortable, and includable API endpoints generated alongside the CRUD.
+    */
+    'query_builder' => [
+        /*
+         * Whether to generate a query-builder-compatible API controller.
+         */
+        'enabled' => true,
+
+        /*
+         * Maximum number of results per API request.
+         */
+        'max_results' => 500,
+
+        /*
+         * Default sort column for generated API endpoints.
+         */
+        'default_sort' => '-created_at',
+
+        /*
+         * Allow including related resources via ?include= parameter.
+         */
+        'allow_includes' => true,
+
+        /*
+         * Allow appended attributes via ?append= parameter.
+         */
+        'allow_appends' => false,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Livewire Configuration
+    |--------------------------------------------------------------------------
+    */
+    /*
+    |--------------------------------------------------------------------------
+    | Resource Discovery
+    |--------------------------------------------------------------------------
+    | Configure how and where CrudResource classes are discovered and
+    | registered. Set 'auto_discover' to true to have the package scan
+    | each configured path on every request (not recommended in production).
+    | Register resources explicitly via ResourceRegistry::register() instead.
+    */
+    'resources' => [
+        /*
+         * Automatically discover and register Resource classes on boot.
+         * Each entry must have a 'path' (absolute or relative to base_path)
+         * and a 'namespace' PSR-4 prefix for the classes found there.
+         */
+        'auto_discover' => false,
+
+        'paths' => [
+            // Example:
+            // ['path' => app_path('Resources'), 'namespace' => 'App\\Resources'],
+            // ['path' => base_path('Modules/Shop/Livewire/Resources'), 'namespace' => 'Modules\\Shop\\Livewire\\Resources'],
+        ],
+
+        /*
+         * Default records-per-page for all Resources (can be overridden
+         * per-Resource by overiding getRecordsPerPage()).
+         */
+        'per_page' => 15,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Module Scaffolding  (module:scaffold)
+    |--------------------------------------------------------------------------
+    | Settings that control how `php artisan module:scaffold {Name}` works.
+    |
+    | These mirror nWidart/laravel-modules conventions while adding
+    | livewire-crud-specific extras.
+    */
+    'modules' => [
+        /*
+         * Base directory where all modules live.
+         * Default: base_path('Modules')
+         */
+        'base_path' => 'Modules',
+
+        /*
+         * Sub-directories created inside every new module.
+         */
+        'directories' => [
+            'app/Http/Controllers',
+            'app/Http/Requests',
+            'app/Models',
+            'Livewire',
+            'Livewire/Auth',
+            'Exports',
+            'Imports',
+            'Notifications',
+            'Emails',
+            'Observers',
+            'Policies',
+            'Services',
+            'Providers',
+            'Database/Migrations',
+            'Database/Seeders',
+            'Database/factories',
+            'resources/views/layouts',
+            'resources/views/livewire',
+            'resources/views/auth',
+            'resources/views/components',
+            'resources/views/partials',
+            'resources/css',
+            'resources/js',
+            'resources/lang/en',
+            'routes',
+            'config',
+            'tests/Feature',
+            'tests/Unit',
+        ],
+
+        /*
+         * Automatically register the generated ServiceProvider into
+         * bootstrap/providers.php (Laravel 11+) or config/app.php (L10).
+         */
+        'auto_register' => true,
+
+        /*
+         * Default author info for generated composer.json inside each module.
+         */
+        'author' => [
+            'name'  => env('MODULE_AUTHOR_NAME',  'Developer'),
+            'email' => env('MODULE_AUTHOR_EMAIL', 'dev@example.com'),
+        ],
+
+        /*
+         * Default route middleware stack applied to every generated module.
+         */
+        'route_middleware' => ['web', 'auth'],
+
+        /*
+         * Register all Livewire components found in each module's Livewire/
+         * directory automatically during the module's ServiceProvider boot.
+         */
+        'auto_register_livewire' => true,
+    ],
+
+    'livewire' => [
+        'namespace' => 'App\\Http\\Livewire',
+
+        /*
+         * Polling interval in milliseconds for real-time data refresh.
+         * Set to 0 to disable polling (use Livewire events / Echo instead).
+         */
+        'poll_interval' => 0,
+
+        /*
+         * Lazy-load generated Livewire components (Livewire 3 feature).
+         */
+        'lazy' => false,
+
+        /*
+         * Persist URL query-string parameters (search, sort, page).
+         */
+        'persist_query_string' => true,
     ],
 
 ];

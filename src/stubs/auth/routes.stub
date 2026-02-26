@@ -1,0 +1,54 @@
+<?php
+
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\ConfirmPassword;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\ForgotPassword;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\Login;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\Logout;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\Register;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\ResetPassword;
+use Modules\{{getModuleInputModule}}\Livewire\Auth\VerifyEmail;
+
+// ── Guest routes ─────────────────────────────────────────────────────────────
+Route::middleware('guest')->group(function () {
+
+    Route::get('/login', Login::class)
+        ->name('{{getModuleInput}}.login');
+
+    Route::get('/register', Register::class)
+        ->name('{{getModuleInput}}.register');
+
+    Route::get('/forgot-password', ForgotPassword::class)
+        ->name('{{getModuleInput}}.password.request');
+
+    Route::get('/reset-password/{token}', ResetPassword::class)
+        ->name('{{getModuleInput}}.password.reset');
+
+});
+
+// ── Authenticated routes ──────────────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+
+    Route::get('/verify-email', VerifyEmail::class)
+        ->name('{{getModuleInput}}.verification.notice');
+
+    Route::get('/verify-email/{id}/{hash}', function (\Illuminate\Foundation\Auth\EmailVerificationRequest $request) {
+        $request->fulfill();
+        return redirect()->route('{{getModuleInput}}.dashboard');
+    })->middleware('signed', 'throttle:6,1')
+      ->name('{{getModuleInput}}.verification.verify');
+
+    Route::post('/verify-email/notification', function () {
+        request()->user()->sendEmailVerificationNotification();
+        return back()->with('status', 'verification-link-sent');
+    })->middleware('throttle:6,1')
+      ->name('{{getModuleInput}}.verification.send');
+
+    Route::get('/confirm-password', ConfirmPassword::class)
+        ->name('{{getModuleInput}}.password.confirm');
+
+    Route::post('/logout', [Logout::class, 'logout'])
+        ->name('{{getModuleInput}}.logout');
+
+});

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{{modelName}} Email</title>
+    <style>
+        /* Email-safe CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .email-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .email-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .email-body {
+            padding: 30px 20px;
+        }
+        
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        
+        .content-section {
+            margin-bottom: 25px;
+        }
+        
+        .content-section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .record-details {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .record-details h4 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #7f8c8d;
+            flex: 1;
+        }
+        
+        .detail-value {
+            flex: 2;
+            text-align: right;
+        }
+        
+        .statistics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #3498db;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .records-table th {
+            background: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .records-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        
+        .records-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .records-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .button:hover {
+            background: #2980b9;
+        }
+        
+        .button-success {
+            background: #27ae60;
+        }
+        
+        .button-success:hover {
+            background: #229954;
+        }
+        
+        .button-warning {
+            background: #f39c12;
+        }
+        
+        .button-warning:hover {
+            background: #e67e22;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #3498db;
+            color: #0c5460;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border-color: #27ae60;
+            color: #155724;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #f39c12;
+            color: #856404;
+        }
+        
+        .email-footer {
+            background: #34495e;
+            color: #bdc3c7;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .email-footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .custom-message {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 10px;
+                border-radius: 0;
+            }
+            
+            .statistics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .records-table {
+                font-size: 12px;
+            }
+            
+            .detail-item {
+                flex-direction: column;
+            }
+            
+            .detail-value {
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Email Header -->
+        <div class="email-header">
+            <h1>
+                @switch($emailType)
+                    @case('single_record')
+                        {{modelName}} Details
+                        @break
+                    @case('multiple_records')
+                        {{modelPluralTitle}} Report
+                        @break
+                    @case('report')
+                        {{modelPluralTitle}} Report
+                        @break
+                    @case('notification')
+                        {{modelName}} Notification
+                        @break
+                    @case('export_ready')
+                        Export Ready
+                        @break
+                    @case('import_results')
+                        Import Results
+                        @break
+                    @case('reminder')
+                        {{modelName}} Reminder
+                        @break
+                    @default
+                        {{modelName}} Communication
+                @endswitch
+            </h1>
+            <p>Generated on {{ $generatedAt->format('F j, Y \a\t g:i A') }}</p>
+        </div>
+
+        <!-- Email Body -->
+        <div class="email-body">
+            <div class="greeting">
+                Hello!
+            </div>
+
+            @if($customBody)
+                <div class="custom-message">
+                    {{ $customBody }}
+                </div>
+            @endif
+
+            @switch($emailType)
+                @case('single_record')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.single-record')
+                    @break
+                
+                @case('multiple_records')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.multiple-records')
+                    @break
+                
+                @case('report')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.report')
+                    @break
+                
+                @case('notification')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.notification')
+                    @break
+                
+                @case('export_ready')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.export-ready')
+                    @break
+                
+                @case('import_results')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.import-results')
+                    @break
+                
+                @case('reminder')
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.reminder')
+                    @break
+                
+                @default
+                    @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.default')
+            @endswitch
+
+            @if(isset($statistics) && $statistics)
+                @include('{{getModuleInputModuleLowerCase}}::emails.{{modelNameLowerCase}}.partials.statistics')
+            @endif
+
+            <!-- Action Buttons -->
+            <div style="text-align: center; margin: 30px 0;">
+                @if(${{modelNameLowerCase}})
+                    <a href="{{ url('/{{getModuleInput}}/{{getNameInput}}/show/' . ${{modelNameLowerCase}}->id) }}" class="button">
+                        View {{modelName}}
+                    </a>
+                @endif
+                <a href="{{ url('/{{getModuleInput}}/{{getNameInput}}') }}" class="button">
+                    View All {{modelPluralTitle}}
+                </a>
+            </div>
+
+            @if($sender)
+                <div class="alert alert-info">
+                    <strong>Sent by:</strong> {{ $sender->name ?? 'System' }}
+                    @if($sender->email)
+                        ({{ $sender->email }})
+                    @endif
+                </div>
+            @endif
+        </div>
+
+        <!-- Email Footer -->
+        <div class="email-footer">
+            <p>
+                This email was sent from {{ config('app.name') }}<br>
+                <a href="{{ url('/') }}">Visit our website</a>
+            </p>
+            <p style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
+                © {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
+{{-- 
+    Partial Templates (Create these as separate files):
+    
+    1. single-record.blade.php
+    2. multiple-records.blade.php  
+    3. report.blade.php
+    4. notification.blade.php
+    5. export-ready.blade.php
+    6. import-results.blade.php
+    7. reminder.blade.php
+    8. default.blade.php
+    9. statistics.blade.php
+--}}
+
+{{-- Single Record Partial --}}
+@if($emailType === 'single_record' && ${{modelNameLowerCase}})
+<div class="content-section">
+    <h3>{{modelName}} Details</h3>
+    <div class="record-details">
+        <h4>{{modelName}} #{{ ${{modelNameLowerCase}}->id }}</h4>
+        
+        @php
+        $fillableFields = ${{modelNameLowerCase}}->getFillable();
+        @endphp
+        
+        @foreach($fillableFields as $field)
+            @if(isset(${{modelNameLowerCase}}->{$field}))
+            <div class="detail-item">
+                <span class="detail-label">{{ ucwords(str_replace('_', ' ', $field)) }}:</span>
+                <span class="detail-value">
+                    @if(is_bool(${{modelNameLowerCase}}->{$field}))
+                        {{ ${{modelNameLowerCase}}->{$field} ? 'Yes' : 'No' }}
+                    @elseif(${{modelNameLowerCase}}->{$field} instanceof \Carbon\Carbon)
+                        {{ ${{modelNameLowerCase}}->{$field}->format('M j, Y g:i A') }}
+                    @else
+                        {{ ${{modelNameLowerCase}}->{$field} }}
+                    @endif
+                </span>
+            </div>
+            @endif
+        @endforeach
+        
+        <div class="detail-item">
+            <span class="detail-label">Created:</span>
+            <span class="detail-value">{{ ${{modelNameLowerCase}}->created_at->format('M j, Y g:i A') }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="detail-label">Last Updated:</span>
+            <span class="detail-value">{{ ${{modelNameLowerCase}}->updated_at->format('M j, Y g:i A') }}</span>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- Multiple Records Partial --}}
+@if(in_array($emailType, ['multiple_records', 'report']) && ${{modelNamePluralLowerCase}})
+<div class="content-section">
+    <h3>{{modelPluralTitle}} List</h3>
+    <p>Total records: <strong>{{ ${{modelNamePluralLowerCase}}->count() }}</strong></p>
+    
+    @if(${{modelNamePluralLowerCase}}->count() > 0)
+        <table class="records-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Details</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(${{modelNamePluralLowerCase}}->take(20) as $record)
+                <tr>
+                    <td>{{ $record->id }}</td>
+                    <td>
+                        @php
+                        $firstFillable = $record->getFillable()[0] ?? 'id';
+                        @endphp
+                        {{ $record->{$firstFillable} ?? 'N/A' }}
+                    </td>
+                    <td>
+                        @if(isset($record->status))
+                            <span style="padding: 3px 8px; border-radius: 3px; font-size: 11px; 
+                                         background: {{ $record->status === 'active' ? '#27ae60' : '#e74c3c' }}; 
+                                         color: white;">
+                                {{ ucfirst($record->status) }}
+                            </span>
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>{{ $record->created_at->format('M j, Y') }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        
+        @if(${{modelNamePluralLowerCase}}->count() > 20)
+            <div class="alert alert-info">
+                <strong>Note:</strong> Only the first 20 records are shown in this email. 
+                <a href="{{ url('/{{getModuleInput}}/{{getNameInput}}') }}">View all records</a>
+            </div>
+        @endif
+    @else
+        <div class="alert alert-warning">
+            No {{modelNamePluralLowerCase}} found matching the specified criteria.
+        </div>
+    @endif
+</div>
+@endif
+
+{{-- Export Ready Partial --}}
+@if($emailType === 'export_ready')
+<div class="content-section">
+    <h3>Export Ready for Download</h3>
+    <div class="alert alert-success">
+        Your {{modelNamePluralLowerCase}} export has been generated and is ready for download.
+    </div>
+    
+    @if(isset($additionalData['download_url']))
+        <div style="text-align: center; margin: 20px 0;">
+            <a href="{{ $additionalData['download_url'] }}" class="button button-success">
+                Download Export File
+            </a>
+        </div>
+    @endif
+    
+    @if(isset($additionalData['export_details']))
+        <div class="record-details">
+            <h4>Export Details</h4>
+            @foreach($additionalData['export_details'] as $key => $value)
+            <div class="detail-item">
+                <span class="detail-label">{{ ucwords(str_replace('_', ' ', $key)) }}:</span>
+                <span class="detail-value">{{ $value }}</span>
+            </div>
+            @endforeach
+        </div>
+    @endif
+</div>
+@endif
+
+{{-- Import Results Partial --}}
+@if($emailType === 'import_results')
+<div class="content-section">
+    <h3>Import Results</h3>
+    
+    @if(isset($additionalData['imported_count']))
+        <div class="alert alert-success">
+            <strong>Import Completed Successfully!</strong><br>
+            Total records imported: <strong>{{ $additionalData['imported_count'] }}</strong>
+        </div>
+    @endif
+    
+    @if(isset($additionalData['import_file']))
+        <div class="record-details">
+            <h4>Import Details</h4>
+            <div class="detail-item">
+                <span class="detail-label">File Name:</span>
+                <span class="detail-value">{{ $additionalData['import_file'] }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Import Date:</span>
+                <span class="detail-value">{{ $generatedAt->format('M j, Y g:i A') }}</span>
+            </div>
+        </div>
+    @endif
+</div>
+@endif
+
+{{-- Statistics Partial --}}
+@if(isset($statistics) && $statistics)
+<div class="content-section">
+    <h3>{{modelPluralTitle}} Statistics</h3>
+    <div class="statistics-grid">
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['total_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">Total {{modelPluralTitle}}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['active_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['inactive_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">Inactive</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['this_month_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">This Month</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['this_week_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">This Week</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ $statistics['today_{{modelNamePluralLowerCase}}'] ?? 0 }}</span>
+            <span class="stat-label">Today</span>
+        </div>
+    </div>
+</div>
+@endif

@@ -1,0 +1,148 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Observers;
+
+use Illuminate\Support\Facades\Cache;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+
+/**
+ * {{modelName}}Observer — Eloquent model lifecycle hooks.
+ *
+ * Handles:
+ *  - Activity logging (via spatie/laravel-activitylog)
+ *  - Cache invalidation after any mutation
+ *  - Pre-save business logic (status transitions, slug generation, etc.)
+ *
+ * Register inside YourModule's ServiceProvider::boot():
+ *
+ *   \Modules\{{getModuleInputModule}}\Models\{{modelName}}::observe(
+ *       \Modules\{{getModuleInputModule}}\Observers\{{modelName}}Observer::class
+ *   );
+ */
+class {{modelName}}Observer
+{
+    /**
+     * Cache tag / prefix used by this model.
+     * Clear it on every write operation so lists & counts stay fresh.
+     */
+    private const CACHE_TAG = '{{modelNamePluralLowerCase}}';
+
+    // ── Pre-save hooks ────────────────────────────────────────────────────
+
+    /**
+     * Fires before a new record is persisted.
+     * Good place to set defaults, generate slugs, etc.
+     */
+    public function creating({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        // Example: auto-assign a default status if not provided
+        // if (empty(${{modelNameLowerCase}}->status)) {
+        //     ${{modelNameLowerCase}}->status = 'active';
+        // }
+    }
+
+    /**
+     * Fires before an existing record is updated.
+     */
+    public function updating({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        // Example: track status transitions
+        // if (${{modelNameLowerCase}}->isDirty('status')) {
+        //     // dispatch StatusChanged event …
+        // }
+    }
+
+    // ── Post-save hooks ───────────────────────────────────────────────────
+
+    /**
+     * Fires after a new record has been persisted.
+     */
+    public function created({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        $this->clearCache();
+
+        activity()
+            ->performedOn(${{modelNameLowerCase}})
+            ->withProperties(['attributes' => ${{modelNameLowerCase}}->getAttributes()])
+            ->log('{{modelTitle}} created');
+    }
+
+    /**
+     * Fires after an existing record has been updated.
+     */
+    public function updated({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        $this->clearCache();
+
+        activity()
+            ->performedOn(${{modelNameLowerCase}})
+            ->withProperties([
+                'old'        => ${{modelNameLowerCase}}->getOriginal(),
+                'attributes' => ${{modelNameLowerCase}}->getChanges(),
+            ])
+            ->log('{{modelTitle}} updated');
+    }
+
+    /**
+     * Fires before a record is soft-deleted (or hard-deleted).
+     */
+    public function deleting({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        // Example: cascade soft-delete child records
+        // ${{modelNameLowerCase}}->children()->delete();
+    }
+
+    /**
+     * Fires after a record has been soft-deleted (or hard-deleted).
+     */
+    public function deleted({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        $this->clearCache();
+
+        activity()
+            ->performedOn(${{modelNameLowerCase}})
+            ->log('{{modelTitle}} deleted');
+    }
+
+    /**
+     * Fires after a soft-deleted record is restored.
+     */
+    public function restored({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        $this->clearCache();
+
+        activity()
+            ->performedOn(${{modelNameLowerCase}})
+            ->log('{{modelTitle}} restored');
+    }
+
+    /**
+     * Fires after a record is permanently deleted.
+     */
+    public function forceDeleted({{modelName}} ${{modelNameLowerCase}}): void
+    {
+        $this->clearCache();
+
+        activity()
+            ->performedOn(${{modelNameLowerCase}})
+            ->log('{{modelTitle}} permanently deleted');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+
+    /**
+     * Flush all cached data for this model.
+     * Supports both tagged cache (Redis/Memcached) and prefix-based (file/array).
+     */
+    private function clearCache(): void
+    {
+        try {
+            Cache::tags([self::CACHE_TAG])->flush();
+        } catch (\BadMethodCallException) {
+            // Driver doesn't support tags — use a versioned key instead
+            Cache::forget(self::CACHE_TAG . '_version');
+        }
+    }
+}

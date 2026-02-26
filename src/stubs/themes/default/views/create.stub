@@ -1,0 +1,38 @@
+{{-- Create {{modelTitle}} Modal --}}
+<div>
+    <div class="modal-header bg-primary-subtle">
+        <h5 class="modal-title">
+            <i class="bi bi-plus-circle me-2"></i>Create {{modelTitle}}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+
+        {{-- Validation errors --}}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible py-2 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>{{ $errors->count() }} error(s).</strong>
+                <ul class="mb-0 mt-1 ps-3 small">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        <div class="row g-3">
+            {{form}}
+        </div>
+
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Cancel
+        </button>
+        <button type="button" wire:click.prevent="store()" class="btn btn-primary btn-sm">
+            <i class="bi bi-check-lg me-1"></i>Save {{modelTitle}}
+        </button>
+    </div>
+</div>

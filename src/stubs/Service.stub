@@ -1,0 +1,184 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Services;
+
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+
+/**
+ * {{modelName}}Service — encapsulates all business logic for {{modelPluralTitle}}.
+ *
+ * Bind in YourModule's ServiceProvider or rely on Laravel's automatic
+ * resolution from the type-hint in your controller / Livewire component:
+ *
+ *   public function __construct(protected {{modelName}}Service $service) {}
+ */
+class {{modelName}}Service
+{
+    // ── Read operations ───────────────────────────────────────────────────
+
+    /**
+     * Return a paginated list of {{modelPluralTitle}} with optional filters.
+     *
+     * @param array{
+     *   search?: string,
+     *   status?: string,
+     *   sort_by?: string,
+     *   sort_dir?: 'asc'|'desc',
+     *   per_page?: int,
+     * } $filters
+     */
+    public function paginate(array $filters = []): LengthAwarePaginator
+    {
+        return $this->buildQuery($filters)
+            ->orderBy(
+                $filters['sort_by']  ?? 'created_at',
+                $filters['sort_dir'] ?? 'desc'
+            )
+            ->paginate($filters['per_page'] ?? 15);
+    }
+
+    /**
+     * Return all {{modelPluralTitle}} (no pagination) — useful for dropdowns / exports.
+     *
+     * @param array<string, mixed> $filters
+     */
+    public function all(array $filters = []): Collection
+    {
+        return $this->buildQuery($filters)->get();
+    }
+
+    /**
+     * Find a single {{modelTitle}} by primary key (throws ModelNotFoundException).
+     */
+    public function findOrFail(int|string $id): {{modelName}}
+    {
+        return {{modelName}}::findOrFail($id);
+    }
+
+    // ── Write operations ──────────────────────────────────────────────────
+
+    /**
+     * Create a new {{modelTitle}} and return it.
+     *
+     * @param  array<string, mixed>  $data  Validated input
+     */
+    public function create(array $data): {{modelName}}
+    {
+        return DB::transaction(fn () => {{modelName}}::create($data));
+    }
+
+    /**
+     * Update an existing {{modelTitle}} and return the refreshed model.
+     *
+     * @param  array<string, mixed>  $data  Validated input
+     */
+    public function update({{modelName}} ${{modelNameLowerCase}}, array $data): {{modelName}}
+    {
+        return DB::transaction(function () use (${{modelNameLowerCase}}, $data): {{modelName}} {
+            ${{modelNameLowerCase}}->update($data);
+
+            return ${{modelNameLowerCase}}->refresh();
+        });
+    }
+
+    /**
+     * Soft-delete (or hard-delete if not using SoftDeletes) a {{modelTitle}}.
+     */
+    public function delete({{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return DB::transaction(fn () => (bool) ${{modelNameLowerCase}}->delete());
+    }
+
+    /**
+     * Restore a soft-deleted {{modelTitle}}.
+     */
+    public function restore(int|string $id): {{modelName}}
+    {
+        /** @var {{modelName}} ${{modelNameLowerCase}} */
+        ${{modelNameLowerCase}} = {{modelName}}::withTrashed()->findOrFail($id);
+
+        DB::transaction(fn () => ${{modelNameLowerCase}}->restore());
+
+        return ${{modelNameLowerCase}};
+    }
+
+    /**
+     * Perform a bulk action on multiple records.
+     *
+     * @param  'delete'|'restore'|'activate'|'deactivate'  $action
+     * @param  int[]  $ids
+     */
+    public function bulk(string $action, array $ids): int
+    {
+        return DB::transaction(function () use ($action, $ids): int {
+            $count = 0;
+
+            foreach ($ids as $id) {
+                $record = {{modelName}}::withTrashed()->find($id);
+
+                if (!$record) {
+                    continue;
+                }
+
+                match ($action) {
+                    'delete'     => $record->delete(),
+                    'restore'    => $record->restore(),
+                    'activate'   => $record->update(['status' => 'active']),
+                    'deactivate' => $record->update(['status' => 'inactive']),
+                    default      => null,
+                };
+
+                $count++;
+            }
+
+            return $count;
+        });
+    }
+
+    // ── Statistics ────────────────────────────────────────────────────────
+
+    /**
+     * Return high-level counts for the dashboard stat cards.
+     *
+     * @return array{total: int, active: int, inactive: int, today: int}
+     */
+    public function stats(): array
+    {
+        return [
+            'total'    => {{modelName}}::count(),
+            'active'   => {{modelName}}::where('status', 'active')->count(),
+            'inactive' => {{modelName}}::where('status', 'inactive')->count(),
+            'today'    => {{modelName}}::whereDate('created_at', today())->count(),
+        ];
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────
+
+    /**
+     * Build a base query with common filters applied.
+     *
+     * @param  array<string, mixed>  $filters
+     */
+    private function buildQuery(array $filters): Builder
+    {
+        return {{modelName}}::query()
+            ->when(
+                !empty($filters['search']),
+                fn (Builder $q) => $q->where(function (Builder $inner) use ($filters) {
+                    $term = '%' . $filters['search'] . '%';
+                    $inner->where('name', 'like', $term)
+                          ->orWhere('description', 'like', $term);
+                })
+            )
+            ->when(
+                !empty($filters['status']) && $filters['status'] !== 'all',
+                fn (Builder $q) => $q->where('status', $filters['status'])
+            );
+    }
+}

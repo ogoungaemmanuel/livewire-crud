@@ -1,0 +1,90 @@
+<div>
+    <h4 class="card-title mb-1 fw-bold">Create an account</h4>
+    <p class="text-muted mb-4 small">Fill in the details below to get started</p>
+
+    <form wire:submit="register">
+
+        <!-- Name -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Full name</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                <input wire:model="name"
+                       id="name"
+                       type="text"
+                       class="form-control @error('name') is-invalid @enderror"
+                       placeholder="John Doe"
+                       autofocus
+                       autocomplete="name">
+                @error('name')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Email Address -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input wire:model="email"
+                       id="email"
+                       type="email"
+                       class="form-control @error('email') is-invalid @enderror"
+                       placeholder="you@example.com"
+                       autocomplete="username">
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input wire:model="password"
+                       id="password"
+                       type="password"
+                       class="form-control @error('password') is-invalid @enderror"
+                       placeholder="Min. 8 characters"
+                       autocomplete="new-password">
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="mb-4">
+            <label for="password_confirmation" class="form-label">Confirm password</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                <input wire:model="password_confirmation"
+                       id="password_confirmation"
+                       type="password"
+                       class="form-control"
+                       placeholder="Repeat password"
+                       autocomplete="new-password">
+            </div>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <span wire:loading.remove wire:target="register">Create account</span>
+                <span wire:loading wire:target="register">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Creating…
+                </span>
+            </button>
+        </div>
+
+    </form>
+
+    @if (Route::has('{{getModuleInput}}.login'))
+        <p class="text-center text-muted mt-4 mb-0 small">
+            Already have an account?
+            <a href="{{ route('{{getModuleInput}}.login') }}" class="text-decoration-none" wire:navigate>Sign in</a>
+        </p>
+    @endif
+</div>

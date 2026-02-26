@@ -1,0 +1,139 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Http\Controllers\Api;
+
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Controller;
+use Modules\{{getModuleInputModule}}\Http\Requests\{{modelName}}StoreRequest;
+use Modules\{{getModuleInputModule}}\Http\Requests\{{modelName}}UpdateRequest;
+use Modules\{{getModuleInputModule}}\Http\Resources\{{modelName}}Resource;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use Modules\{{getModuleInputModule}}\Services\{{modelName}}Service;
+
+/**
+ * {{modelName}}Controller — JSON REST resource for {{modelPluralTitle}}.
+ *
+ * Routes (add to Modules/{{getModuleInputModule}}/routes/api.php):
+ *
+ *   Route::apiResource('{{modelNamePluralLowerCase}}', Api\{{modelName}}Controller::class)
+ *        ->middleware('auth:sanctum');
+ *
+ * Or inside a prefix group:
+ *
+ *   Route::prefix('v1')->middleware(['auth:sanctum'])->group(function () {
+ *       Route::apiResource('{{modelNamePluralLowerCase}}', Api\{{modelName}}Controller::class);
+ *   });
+ */
+class {{modelName}}Controller extends Controller
+{
+    public function __construct(protected {{modelName}}Service $service)
+    {
+        // Apply policy middleware on the full resource
+        $this->authorizeResource({{modelName}}::class, '{{modelNameLowerCase}}');
+    }
+
+    // ── GET  /{{modelNamePluralLowerCase}} ─────────────────────────────────────────────────────
+
+    /**
+     * Return a paginated JSON collection of {{modelPluralTitle}}.
+     *
+     * Query params:
+     *   ?search=…   Full-text keyword
+     *   ?status=…   Filter by status (active | inactive)
+     *   ?per_page=… Items per page (default 15, max 100)
+     *   ?sort_by=…  Column to sort (default created_at)
+     *   ?sort_dir=… asc | desc (default desc)
+     */
+    public function index(Request $request): AnonymousResourceCollection
+    {
+        $filters = $request->only(['search', 'status', 'sort_by', 'sort_dir']);
+        $filters['per_page'] = min((int) $request->input('per_page', 15), 100);
+
+        $paginated = $this->service->paginate($filters);
+
+        return {{modelName}}Resource::collection($paginated);
+    }
+
+    // ── POST /{{modelNamePluralLowerCase}} ─────────────────────────────────────────────────────
+
+    /**
+     * Store a new {{modelTitle}}.
+     */
+    public function store({{modelName}}StoreRequest $request): JsonResponse
+    {
+        ${{modelNameLowerCase}} = $this->service->create($request->validated());
+
+        return (new {{modelName}}Resource(${{modelNameLowerCase}}))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    // ── GET  /{{modelNamePluralLowerCase}}/{id} ────────────────────────────────────────────────
+
+    /**
+     * Return a single {{modelTitle}}.
+     */
+    public function show({{modelName}} ${{modelNameLowerCase}}): {{modelName}}Resource
+    {
+        return new {{modelName}}Resource(${{modelNameLowerCase}});
+    }
+
+    // ── PUT  /{{modelNamePluralLowerCase}}/{id} ────────────────────────────────────────────────
+
+    /**
+     * Update an existing {{modelTitle}}.
+     */
+    public function update({{modelName}}UpdateRequest $request, {{modelName}} ${{modelNameLowerCase}}): {{modelName}}Resource
+    {
+        $updated = $this->service->update(${{modelNameLowerCase}}, $request->validated());
+
+        return new {{modelName}}Resource($updated);
+    }
+
+    // ── DELETE /{{modelNamePluralLowerCase}}/{id} ──────────────────────────────────────────────
+
+    /**
+     * Soft-delete a {{modelTitle}}.
+     */
+    public function destroy({{modelName}} ${{modelNameLowerCase}}): JsonResponse
+    {
+        $this->service->delete(${{modelNameLowerCase}});
+
+        return response()->json(['message' => '{{modelTitle}} deleted successfully.'], 200);
+    }
+
+    // ── Optional extras ───────────────────────────────────────────────────
+
+    /**
+     * GET /{{modelNamePluralLowerCase}}/stats  — aggregate dashboard stats.
+     * Register explicitly:  Route::get('{{modelNamePluralLowerCase}}/stats', [{{modelName}}Controller::class, 'stats']);
+     */
+    public function stats(): JsonResponse
+    {
+        return response()->json($this->service->stats());
+    }
+
+    /**
+     * POST /{{modelNamePluralLowerCase}}/bulk — bulk actions.
+     * Body: { "action": "delete|activate|deactivate", "ids": [1,2,3] }
+     */
+    public function bulk(Request $request): JsonResponse
+    {
+        $request->validate([
+            'action' => ['required', 'string', 'in:delete,restore,activate,deactivate'],
+            'ids'    => ['required', 'array', 'min:1'],
+            'ids.*'  => ['integer'],
+        ]);
+
+        $count = $this->service->bulk($request->action, $request->ids);
+
+        return response()->json([
+            'message' => "Bulk {$request->action} applied to {$count} record(s).",
+            'count'   => $count,
+        ]);
+    }
+}

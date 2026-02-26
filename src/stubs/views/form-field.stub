@@ -1,11 +1,20 @@
 <div class="col-md-6 mb-3">
-    <label for="{{column}}" class="form-label">{{title}}</label>
-    <input wire:model="{{column}}"
-           type="{{datatype}}"
-           class="form-control @error('{{column}}') is-invalid @enderror"
-           id="{{column}}"
-           placeholder="Enter {{title}}">
-    @error('{{column}}')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <div class="form-floating">
+        <input wire:model.live.debounce.300ms="{{column}}"
+               type="{{datatype}}"
+               class="form-control @error('{{column}}') is-invalid @enderror"
+               id="{{column}}"
+               placeholder="{{title}}"
+               autocomplete="off">
+        <label for="{{column}}">
+            {{title}}
+            <span class="text-danger" title="Required">*</span>
+        </label>
+        @error('{{column}}')
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</div>
+        @enderror
+        @unless($errors->has('{{column}}'))
+            <div class="valid-feedback"><i class="bi bi-check-circle me-1"></i>Looks good!</div>
+        @endunless
+    </div>
 </div>

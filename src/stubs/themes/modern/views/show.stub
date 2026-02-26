@@ -1,58 +1,125 @@
+{{-- Show {{modelTitle}} — Enterprise Detail Panel --}}
 @if(isset(${{modelNameLowerCase}}))
-<div class="row g-3">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-light">
-                <h6 class="mb-0"><i class="bi bi-info-circle"></i> {{modelTitle}} Details</h6>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    {{show}}
+<div x-data="{ activeTab: 'details' }">
+
+    {{-- Tab navigation --}}
+    <ul class="nav nav-pills nav-fill mb-3 gap-1">
+        <li class="nav-item">
+            <button class="nav-link btn-sm w-100" :class="activeTab === 'details' ? 'active' : ''" @click="activeTab = 'details'">
+                <i class="bi bi-info-circle me-1"></i>Details
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm w-100" :class="activeTab === 'activity' ? 'active' : ''" @click="activeTab = 'activity'">
+                <i class="bi bi-clock-history me-1"></i>Activity
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link btn-sm w-100" :class="activeTab === 'actions' ? 'active' : ''" @click="activeTab = 'actions'">
+                <i class="bi bi-lightning-charge me-1"></i>Actions
+            </button>
+        </li>
+    </ul>
+
+    {{-- Details tab --}}
+    <div x-show="activeTab === 'details'" class="row g-3">
+        {{show}}
+
+        {{-- Timestamps --}}
+        <div class="col-12">
+            <div class="row g-2">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-2 small">
+                        <i class="bi bi-calendar-plus text-success"></i>
+                        <div>
+                            <div class="text-muted" style="font-size:.68rem;">CREATED</div>
+                            <div class="fw-semibold">{{ ${{modelNameLowerCase}}->created_at?->format('M d, Y · g:i A') }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-2 small">
+                        <i class="bi bi-calendar-check text-primary"></i>
+                        <div>
+                            <div class="text-muted" style="font-size:.68rem;">LAST UPDATED</div>
+                            <div class="fw-semibold">{{ ${{modelNameLowerCase}}->updated_at?->diffForHumans() }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h6 class="card-title"><i class="bi bi-clock-history"></i> Timestamps</h6>
-                <table class="table table-sm table-borderless">
-                    <tr>
-                        <td class="text-muted">Created:</td>
-                        <td>{{ ${{modelNameLowerCase}}->created_at?->format('M d, Y h:i A') }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-muted">Updated:</td>
-                        <td>{{ ${{modelNameLowerCase}}->updated_at?->format('M d, Y h:i A') }}</td>
-                    </tr>
-                </table>
+    {{-- Activity tab --}}
+    <div x-show="activeTab === 'activity'" class="row g-3">
+        <div class="col-12">
+            @php $activities = method_exists(${{modelNameLowerCase}}, 'activities') ? ${{modelNameLowerCase}}->activities()->latest()->take(10)->get() : collect(); @endphp
+            @if($activities->isEmpty())
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-clock-history fs-3 d-block mb-2 opacity-50"></i>
+                    No activity recorded yet.
+                </div>
+            @else
+                <ol class="list-group list-group-flush">
+                    @foreach($activities as $log)
+                        <li class="list-group-item px-0 py-2">
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-primary-subtle text-primary rounded-pill align-self-start" style="font-size:.65rem;">{{ strtoupper($log->description) }}</span>
+                                <div class="small">
+                                    <div>{{ $log->causer?->name ?? 'System' }}</div>
+                                    <div class="text-muted">{{ $log->created_at?->diffForHumans() }}</div>
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        </div>
+    </div>
+
+    {{-- Actions tab --}}
+    <div x-show="activeTab === 'actions'" class="row g-3">
+        <div class="col-12">
+            <div class="d-grid gap-2">
+                @can('update-{{modelView}}')
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                            wire:click="edit{{modelName}}(${{modelNameLowerCase}}->id)"
+                            data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#update{{modelName}}Modal">
+                        <i class="bi bi-pencil me-1"></i>Edit {{modelTitle}}
+                    </button>
+                @endcan
+                <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="printRow(${{modelNameLowerCase}}->id)">
+                    <i class="bi bi-printer me-1"></i>Print
+                </button>
+                <button type="button" class="btn btn-outline-info btn-sm" wire:click="sendEmailRow(${{modelNameLowerCase}}->id)">
+                    <i class="bi bi-envelope me-1"></i>Send Email
+                </button>
+                @if(isset(${{modelNameLowerCase}}->status))
+                    @if(${{modelNameLowerCase}}->status !== 'active')
+                        <button type="button" class="btn btn-success btn-sm" wire:click="updateStatus(${{modelNameLowerCase}}->id, 'active')">
+                            <i class="bi bi-check-circle me-1"></i>Activate
+                        </button>
+                    @else
+                        <button type="button" class="btn btn-outline-warning btn-sm" wire:click="updateStatus(${{modelNameLowerCase}}->id, 'inactive')">
+                            <i class="bi bi-pause-circle me-1"></i>Deactivate
+                        </button>
+                    @endif
+                @endif
+                @can('delete-{{modelView}}')
+                    <button type="button" class="btn btn-outline-danger btn-sm"
+                            wire:click="delete{{modelName}}(${{modelNameLowerCase}}->id)"
+                            data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#delete{{modelName}}Modal">
+                        <i class="bi bi-trash me-1"></i>Delete
+                    </button>
+                @endcan
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h6 class="card-title"><i class="bi bi-gear"></i> Actions</h6>
-                <div class="d-grid gap-2">
-                    <button type="button" class="btn btn-outline-primary" wire:click="edit{{modelName}}(${{modelNameLowerCase}}->id)" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#update{{modelName}}Modal">
-                        <i class="bi bi-pencil"></i> Edit This {{modelTitle}}
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary" wire:click="printRow(${{modelNameLowerCase}}->id)">
-                        <i class="bi bi-printer"></i> Print
-                    </button>
-                    <button type="button" class="btn btn-outline-info" wire:click="sendEmailRow(${{modelNameLowerCase}}->id)">
-                        <i class="bi bi-envelope"></i> Send Email
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @else
-<div class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle"></i> {{modelTitle}} not found.
+<div class="alert alert-warning py-2 mb-0">
+    <i class="bi bi-exclamation-triangle me-1"></i>{{modelTitle}} not found or has been deleted.
 </div>
 @endif
 

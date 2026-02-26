@@ -1,0 +1,123 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Policies;
+
+use Illuminate\Auth\Access\HandlesAuthorization;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use App\Models\User;
+
+/**
+ * {{modelName}}Policy — per-model Gate policy.
+ *
+ * Requires the Spatie laravel-permission package (HasRoles/HasPermissions on User).
+ * Register inside YourModule's ServiceProvider:
+ *
+ *   Gate::policy(\Modules\{{getModuleInputModule}}\Models\{{modelName}}::class,
+ *                \Modules\{{getModuleInputModule}}\Policies\{{modelName}}Policy::class);
+ *
+ * Permission slugs follow the pattern: `<action>-{{modelView}}`
+ *   e.g.  view-any-{{modelView}}, view-{{modelView}}, create-{{modelView}}, …
+ */
+class {{modelName}}Policy
+{
+    use HandlesAuthorization;
+
+    // ── Bypass for Super-Admin role ───────────────────────────────────────
+
+    /**
+     * Grant all abilities to users with the "super-admin" role
+     * without hitting the individual checks below.
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        if ($user->hasRole('super-admin')) {
+            return true;
+        }
+
+        return null; // fall through to individual methods
+    }
+
+    // ── Individual ability checks ─────────────────────────────────────────
+
+    /**
+     * Can the user view the list of {{modelPluralTitle}}?
+     */
+    public function viewAny(User $user): bool
+    {
+        return $user->hasPermissionTo('view-any-{{modelView}}');
+    }
+
+    /**
+     * Can the user view a specific {{modelTitle}}?
+     */
+    public function view(User $user, {{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return $user->hasPermissionTo('view-{{modelView}}');
+    }
+
+    /**
+     * Can the user create a new {{modelTitle}}?
+     */
+    public function create(User $user): bool
+    {
+        return $user->hasPermissionTo('create-{{modelView}}');
+    }
+
+    /**
+     * Can the user update a {{modelTitle}}?
+     */
+    public function update(User $user, {{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return $user->hasPermissionTo('update-{{modelView}}');
+    }
+
+    /**
+     * Can the user delete a {{modelTitle}}?
+     */
+    public function delete(User $user, {{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return $user->hasPermissionTo('delete-{{modelView}}');
+    }
+
+    /**
+     * Can the user restore a soft-deleted {{modelTitle}}?
+     */
+    public function restore(User $user, {{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return $user->hasPermissionTo('restore-{{modelView}}');
+    }
+
+    /**
+     * Can the user permanently delete a {{modelTitle}}?
+     */
+    public function forceDelete(User $user, {{modelName}} ${{modelNameLowerCase}}): bool
+    {
+        return $user->hasPermissionTo('force-delete-{{modelView}}');
+    }
+
+    /**
+     * Can the user perform bulk actions on {{modelPluralTitle}}?
+     */
+    public function bulkDelete(User $user): bool
+    {
+        return $user->hasPermissionTo('bulk-delete-{{modelView}}');
+    }
+
+    /**
+     * Can the user export {{modelPluralTitle}}?
+     */
+    public function export(User $user): bool
+    {
+        return $user->hasPermissionTo('export-{{modelView}}');
+    }
+
+    /**
+     * Can the user import {{modelPluralTitle}}?
+     */
+    public function import(User $user): bool
+    {
+        return $user->hasPermissionTo('import-{{modelView}}');
+    }
+}

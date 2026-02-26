@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--begin::Head-->
+<head>
+    <base href="../" />
+    <title>@yield('page_title') | {{ get_option('system_name') }}</title>
+    <meta charset="utf-8" />
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="description" content="{{ get_option('description') }}" />
+    <meta name="keywords" content="{{ get_option('keywords') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="{{ get_option('system_name') }}" />
+    <meta property="og:url" content="{{ url('/') }}" />
+    <meta property="og:site_name" content="{{ get_option('system_name') }}" />
+    <link rel="canonical" href="{{ url('/') }}" />
+    <link rel="shortcut icon" href="{{ get_logo() }}" />
+    <!--begin::Fonts-->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <!--end::Fonts-->
+    <!--begin::Global Stylesheets Bundle-->
+    <link href="{{ url('/') }}/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="{{ url('/') }}/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
+    <!--end::Global Stylesheets Bundle-->
+    @livewireStyles
+    @stack('styles')
+</head>
+<!--end::Head-->
+
+<!--begin::Body-->
+<body id="kt_body" class="app-blank">
+    <!--begin::Theme mode setup on page load-->
+    <script>
+        var defaultThemeMode = "light";
+        var themeMode;
+        if (document.documentElement) {
+            if (document.documentElement.hasAttribute("data-bs-theme-mode")) {
+                themeMode = document.documentElement.getAttribute("data-bs-theme-mode");
+            } else {
+                if (localStorage.getItem("data-bs-theme") !== null) {
+                    themeMode = localStorage.getItem("data-bs-theme");
+                } else {
+                    themeMode = defaultThemeMode;
+                }
+            }
+            if (themeMode === "system") {
+                themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+            }
+            document.documentElement.setAttribute("data-bs-theme", themeMode);
+        }
+    </script>
+    <!--end::Theme mode setup on page load-->
+
+    <!--begin::Root-->
+    <div class="d-flex flex-column flex-root" id="kt_app_root">
+        <!--begin::Page-->
+        <div class="d-flex flex-column flex-lg-row flex-column-fluid">
+
+            <!--begin::Aside / Branding-->
+            <div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2"
+                style="background-image: url({{ url('/') }}/assets/media/misc/auth-bg.png)">
+                <div class="d-flex flex-column flex-center p-6 p-lg-10 w-100">
+                    <a href="{{ url('/') }}" class="mb-0 mb-lg-20">
+                        <img alt="Logo" src="{{ get_logo() }}" class="h-40px h-lg-50px" />
+                    </a>
+                    <h1 class="d-none d-lg-block text-white fs-2qx fw-bold text-center mb-7">
+                        {{ get_option('system_name') }}
+                    </h1>
+                </div>
+            </div>
+            <!--end::Aside-->
+
+            <!--begin::Content-->
+            <div class="d-flex flex-column flex-center p-10 p-lg-20 order-2 order-lg-1 w-lg-50">
+                @yield('content')
+            </div>
+            <!--end::Content-->
+
+        </div>
+        <!--end::Page-->
+
+        <!--begin::Footer-->
+        <div class="d-flex flex-center flex-wrap px-5 py-6">
+            <div class="d-flex fw-semibold text-primary fs-base">
+                <a href="{{ url('/') }}" class="px-5" target="_blank">{{ get_option('system_name') }}</a>
+                <a href="#" class="px-5">{{ __('Terms') }}</a>
+                <a href="#" class="px-5">{{ __('Contact') }}</a>
+            </div>
+        </div>
+        <!--end::Footer-->
+    </div>
+    <!--end::Root-->
+
+    <!--begin::Javascript-->
+    <script src="{{ url('/') }}/assets/plugins/global/plugins.bundle.js"></script>
+    <script src="{{ url('/') }}/assets/js/scripts.bundle.js"></script>
+    @livewireScripts
+    @stack('scripts')
+    <!--end::Javascript-->
+</body>
+<!--end::Body-->
+</html>

@@ -8,6 +8,8 @@ use Livewire\WithPagination;
 use Modules\{{getModuleInputModule}}\Models\{{modelName}};
 use Carbon\Carbon;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Url;
+use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
@@ -26,27 +28,33 @@ use Illuminate\Support\Facades\Mail;
 use Modules\{{getModuleInputModule}}\Emails\{{modelName}}Email;
 use Modules\{{getModuleInputModule}}\Charts\{{modelName}}Chart;
 use Modules\{{getModuleInputModule}}\Fullcalendar\{{modelName}}Calendar;
+use Modules\{{getModuleInputModule}}\Resources\{{modelName}}Resource;
+use Xslainadmin\LivewireCrud\Concerns\InteractsWithResource;
 
 class {{modelPluralName}} extends Component
 {
     use WithPagination;
     use WithFileUploads;
+    use InteractsWithResource;
+
+    /** Binds this component to its Resource definition. */
+    protected static string $resource = {{modelName}}Resource::class;
 	protected $paginationTheme = 'bootstrap';
 
     // Form fields
     public $selected_id, $newimage, {{updatefield}};
     public ${{modelNameLowerCase}};
 
-    // Search and filters
-    public $indexSearch = '';
-    public $search = '';
+    // Search and filters (URL-querystring-synced via #[Url])
+    #[Url] public $indexSearch = '';
+    #[Url] public $search = '';
     public $filterStatus = '';
     public $filterDateRange = '';
     public $perPage = 10;
 
     // Sorting
-    public $sortField = 'created_at';
-    public $sortDirection = 'desc';
+    #[Url] public $sortField = 'created_at';
+    #[Url] public $sortDirection = 'desc';
 
     // Bulk operations
     public $selecteditem = [];
@@ -138,16 +146,7 @@ class {{modelPluralName}} extends Component
     public $importFile;
     public $importResults = [];
 
-    protected $queryString = ['indexSearch', 'search', 'sortField', 'sortDirection'];
     public $updateMode = false;
-
-    #[On('refresh-the-component')]
-
-     // public function mount()
-    // {
-    //     $this->posted_by = User_Detail()->name;
-    //     $this->status = 'active';
-    // }
 
     public function mount()
     {
@@ -338,7 +337,8 @@ class {{modelPluralName}} extends Component
     {		{{resetfields}}
     }
 
-    public function refreshTheComponent()
+    #[On('refresh-the-component')]
+    public function refreshTheComponent(): void
     {
         $this->dispatch('$refresh');
     }

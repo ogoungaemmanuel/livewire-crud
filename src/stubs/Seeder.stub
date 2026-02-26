@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\{{getModuleInputModule}}\Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+
+/**
+ * {{modelName}}Seeder — populates {{modelPluralTitle}} using the generated factory.
+ *
+ * Register in the module's DatabaseSeeder (if present) or in the main
+ * database/seeders/DatabaseSeeder.php:
+ *
+ *   $this->call(\Modules\{{getModuleInputModule}}\Database\Seeders\{{modelName}}Seeder::class);
+ *
+ * Run standalone:
+ *   php artisan db:seed --class="Modules\\{{getModuleInputModule}}\\Database\\Seeders\\{{modelName}}Seeder"
+ */
+class {{modelName}}Seeder extends Seeder
+{
+    /** Total records to create per environment. */
+    private const COUNTS = [
+        'production' => 0,   // never seed production unless explicitly overridden
+        'staging'    => 20,
+        'testing'    => 10,
+        'local'      => 50,
+    ];
+
+    public function run(): void
+    {
+        $env   = app()->environment();
+        $count = self::COUNTS[$env] ?? 0;
+
+        if ($count === 0) {
+            $this->command->warn("⚠️  Skipping {{modelPluralTitle}} seeder (env: {$env}).");
+            return;
+        }
+
+        if ({{modelName}}::count() > 0) {
+            $this->command->warn('⚠️  {{modelPluralTitle}} table already has records — skipping to avoid duplicates.');
+            return;
+        }
+
+        $this->command->info("🌱 Seeding {$count} {{modelPluralTitle}}…");
+
+        // ── Base records ──────────────────────────────────────────────────
+        {{modelName}}::factory()->count($count)->create();
+
+        // ── Explicit status variants ─────────────────────────────────────
+        {{modelName}}::factory()->count((int) ceil($count * 0.2))->inactive()->create();
+
+        $total = {{modelName}}::count();
+        $this->command->info("✅ Seeded {$total} {{modelPluralTitle}} successfully.");
+    }
+}

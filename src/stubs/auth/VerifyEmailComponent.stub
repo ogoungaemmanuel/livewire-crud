@@ -1,0 +1,32 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Livewire\Auth;
+
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
+
+#[Layout('{{getModuleInput}}::auth.layouts.auth')]
+class VerifyEmail extends Component
+{
+    /**
+     * Send an email verification notification to the user.
+     */
+    public function sendVerification(): void
+    {
+        if (Auth::user()->hasVerifiedEmail()) {
+            $this->redirectIntended(default: route('{{getModuleInput}}.dashboard'), navigate: true);
+            return;
+        }
+
+        Auth::user()->sendEmailVerificationNotification();
+
+        Session::flash('status', 'verification-link-sent');
+    }
+
+    public function render(): \Illuminate\View\View
+    {
+        return view('{{getModuleInput}}::auth.verify-email');
+    }
+}

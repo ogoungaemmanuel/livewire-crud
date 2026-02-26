@@ -1,11 +1,16 @@
 <div class="col-md-6 mb-3">
-    <label for="{{column}}" class="form-label">{{title}}</label>
-    <input wire:model="{{column}}"
-           type="{{datatype}}"
-           class="form-control @error('{{column}}') is-invalid @enderror"
-           id="{{column}}"
-           placeholder="Enter {{title}}">
-    @error('{{column}}')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+    <div class="form-floating">
+        <input wire:model.live.debounce.300ms="{{column}}"
+               type="{{datatype}}"
+               class="form-control @error('{{column}}') is-invalid @enderror"
+               id="form_{{column}}"
+               placeholder="{{title}}"
+               autocomplete="off">
+        <label for="form_{{column}}">
+            <i class="bi bi-pencil-square me-1 text-muted" style="font-size:.8rem;"></i>{{title}}
+        </label>
+        @error('{{column}}')
+            <div class="invalid-feedback"><i class="bi bi-exclamation-circle me-1"></i>{{ $message }}</div>
+        @enderror
+    </div>
 </div>

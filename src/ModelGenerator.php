@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Xslainadmin\LivewireCrud;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class ModelGenerator
+final class ModelGenerator
 {
-    private $functions = null;
-
-    private $table = null;
-    private $properties = null;
-    private $modelNamespace = 'App';
+    private ?string $functions = null;
+    private string $table;
+    private string $properties;
+    private string $modelNamespace;
 
     /**
      * ModelGenerator constructor.
@@ -26,13 +27,15 @@ class ModelGenerator
 
     /**
      * Get all the eloquent relations.
+     *
+     * @return array{0: string|null, 1: string}
      */
-    public function getEloquentRelations()
+    public function getEloquentRelations(): array
     {
         return [$this->functions, $this->properties];
     }
 
-    private function _init()
+    private function _init(): void
     {
         foreach ($this->_getTableRelations() as $relation) {
             if ($relation->ref) {
@@ -46,7 +49,7 @@ class ModelGenerator
         }
     }
 
-    private function _getEloquent($relation, $tableKeys)
+    private function _getEloquent(object $relation, array $tableKeys): string
     {
         $eloquent = '';
         foreach ($tableKeys as $tableKey) {
@@ -64,7 +67,7 @@ class ModelGenerator
         return $eloquent;
     }
 
-    private function _getFunction(string $relation, string $table, string $foreign_key, string $local_key)
+    private function _getFunction(string $relation, string $table, string $foreign_key, string $local_key): string
     {
         list($model, $relationName) = $this->_getModelName($table, $relation);
         $relClass = ucfirst($relation);
@@ -91,8 +94,10 @@ class ModelGenerator
 
     /**
      * Get the name relation and model.
+     *
+     * @return array{0: string, 1: string}
      */
-    private function _getModelName($name, $relation)
+    private function _getModelName(string $name, string $relation): array
     {
         $class = Str::studly(Str::singular($name));
         $relationName = '';
@@ -111,9 +116,15 @@ class ModelGenerator
 
     /**
      * Get all relations from Table.
+     *
+     * @return array<object>
      */
-    private function _getTableRelations()
+    private function _getTableRelations(): array
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return [];
+        }
+
         $db = DB::getDatabaseName();
         $sql = <<<SQL
 SELECT TABLE_NAME ref_table, COLUMN_NAME foreign_key, REFERENCED_COLUMN_NAME local_key, '1' ref
@@ -132,9 +143,15 @@ SQL;
 
     /**
      * Get all Keys from table.
+     *
+     * @return array<object>
      */
-    private function _getTableKeys($table)
+    private function _getTableKeys(string $table): array
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return [];
+        }
+
         return DB::select("SHOW KEYS FROM `{$table}`");
     }
 }

@@ -4,449 +4,199 @@ namespace Modules\{{getModuleInputModule}}\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
 class {{modelName}} extends Model
 {
-    use HasFactory, SoftDeletes, Notifiable;
+    use HasFactory;
+    use SoftDeletes;
+    use LogsActivity;
+    use HasRoles;
 
-    public $timestamps = true;
-    protected $searchableFields = ['*'];
+    // -----------------------------------------------------------------------
+    // Table / Timestamps
+    // -----------------------------------------------------------------------
+
     protected $table = '{{modelNamePluralLowerCase}}';
+    public    $timestamps = true;
+
+    // -----------------------------------------------------------------------
+    // Fillable
+    // -----------------------------------------------------------------------
 
     protected $fillable = [{{fillable}}];
 
-    protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
-    ];
+    // -----------------------------------------------------------------------
+    // Casts (PHP 8.2+ method syntax)
+    // -----------------------------------------------------------------------
 
-    protected $dates = [
-        'created_at',
-        'updated_at',
-        'deleted_at',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
+
+    // -----------------------------------------------------------------------
+    // Activity Log (Spatie laravel-activitylog)
+    // -----------------------------------------------------------------------
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName(config('livewire-crud.audit.log_name', 'crud'))
+            ->setDescriptionForEvent(
+                fn (string $eventName): string => "{{modelName}} {$eventName}"
+            );
+    }
+
+    // -----------------------------------------------------------------------
+    // Eloquent Relations
+    // -----------------------------------------------------------------------
 
     {{relations}}
 
- public static function notify($action = 'general', $data = [], $recipients = null)
-    {
-        // Custom notification logic for {{modelName}} model
-        
-        try {
-            // Import necessary classes for notifications
-            $notificationClass = 'Modules\Administrator\Notifications\{{modelName}}Notification';
-            $mailClass = 'Illuminate\Support\Facades\Mail';
-            $authClass = 'Illuminate\Support\Facades\Auth';
-            $logClass = 'Illuminate\Support\Facades\Log';
-            
-            // Determine recipients if not provided
-            if (!$recipients) {
-                $recipients = static::getDefaultNotificationRecipients();
-            }
-            
-            // Prepare notification data
-            $notificationData = array_merge([
-                'action' => $action,
-                'model' => '{{modelName}}',
-                'timestamp' => now()->toDateTimeString(),
-                'user' => class_exists($authClass) ? $authClass::user()?->name ?? 'System' : 'System',
-                'user_id' => class_exists($authClass) ? $authClass::id() : null,
-            ], $data);
-            
-            // Log the notification attempt
-            if (class_exists($logClass)) {
-                $logClass::info('{{modelName}} notification triggered', [
-                    'action' => $action,
-                    'recipients' => is_array($recipients) ? count($recipients) : 1,
-                    'data' => $notificationData
-                ]);
-            }
-            
-            // Send notifications based on action type
-            switch ($action) {
-                case 'bulk_created':
-                    static::sendBulkCreatedNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'bulk_updated':
-                    static::sendBulkUpdatedNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'bulk_deleted':
-                    static::sendBulkDeletedNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'status_changed':
-                    static::sendStatusChangedNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'import_completed':
-                    static::sendImportCompletedNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'export_ready':
-                    static::sendExportReadyNotification($notificationData, $recipients);
-                    break;
-                    
-                case 'system_alert':
-                    static::sendSystemAlertNotification($notificationData, $recipients);
-                    break;
-                    
-                default:
-                    static::sendGeneralNotification($notificationData, $recipients);
-                    break;
-            }
-            
-            return [
-                'success' => true,
-                'message' => 'Notification sent successfully',
-                'action' => $action,
-                'recipients_count' => is_array($recipients) ? count($recipients) : 1
-            ];
-            
-        } catch (\Exception $e) {
-            // Log error and return failure response
-            if (class_exists($logClass)) {
-                $logClass::error('{{modelName}} notification failed', [
-                    'action' => $action,
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
-            }
-            
-            return [
-                'success' => false,
-                'message' => 'Notification failed: ' . $e->getMessage(),
-                'action' => $action
-            ];
-        }
-    }
-    
-    /**
-     * Get default notification recipients
-     */
-    protected static function getDefaultNotificationRecipients()
-    {
-        // Define default recipients for {{modelName}} notifications
-        $defaultRecipients = [];
-        
-        // Try to get admin users from config or use fallback
-        if (config('app.admin_email')) {
-            $defaultRecipients[] = config('app.admin_email');
-        }
-        
-        // Add system admin email as fallback
-        $defaultRecipients[] = 'admin@' . (config('app.domain') ?? 'localhost');
-        
-        return array_unique($defaultRecipients);
-    }
-    
-    /**
-     * Send bulk created notification
-     */
-    protected static function sendBulkCreatedNotification($data, $recipients)
-    {
-        // Implementation for bulk created notifications
-        static::sendEmailNotification(
-            $recipients,
-            'Multiple {{modelName}}s Created',
-            "Multiple gender records have been created in the system.",
-            $data
-        );
-    }
-    
-    /**
-     * Send bulk updated notification
-     */
-    protected static function sendBulkUpdatedNotification($data, $recipients)
-    {
-        // Implementation for bulk updated notifications
-        static::sendEmailNotification(
-            $recipients,
-            'Multiple {{modelName}}s Updated',
-            "Multiple gender records have been updated in the system.",
-            $data
-        );
-    }
-    
-    /**
-     * Send bulk deleted notification
-     */
-    protected static function sendBulkDeletedNotification($data, $recipients)
-    {
-        // Implementation for bulk deleted notifications
-        static::sendEmailNotification(
-            $recipients,
-            'Multiple {{modelName}}s Deleted',
-            "Multiple gender records have been deleted from the system.",
-            $data
-        );
-    }
-    
-    /**
-     * Send status changed notification
-     */
-    protected static function sendStatusChangedNotification($data, $recipients)
-    {
-        $status = $data['new_status'] ?? 'unknown';
-        static::sendEmailNotification(
-            $recipients,
-            '{{modelName}} Status Changed',
-            "{{modelName}} status has been changed to: {$status}",
-            $data
-        );
-    }
-    
-    /**
-     * Send import completed notification
-     */
-    protected static function sendImportCompletedNotification($data, $recipients)
-    {
-        $count = $data['imported_count'] ?? 0;
-        static::sendEmailNotification(
-            $recipients,
-            '{{modelName}} Import Completed',
-            "{{modelName}} import has been completed. {$count} records were imported.",
-            $data
-        );
-    }
-    
-    /**
-     * Send export ready notification
-     */
-    protected static function sendExportReadyNotification($data, $recipients)
-    {
-        static::sendEmailNotification(
-            $recipients,
-            '{{modelName}} Export Ready',
-            "Your gender export is ready for download.",
-            $data
-        );
-    }
-    
-    /**
-     * Send system alert notification
-     */
-    protected static function sendSystemAlertNotification($data, $recipients)
-    {
-        $message = $data['alert_message'] ?? 'System alert for {{modelName}} module';
-        static::sendEmailNotification(
-            $recipients,
-            '{{modelName}} System Alert',
-            $message,
-            $data
-        );
-    }
-    
-    /**
-     * Send general notification
-     */
-    protected static function sendGeneralNotification($data, $recipients)
-    {
-        static::sendEmailNotification(
-            $recipients,
-            '{{modelName}} Notification',
-            "A gender-related event has occurred in the system.",
-            $data
-        );
-    }
-    
-    /**
-     * Send email notification helper
-     */
-    protected static function sendEmailNotification($recipients, $subject, $message, $data = [])
-    {
-        // Basic email sending logic
-        $mailClass = 'Illuminate\Support\Facades\Mail';
-        
-        if (!class_exists($mailClass)) {
-            return false;
-        }
-        
-        try {
-            foreach ((array) $recipients as $recipient) {
-                if (filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
-                    // Create a basic email notification
-                    $emailData = [
-                        'subject' => $subject,
-                        'message' => $message,
-                        'data' => $data,
-                        'timestamp' => now()->toDateTimeString()
-                    ];
-                    
-                    // Here you could send via Mail facade or queue the email
-                    // For now, we'll log it as a placeholder
-                    if (class_exists('Illuminate\Support\Facades\Log')) {
-                        \Illuminate\Support\Facades\Log::info('{{modelName}} email notification queued', [
-                            'recipient' => $recipient,
-                            'subject' => $subject,
-                            'data' => $emailData
-                        ]);
-                    }
-                }
-            }
-            
-            return true;
-        } catch (\Exception $e) {
-            if (class_exists('Illuminate\Support\Facades\Log')) {
-                \Illuminate\Support\Facades\Log::error('Failed to send gender email notification', [
-                    'error' => $e->getMessage(),
-                    'recipients' => $recipients
-                ]);
-            }
-            return false;
-        }
-    }
-    
+    // -----------------------------------------------------------------------
     // Scopes
-    public function scopeActive($query)
+    // -----------------------------------------------------------------------
+
+    public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');
     }
 
-    public function scopeInactive($query)
+    public function scopeInactive(Builder $query): Builder
     {
         return $query->where('status', 'inactive');
     }
 
-    public function scopeDraft($query)
+    public function scopeDraft(Builder $query): Builder
     {
         return $query->where('status', 'draft');
     }
 
-    public function scopeRecent($query)
+    public function scopeRecent(Builder $query): Builder
     {
-        return $query->orderBy('created_at', 'desc');
+        return $query->orderByDesc('created_at');
     }
 
-    public function scopeOldest($query)
+    /**
+     * Full-text keyword search across all fillable string columns.
+     */
+    public function scopeSearch(Builder $query, string $search): Builder
     {
-        return $query->orderBy('created_at', 'asc');
+        return $query->where(function (Builder $q) use ($search): void {
+            foreach ($this->getSearchableFields() as $field) {
+                $q->orWhere($field, 'like', "%{$search}%");
+            }
+        });
     }
 
-    // Accessors
-    public function getStatusBadgeAttribute()
+    /**
+     * Convenience scope: search + paginate + latest-first.
+     *
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function scopeSearchLatestPaginated(
+        Builder $query,
+        string $search,
+        int $perPage = 10,
+    ) {
+        return $query
+            ->search($search)
+            ->orderByDesc('updated_at')
+            ->paginate($perPage);
+    }
+
+    // -----------------------------------------------------------------------
+    // Accessors (PHP 8.x attribute syntax)
+    // -----------------------------------------------------------------------
+
+    public function getStatusBadgeAttribute(): string
     {
-        return match($this->status) {
-            'active' => '<span class="badge bg-success">Active</span>',
-            'inactive' => '<span class="badge bg-danger">Inactive</span>',
-            'draft' => '<span class="badge bg-secondary">Draft</span>',
-            'pending' => '<span class="badge bg-warning">Pending</span>',
-            'approved' => '<span class="badge bg-primary">Approved</span>',
-            'rejected' => '<span class="badge bg-danger">Rejected</span>',
-            default => '<span class="badge bg-secondary">' . ucfirst($this->status ?? 'Unknown') . '</span>',
+        return match ($this->status ?? '') {
+            'active'   => '<span class="badge text-bg-success">Active</span>',
+            'inactive' => '<span class="badge text-bg-danger">Inactive</span>',
+            'draft'    => '<span class="badge text-bg-secondary">Draft</span>',
+            'pending'  => '<span class="badge text-bg-warning">Pending</span>',
+            'approved' => '<span class="badge text-bg-primary">Approved</span>',
+            'rejected' => '<span class="badge text-bg-danger">Rejected</span>',
+            default    => '<span class="badge text-bg-secondary">' . ucfirst($this->status ?? 'Unknown') . '</span>',
         };
     }
 
-    public function getStatusClassAttribute()
+    public function getStatusClassAttribute(): string
     {
-        return match($this->status) {
-            'active' => 'success',
-            'inactive' => 'danger',
-            'draft' => 'secondary',
-            'pending' => 'warning',
-            'approved' => 'primary',
-            'rejected' => 'danger',
-            default => 'secondary',
+        return match ($this->status ?? '') {
+            'active'                      => 'success',
+            'inactive', 'rejected'        => 'danger',
+            'draft'                       => 'secondary',
+            'pending'                     => 'warning',
+            'approved'                    => 'primary',
+            default                       => 'secondary',
         };
     }
 
-    // Helper Methods
-    public function isActive()
+    // -----------------------------------------------------------------------
+    // State helpers
+    // -----------------------------------------------------------------------
+
+    public function isActive(): bool
     {
         return $this->status === 'active';
     }
 
-    public function isInactive()
+    public function isInactive(): bool
     {
         return $this->status === 'inactive';
     }
 
-    public function isDraft()
+    public function isDraft(): bool
     {
         return $this->status === 'draft';
     }
 
-    public function activate()
+    public function activate(): bool
     {
         return $this->update(['status' => 'active']);
     }
 
-    public function deactivate()
+    public function deactivate(): bool
     {
         return $this->update(['status' => 'inactive']);
     }
 
+    // -----------------------------------------------------------------------
+    // Searchable field resolution
+    // -----------------------------------------------------------------------
 
     /**
-     * Search paginated items ordering by ID descending
+     * Returns the columns to search against.
+     * Override $searchableFields in the generated model to restrict the set.
      *
-     * @param string $search
-     * @param integer $paginationQuantity
-     * @return void
+     * @return array<string>
      */
-    public function scopeSearchLatestPaginated(
-        $query,
-        string $search,
-        $paginationQuantity = 10
-    ) {
-        return $query
-            ->search($search)
-            ->orderBy('updated_at', 'desc')
-            ->paginate($paginationQuantity);
-    }
-
-    /**
-     * Adds a scope to search the table based on the
-     * $searchableFields array inside the model
-     *
-     * @param [type] $query
-     * @param [type] $search
-     * @return void
-     */
-    public function scopeSearch($query, $search)
+    protected function getSearchableFields(): array
     {
-        $query->where(function ($query) use ($search) {
-            foreach ($this->getSearchableFields() as $field) {
-                $query->orWhere($field, 'like', "%{$search}%");
-            }
-        });
-
-        return $query;
-    }
-
-    /**
-     * Returns the searchable fields. If $searchableFields is undefined,
-     * or is an empty array, or its first element is '*', it will search
-     * in all table fields
-     *
-     * @return array
-     */
-    protected function getSearchableFields()
-    {
-        if (isset($this->searchableFields) && count($this->searchableFields)) {
-            return $this->searchableFields[0] === '*'
-                ? $this->getAllModelTableFields()
-                : $this->searchableFields;
+        if (
+            property_exists($this, 'searchableFields')
+            && ! empty($this->searchableFields)
+            && $this->searchableFields[0] !== '*'
+        ) {
+            return $this->searchableFields;
         }
-
-        return $this->getAllModelTableFields();
-    }
-
-    /**
-     * Gets all fields from Model's table
-     *
-     * @return array
-     */
-    protected function getAllModelTableFields()
-    {
-        $tableName = $this->getTable();
 
         return $this->getConnection()
             ->getSchemaBuilder()
-            ->getColumnListing($tableName);
+            ->getColumnListing($this->getTable());
     }
 }

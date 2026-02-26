@@ -1,0 +1,48 @@
+{{-- Show {{modelTitle}} Modal --}}
+<div>
+    <div class="modal-header bg-info-subtle">
+        <h5 class="modal-title">
+            <i class="bi bi-eye me-2"></i>{{modelTitle}} Details
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+
+        @if(isset(${{modelNameLowerCase}}))
+            {{-- Field details --}}
+            <div class="row g-2 mb-3">
+                {{show}}
+            </div>
+
+            {{-- Timestamps --}}
+            <hr class="my-2">
+            <div class="row g-2 small text-muted">
+                <div class="col-6">
+                    <i class="bi bi-calendar-plus me-1"></i>
+                    Created: {{ ${{modelNameLowerCase}}->created_at?->format('M d, Y') }}
+                </div>
+                <div class="col-6">
+                    <i class="bi bi-calendar-check me-1"></i>
+                    Updated: {{ ${{modelNameLowerCase}}->updated_at?->diffForHumans() }}
+                </div>
+            </div>
+        @else
+            <div class="alert alert-warning py-2 mb-0">
+                <i class="bi bi-exclamation-triangle me-1"></i>Record not found.
+            </div>
+        @endif
+
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg me-1"></i>Close
+        </button>
+        @can('update-{{modelView}}')
+            <button type="button" class="btn btn-outline-primary btn-sm"
+                    wire:click="edit{{modelName}}(${{modelNameLowerCase}}->id)"
+                    data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#update{{modelName}}Modal">
+                <i class="bi bi-pencil me-1"></i>Edit
+            </button>
+        @endcan
+    </div>
+</div>

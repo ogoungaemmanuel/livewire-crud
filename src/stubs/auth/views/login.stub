@@ -1,0 +1,78 @@
+<div>
+    <!-- Session Status -->
+    @if (session('status'))
+        <div class="alert alert-success mb-4" role="alert">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <h4 class="card-title mb-1 fw-bold">Welcome back</h4>
+    <p class="text-muted mb-4 small">Sign in to your account to continue</p>
+
+    <form wire:submit="login">
+
+        <!-- Email Address -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input wire:model="email"
+                       id="email"
+                       type="email"
+                       class="form-control @error('email') is-invalid @enderror"
+                       placeholder="you@example.com"
+                       autofocus
+                       autocomplete="username">
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3">
+            <div class="d-flex justify-content-between">
+                <label for="password" class="form-label">Password</label>
+                <a href="{{ route('{{getModuleInput}}.password.request') }}"
+                   class="small text-decoration-none" wire:navigate>
+                    Forgot password?
+                </a>
+            </div>
+            <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input wire:model="password"
+                       id="password"
+                       type="password"
+                       class="form-control @error('password') is-invalid @enderror"
+                       placeholder="••••••••"
+                       autocomplete="current-password">
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Remember Me -->
+        <div class="mb-4 form-check">
+            <input wire:model="remember" id="remember" type="checkbox" class="form-check-input">
+            <label for="remember" class="form-check-label small">Remember me</label>
+        </div>
+
+        <div class="d-grid">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <span wire:loading.remove wire:target="login">Log in</span>
+                <span wire:loading wire:target="login">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Signing in…
+                </span>
+            </button>
+        </div>
+
+    </form>
+
+    @if (Route::has('{{getModuleInput}}.register'))
+        <p class="text-center text-muted mt-4 mb-0 small">
+            Don't have an account?
+            <a href="{{ route('{{getModuleInput}}.register') }}" class="text-decoration-none" wire:navigate>Create one</a>
+        </p>
+    @endif
+</div>

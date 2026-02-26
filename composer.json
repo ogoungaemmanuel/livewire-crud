@@ -19,7 +19,19 @@
         "admin",
         "dashboard",
         "scaffolding",
-        "rapid-development"
+        "rapid-development",
+        "horizon",
+        "pulse",
+        "search",
+        "redis",
+        "data-transfer-objects",
+        "query-builder",
+        "telescope",
+        "activity-log",
+        "permissions",
+        "rbac",
+        "audit",
+        "monitoring"
     ],
     "homepage": "https://github.com/ogoungaemmanuel/livewire-crud",
     "license": "MIT",
@@ -33,20 +45,25 @@
         }
     ],
     "require": {
-        "php": "^8.1|^8.2|^8.3|^8.4",
-        "laravel/framework": "^9.0|^10.0|^11.0|^12.0",
-        "livewire/livewire": "^3.0",
+        "php": "^8.2|^8.3|^8.4",
+        "laravel/framework": "^10.0|^11.0|^12.0",
+        "livewire/livewire": "v4.0.0-beta.4",
         "laravel/ui": "^4.0|^5.0",
+        "laravel/pulse": "^1.0",
+        "laravel/sanctum": "^3.0|^4.0|^5.0",
+        "laravel/scout": "^10.0|^11.0",
         "aliqasemzadeh/livewire-bootstrap-modal": "^2.3",
         "php-flasher/flasher-laravel": "^2.1",
         "intervention/image": "^3.0|^4.0",
         "maatwebsite/excel": "^3.1",
         "barryvdh/laravel-dompdf": "^2.0|^3.1",
-        "spatie/laravel-permission": "^6.0|^7.0",
         "spatie/laravel-activitylog": "^4.7|^5.0",
+        "spatie/laravel-data": "^4.0|^5.0",
+        "spatie/laravel-permission": "^6.0|^7.0",
+        "spatie/laravel-query-builder": "^5.0|^6.0",
         "league/flysystem": "^3.0",
-        "pusher/pusher-php-server": "^7.0|^8.0",
-        "laravel/sanctum": "^3.0|^4.0|^5.0"
+        "predis/predis": "^2.0",
+        "pusher/pusher-php-server": "^7.0|^8.0"
     },
     "require-dev": {
         "rector/rector": "^2.1",
@@ -54,9 +71,12 @@
         "orchestra/testbench": "^8.0|^9.0|^10.0",
         "mockery/mockery": "^1.4|^2.0",
         "laravel/pint": "^1.0|^2.0",
+        "laravel/telescope": "^5.0",
         "nunomaduro/collision": "^7.0|^8.0|^9.0",
         "pestphp/pest": "^2.0|^3.0",
+        "pestphp/pest-plugin-arch": "^2.0|^3.0",
         "pestphp/pest-plugin-laravel": "^2.0|^3.0",
+        "brianium/paratest": "^7.0|^8.0",
         "spatie/laravel-ray": "^1.32|^2.0",
         "fakerphp/faker": "^1.21|^2.0",
         "phpstan/phpstan": "^1.10|^2.0",
@@ -74,25 +94,38 @@
     },
     "scripts": {
         "test": "vendor/bin/pest",
-        "test-coverage": "vendor/bin/pest --coverage",
+        "test-coverage": "vendor/bin/pest --coverage --min=80",
         "test-unit": "vendor/bin/pest --testsuite=Unit",
         "test-feature": "vendor/bin/pest --testsuite=Feature",
+        "test-parallel": "vendor/bin/paratest --runner=WrapperRunner",
+        "test-arch": "vendor/bin/pest --filter=arch",
+        "test-type-coverage": "vendor/bin/pest --type-coverage --min=100",
         "format": "vendor/bin/pint",
         "format-check": "vendor/bin/pint --test",
-        "analyse": "vendor/bin/phpstan analyse",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=512M",
+        "analyse-baseline": "vendor/bin/phpstan analyse --generate-baseline",
         "rector": "vendor/bin/rector process",
         "rector-dry": "vendor/bin/rector process --dry-run",
+        "security": "composer audit",
         "quality": [
+            "@security",
             "@format-check",
             "@analyse",
-            "@test"
+            "@test-coverage"
+        ],
+        "ci": [
+            "@security",
+            "@format-check",
+            "@analyse",
+            "@rector-dry",
+            "@test-parallel"
         ],
         "setup-hooks": [
             "cp .github/hooks/pre-commit .git/hooks/pre-commit",
             "chmod +x .git/hooks/pre-commit"
         ],
         "post-install-cmd": [
-            "@php artisan vendor:publish --provider=\"LivewireCrud\\LivewireCrudServiceProvider\" --tag=config --force"
+            "@php artisan vendor:publish --provider=\"Xslainadmin\\LivewireCrud\\LivewireCrudServiceProvider\" --tag=config --force"
         ]
     },
     "config": {
@@ -102,10 +135,20 @@
             "php-http/discovery": true
         },
         "optimize-autoloader": true,
-        "preferred-install": "dist"
+        "preferred-install": "dist",
+        "platform": {
+            "php": "8.2"
+        },
+        "audit": {
+            "abandoned": "report"
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
+    "suggest": {
+        "laravel/horizon": "Queue monitoring dashboard (requires ext-pcntl on Linux/macOS)",
+        "laravel/telescope": "Request/query debugging tool for local development"
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -116,7 +159,7 @@
             }
         },
         "branch-alias": {
-            "dev-main": "3.0-dev"
+            "dev-main": "4.1-dev"
         }
     },
     "support": {

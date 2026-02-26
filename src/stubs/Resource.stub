@@ -1,0 +1,89 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Resources;
+
+use Modules\{{getModuleInputModule}}\Models\{{modelName}};
+use Xslainadmin\LivewireCrud\Resource\CrudResource;
+use Xslainadmin\LivewireCrud\Schema\FormSchema;
+use Xslainadmin\LivewireCrud\Schema\TableSchema;
+use Xslainadmin\LivewireCrud\Columns\TextColumn;
+use Xslainadmin\LivewireCrud\Columns\DateColumn;
+use Xslainadmin\LivewireCrud\Columns\BooleanColumn;
+use Xslainadmin\LivewireCrud\Columns\BadgeColumn;
+use Xslainadmin\LivewireCrud\Columns\NumberColumn;
+use Xslainadmin\LivewireCrud\Columns\ImageColumn;
+use Xslainadmin\LivewireCrud\Fields\TextInput;
+use Xslainadmin\LivewireCrud\Fields\Textarea;
+use Xslainadmin\LivewireCrud\Fields\SelectInput;
+use Xslainadmin\LivewireCrud\Fields\DatePicker;
+use Xslainadmin\LivewireCrud\Fields\Toggle;
+use Xslainadmin\LivewireCrud\Fields\FileUpload;
+use Xslainadmin\LivewireCrud\Filters\SelectFilter;
+use Xslainadmin\LivewireCrud\Filters\DateFilter;
+use Xslainadmin\LivewireCrud\Filters\TernaryFilter;
+use Xslainadmin\LivewireCrud\Actions\ViewAction;
+use Xslainadmin\LivewireCrud\Actions\EditAction;
+use Xslainadmin\LivewireCrud\Actions\DeleteAction;
+use Xslainadmin\LivewireCrud\Actions\CreateAction;
+use Xslainadmin\LivewireCrud\Actions\ExportAction;
+use Xslainadmin\LivewireCrud\Actions\ImportAction;
+use Xslainadmin\LivewireCrud\Actions\BulkAction;
+
+class {{modelName}}Resource extends CrudResource
+{
+    protected static string $model = {{modelName}}::class;
+
+    protected static string $navigationIcon  = 'bi-table';
+    protected static string $navigationGroup = '{{getModuleInputTitle}}';
+    protected static string $navigationLabel = '{{modelNamePluralTitle}}';
+    protected static int    $navigationSort  = 0;
+
+    // -----------------------------------------------------------------------
+    // Form
+    // -----------------------------------------------------------------------
+
+    public static function form(FormSchema $schema): FormSchema
+    {
+        return $schema->columns(2)->schema([
+{{resourceFormFields}}
+        ]);
+    }
+
+    // -----------------------------------------------------------------------
+    // Table
+    // -----------------------------------------------------------------------
+
+    public static function table(TableSchema $table): TableSchema
+    {
+        return $table
+            ->columns([
+{{resourceColumns}}
+            ])
+            ->filters([
+{{resourceFilters}}
+            ])
+            ->actions([
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->headerActions([
+                CreateAction::make(),
+                ImportAction::make(),
+                ExportAction::make(),
+            ])
+            ->bulkActions([
+                BulkAction::make('delete')
+                    ->label('Delete Selected')
+                    ->icon('bi-trash')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action('bulkDelete'),
+                BulkAction::make('export')
+                    ->label('Export Selected')
+                    ->icon('bi-download')
+                    ->action('bulkExport'),
+            ])
+            ->defaultSort('id', 'desc');
+    }
+}

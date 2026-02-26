@@ -1,0 +1,26 @@
+<?php
+
+namespace Modules\{{getModuleInputModule}}\Livewire\Auth;
+
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Livewire\Component;
+
+class Logout extends Component
+{
+    /**
+     * Log the current user out of the application.
+     */
+    public function logout(): void
+    {
+        Auth::guard('web')->logout();
+        Session::invalidate();
+        Session::regenerateToken();
+        $this->redirect(route('{{getModuleInput}}.login'), navigate: true);
+    }
+
+    public function render(): \Illuminate\View\View
+    {
+        return view('{{getModuleInput}}::auth.logout');
+    }
+}

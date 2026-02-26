@@ -1,0 +1,14 @@
+@extends('{{getModuleInput}}::layouts.backend')
+@section('title', __('{{modelPluralTitle}}'))
+@section('content')
+<div class="container-xl px-4">
+    {{-- Breadcrumb --}}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a href="{{ url('/') }}">Home</a></li>
+            <li class="breadcrumb-item active">{{modelPluralTitle}}</li>
+        </ol>
+    </nav>
+    @livewire('{{getModuleInput}}::{{modelNamePluralLowerCase}}')
+</div>
+@endsection
