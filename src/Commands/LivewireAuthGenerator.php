@@ -34,10 +34,6 @@ class LivewireAuthGenerator extends Command
 
     private Filesystem $files;
 
-    // Map of stub key → generated file path (relative to Modules/{module}/)
-    /** @var array<string, array{stub: string, dest: string}> */
-    private array $components = [];
-
     public function __construct(Filesystem $files)
     {
         parent::__construct();
