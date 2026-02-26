@@ -533,6 +533,17 @@ abstract class LivewireGeneratorCommand extends Command implements CrudGenerator
 
     }
 
+    /**
+     * Single-file component (Volt) path.
+     * Produces: Modules/{Module}/resources/views/livewire/{plural-kebab}.blade.php
+     */
+    protected function _getVoltComponentPath(): string
+    {
+        $name   = Str::kebab(Str::plural($this->modelName));
+        $module = $this->getModuleInput();
+        return $this->makeDirectory(base_path("/Modules/{$module}/resources/views/livewire/{$name}.blade.php"));
+    }
+
     protected function _getCreatePath($name)
     {
         $name = Str::ucfirst(Str::plural($this->modelName));

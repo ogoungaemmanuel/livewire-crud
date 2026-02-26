@@ -34,7 +34,8 @@ class LivewireCrudNew extends LivewireGeneratorCommand
         {name    : Snake-case table name (e.g. products)}
         {theme   : Theme slug (none|nonedefault|modern|default)}
         {menu    : Menu file name under Modules/backend/resources/views/pmsmenu/}
-        {module  : Module name (e.g. Shop)}';
+        {module  : Module name (e.g. Shop)}
+        {--sfc   : Generate a Livewire Volt single-file component (requires livewire/volt)}';
 
     protected $description = 'Generate Livewire CRUD + migration for a NEW table (not yet in the database)';
 
@@ -146,12 +147,22 @@ class LivewireCrudNew extends LivewireGeneratorCommand
 
         $replace = array_merge($this->buildReplacements(), $this->modelReplacements());
 
-        $this->warn('Creating: <info>Livewire Component...</info>');
-        $livewireTemplate = str_replace(
-            array_keys($replace), array_values($replace),
-            $this->getStub($theme === 'none' ? 'Livewire' : 'Livewirethemed')
-        );
-        $this->write($modulePath, $livewireTemplate);
+        if ($this->option('sfc')) {
+            $voltTemplate = str_replace(
+                array_keys($replace), array_values($replace),
+                $this->getStub('LivewireVolt')
+            );
+            $this->warn('Creating: <info>Livewire Volt Single-File Component...</info>');
+            $this->write($this->_getVoltComponentPath(), $voltTemplate);
+            $this->info('  <fg=yellow>Note:</> Add <comment>Volt::mount()</comment> in your module service provider to register the component.');
+        } else {
+            $this->warn('Creating: <info>Livewire Component...</info>');
+            $livewireTemplate = str_replace(
+                array_keys($replace), array_values($replace),
+                $this->getStub($theme === 'none' ? 'Livewire' : 'Livewirethemed')
+            );
+            $this->write($modulePath, $livewireTemplate);
+        }
 
         $this->warn('Creating: <info>Model...</info>');
         $this->write($modelPath, str_replace(array_keys($replace), array_values($replace), $this->getStub('Model')));
@@ -199,6 +210,11 @@ class LivewireCrudNew extends LivewireGeneratorCommand
     /** {@inheritdoc} */
     public function buildViews(): static
     {
+        if ($this->option('sfc')) {
+            $this->info('Skipping separate view files (--sfc mode: view is embedded in the Volt component).');
+            return $this;
+        }
+
         $theme = $this->getThemeInput();
         $this->warn('Creating: <info>Views...</info>');
 
@@ -396,7 +412,15 @@ class LivewireCrudNew extends LivewireGeneratorCommand
         }
 
         $routeContents = $this->filesystem->get($routeFile);
-        $routeItemStub = "\tRoute::view('" . $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+
+        if ($this->option('sfc')) {
+            // Volt single-file component route
+            $namePluralLower = Str::lower(Str::plural($this->getNameInput()));
+            $routeItemStub   = "\tVolt::route('/" . $this->getNameInput() . "', '{$modulelower}::{$namePluralLower}')->middleware('auth');";
+        } else {
+            $routeItemStub = "\tRoute::view('" . $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+        }
+
         $routeItemHook = '//Route Hooks - Do not delete//';
 
         if (! Str::contains($routeContents, $routeItemStub)) {

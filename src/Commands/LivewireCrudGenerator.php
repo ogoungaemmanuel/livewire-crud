@@ -18,7 +18,8 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
     /** @var array<string, string> */
     private array $replaces = [];
 
-    protected $signature = 'crud:generate {name : Table name} {theme} {menu} {module}';
+    protected $signature = 'crud:generate {name : Table name} {theme} {menu} {module}
+        {--sfc : Generate a Livewire Volt single-file component (requires livewire/volt)}';
 
     protected $description = 'Generate Livewire Component and CRUD operations';
 
@@ -57,14 +58,16 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->argument = $this->getNameInput();
         $routeFile = base_path("Modules/{$module}/routes/web.php");
         $routeContents = $this->filesystem->get($routeFile);
-        if ($this->getThemeInput() == 'none') {
+        if ($this->option('sfc')) {
+            // Volt::route() — single-file component (requires livewire/volt)
+            $namePluralLower = Str::lower(Str::plural($this->getNameInput()));
+            $routeItemStub = "\tVolt::route('/" . $this->getNameInput() . "', '{$modulelower}::{$namePluralLower}')->middleware('auth');";
+        } elseif ($this->getThemeInput() == 'none') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-        }elseif ($this->getThemeInput() == 'nonedefault') {
+        } elseif ($this->getThemeInput() == 'nonedefault') {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-            // $routeUploadStub = "\tRoute::post('" .     $this->getNameInput() . "/upload-photo', Modules\\{$this->getNameInput()}\\App\\Http\\Controllers\\{$module}Controller::class, 'uploadPhoto')->name('{$modulelower}.upload-photo');";
-        }else {
+        } else {
             $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-            // $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire.' . My_Theme() . '." . $this->getNameInput() . ".index')->middleware('auth');";
         }
 		$routeItemHook = '//Route Hooks - Do not delete//';
 
@@ -195,52 +198,31 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
             array_keys($replace), array_values($replace), $this->getStub('FeatureTest')
         );
 
-        if ($theme == 'none') {
-        $livewireTemplate = str_replace(
-            array_keys($replace), array_values($replace), $this->getStub('Livewire')
-        );
-        // $editTemplate = str_replace(
-        //     array_keys($replace), array_values($replace), $this->getStub("modals/Edit")
-        // );
-        // $createTemplate = str_replace(
-        //     array_keys($replace), array_values($replace), $this->getStub("modals/Create")
-        // );
-        // $showTemplate = str_replace(
-        //     array_keys($replace), array_values($replace), $this->getStub("modals/Show")
-        // );
-        //  $deleteTemplate = str_replace(
-        //     array_keys($replace), array_values($replace), $this->getStub("modals/Delete")
-        // );
-        }else{
-            $livewireTemplate = str_replace(
-                array_keys($replace),
-                array_values($replace),
-                $this->getStub('Livewirethemed')
+        if ($this->option('sfc')) {
+            // ── Volt single-file component mode ───────────────────────────
+            $voltTemplate = str_replace(
+                array_keys($replace), array_values($replace), $this->getStub('LivewireVolt')
             );
-            // $editTemplate = str_replace(
-            //     array_keys($replace),
-            //     array_values($replace),
-            //     $this->getStub("modalsthemed/Edit")
-            // );
-            // $createTemplate = str_replace(
-            //     array_keys($replace),
-            //     array_values($replace),
-            //     $this->getStub("modalsthemed/Create")
-            // );
-            // $showTemplate = str_replace(
-            //     array_keys($replace),
-            //     array_values($replace),
-            //     $this->getStub("modalsthemed/Show")
-            // );
-            // $deleteTemplate = str_replace(
-            //     array_keys($replace),
-            //     array_values($replace),
-            //     $this->getStub("modalsthemed/Delete")
-            // );
+            $this->warn('Creating: <info>Livewire Volt Single-File Component...</info>');
+            $this->write($this->_getVoltComponentPath(), $voltTemplate);
+            $this->info('  <fg=yellow>Note:</> Add <comment>Volt::mount()</comment> in your module service provider to register the component.');
+            $this->info('  <fg=yellow>Route:</> <comment>Volt::route(\'/{{nameInput}}\', \'{{moduleLower}}::{{namePluralLower}}\')->middleware(\'auth\');</comment>');
+        } else {
+            // ── Classic split component / views mode ──────────────────────
+            if ($theme == 'none') {
+            $livewireTemplate = str_replace(
+                array_keys($replace), array_values($replace), $this->getStub('Livewire')
+            );
+            }else{
+                $livewireTemplate = str_replace(
+                    array_keys($replace),
+                    array_values($replace),
+                    $this->getStub('Livewirethemed')
+                );
+            }
+            $this->warn('Creating: <info>Livewire Component...</info>');
+            $this->write($modulePath, $livewireTemplate);
         }
-        $this->warn('Creating: <info>Livewire Component...</info>');
-        // $this->write($livewirePath, $livewireTemplate);
-        $this->write($modulePath, $livewireTemplate);
 		$this->warn('Creating: <info>Model...</info>');
         //start Create
         // $this->write($createlPath, $createTemplate);
@@ -322,6 +304,12 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
      */
     public function buildViews(): static
     {
+        // In single-file component mode the view is embedded in the Volt stub.
+        if ($this->option('sfc')) {
+            $this->info('Skipping separate view files (--sfc mode: view is embedded in the Volt component).');
+            return $this;
+        }
+
         $theme = $this->getThemeInput();
         $this->warn('Creating:<info> Views ...</info>');
 
