@@ -12,6 +12,7 @@ use Xslainadmin\LivewireCrud\Commands\LivewireCrudNew;
 use Xslainadmin\LivewireCrud\Commands\LivewireGenerateMakeCommand;
 use Xslainadmin\LivewireCrud\Commands\LivewireInstall;
 use Xslainadmin\LivewireCrud\Commands\LivewireMigrationGenerator;
+use Xslainadmin\LivewireCrud\Commands\MakeComponentCommand;
 use Xslainadmin\LivewireCrud\Commands\MakeModuleCommand;
 use Xslainadmin\LivewireCrud\Commands\MakeResourceCommand;
 use Xslainadmin\LivewireCrud\Contracts\CrudGeneratorInterface;
@@ -33,6 +34,7 @@ class LivewireCrudServiceProvider extends ServiceProvider
         LivewireInstall::class,
         LivewireGenerateMakeCommand::class,
         LivewireMigrationGenerator::class,
+        MakeComponentCommand::class,
         MakeModuleCommand::class,
         MakeResourceCommand::class,
     ];

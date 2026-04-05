@@ -58,24 +58,33 @@ class LivewireCrudGenerator extends LivewireGeneratorCommand
         $this->argument = $this->getNameInput();
         $routeFile = base_path("Modules/{$module}/routes/web.php");
         $routeContents = $this->filesystem->get($routeFile);
+        $namePluralStudly = Str::studly(Str::plural($this->getNameInput()));
+        $namePluralLower  = Str::lower(Str::plural($this->getNameInput()));
+
         if ($this->option('sfc')) {
             // Volt::route() — single-file component (requires livewire/volt)
-            $namePluralLower = Str::lower(Str::plural($this->getNameInput()));
             $routeItemStub = "\tVolt::route('/" . $this->getNameInput() . "', '{$modulelower}::{$namePluralLower}')->middleware('auth');";
-        } elseif ($this->getThemeInput() == 'none') {
-            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
-        } elseif ($this->getThemeInput() == 'nonedefault') {
-            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
         } else {
-            $routeItemStub = "\tRoute::view('" .     $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
+            $routeItemStub = "\tRoute::view('" . $this->getNameInput() . "', '{$modulelower}::livewire." . $this->getNameInput() . ".index')->middleware('auth');";
         }
+
+        // Upload-photo route for the generated controller
+        $uploadRouteStub = "\tRoute::post('" . $this->getNameInput() . "/upload-photo', [\\Modules\\{$module}\\Http\\Controllers\\{$namePluralStudly}Controller::class, 'uploadPhoto'])"
+            . "->middleware('auth')->name('{$modulelower}.{$namePluralLower}.upload-photo');";
+
 		$routeItemHook = '//Route Hooks - Do not delete//';
 
         if (!Str::contains($routeContents, $routeItemStub)) {
-            $newContents = str_replace($routeItemHook, $routeItemHook . PHP_EOL . $routeItemStub, $routeContents);
-            $this->filesystem->put($routeFile, $newContents);
+            $routeContents = str_replace($routeItemHook, $routeItemHook . PHP_EOL . $routeItemStub, $routeContents);
             $this->warn('Route inserted: <info>' . $routeFile . '</info>');
         }
+
+        if (!Str::contains($routeContents, $uploadRouteStub)) {
+            $routeContents = str_replace($routeItemHook, $routeItemHook . PHP_EOL . $uploadRouteStub, $routeContents);
+            $this->warn('Upload-photo route inserted: <info>' . $routeFile . '</info>');
+        }
+
+        $this->filesystem->put($routeFile, $routeContents);
 
 		//Updating Nav Bar
         // $layoutFile = 'resources/views/layouts/app.blade.php';
